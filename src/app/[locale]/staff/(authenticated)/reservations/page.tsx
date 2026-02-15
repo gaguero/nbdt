@@ -8,7 +8,8 @@ interface Reservation {
   opera_resv_id: string;
   status: string;
   room: string;
-  full_name: string;
+  guest_name: string;
+  opera_guest_name?: string;
   arrival: string;
   departure: string;
   nights: number;
@@ -175,7 +176,12 @@ export default function ReservationsPage() {
               ) : reservations.map((r) => (
                 <tr key={r.id} className="border-b hover:bg-gray-50">
                   <td className="px-4 py-3 font-semibold">{r.room || '—'}</td>
-                  <td className="px-4 py-3">{r.full_name || '—'}</td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{r.guest_name || '—'}</div>
+                    {r.opera_guest_name && r.opera_guest_name !== r.guest_name && (
+                      <div className="text-xs text-gray-500">Opera: {r.opera_guest_name}</div>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{r.arrival ? new Date(r.arrival).toLocaleDateString() : '—'}</td>
                   <td className="px-4 py-3">{r.departure ? new Date(r.departure).toLocaleDateString() : '—'}</td>
                   <td className="px-4 py-3">{r.nights ?? '—'}</td>

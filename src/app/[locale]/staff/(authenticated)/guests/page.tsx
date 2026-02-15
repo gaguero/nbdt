@@ -140,6 +140,9 @@ export default function GuestsPage() {
                           <span className="font-medium text-sm">{ls('Room', 'Hab.')} {r.room || '—'}</span>
                           <span className="text-xs text-gray-500 ml-3">{r.arrival ? new Date(r.arrival).toLocaleDateString() : '—'} → {r.departure ? new Date(r.departure).toLocaleDateString() : '—'}</span>
                           <span className="text-xs text-gray-500 ml-2">({r.nights ?? '—'} {ls('nights', 'noches')})</span>
+                          {r.opera_guest_name && r.opera_guest_name !== selected.guest.full_name && (
+                            <div className="text-xs text-gray-400 mt-1">Opera: {r.opera_guest_name}</div>
+                          )}
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[r.status] ?? 'bg-gray-100 text-gray-600'}`}>{r.status}</span>
                       </div>

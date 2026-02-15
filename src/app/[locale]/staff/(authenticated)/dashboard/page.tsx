@@ -204,7 +204,12 @@ function ReservationTable({ reservations, locale }: { reservations: any[]; local
         {reservations.map((r) => (
           <tr key={r.id} className="border-b hover:bg-gray-50">
             <td className="px-6 py-3 font-semibold">{r.room || '—'}</td>
-            <td className="px-6 py-3">{r.full_name || '—'}</td>
+            <td className="px-6 py-3">
+              <div>{r.guest_name || '—'}</div>
+              {r.opera_guest_name && r.opera_guest_name !== r.guest_name && (
+                <div className="text-xs text-gray-500">Opera: {r.opera_guest_name}</div>
+              )}
+            </td>
             <td className="px-6 py-3">{r.room_category || '—'}</td>
             <td className="px-6 py-3">{r.nights ?? '—'}</td>
             <td className="px-6 py-3">

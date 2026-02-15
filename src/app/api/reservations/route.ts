@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     const reservations = await queryMany(
-      `SELECT r.*, g.full_name as guest_name, g.first_name, g.last_name
+      `SELECT r.*, g.full_name as guest_name, g.first_name, g.last_name, r.opera_guest_name
        FROM reservations r
        LEFT JOIN guests g ON r.guest_id = g.id
        ${whereClause}

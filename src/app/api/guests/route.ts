@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       if (!guest) return NextResponse.json({ error: 'Guest not found' }, { status: 404 });
 
       const reservations = await queryMany(
-        `SELECT * FROM reservations WHERE guest_id = $1 ORDER BY arrival DESC`, [id]
+        `SELECT *, opera_guest_name FROM reservations WHERE guest_id = $1 ORDER BY arrival DESC`, [id]
       );
       const transfers = await queryMany(
         `SELECT t.*, v.name as vendor_name FROM transfers t LEFT JOIN vendors v ON t.vendor_id = v.id WHERE t.guest_id = $1 ORDER BY t.date DESC`, [id]
