@@ -10,7 +10,7 @@ const APPSHEET_TABLES = [
   { value: 'special_requests', label: 'Special Requests' },
   { value: 'other_hotel_bookings', label: 'Other Hotel Bookings' },
   { value: 'romantic_dinners', label: 'Romantic Dinners' },
-  { value: 'tour_bookings', label: 'Tour Bookings' },
+  // Tour Bookings has its own dedicated import flow at /staff/tour-normalization
 ];
 
 export default function SettingsPage() {

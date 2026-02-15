@@ -270,13 +270,40 @@ async function findHotel(client: any, hotelName: string): Promise<string | null>
 async function findTourProduct(client: any, productName: string): Promise<string | null> {
   if (!productName) return null;
 
-  // Simple ILIKE fuzzy match against product names
+  try {
+    // Try to check confirmed mappings first (if table exists)
+    const mappingRes = await client.query(
+      'SELECT confirmed_product_id FROM tour_name_mappings WHERE original_name = $1 AND confirmed_product_id IS NOT NULL LIMIT 1',
+      [productName]
+    );
+    if (mappingRes.rows.length > 0) {
+      return mappingRes.rows[0].confirmed_product_id;
+    }
+  } catch {
+    // Table doesn't exist yet, continue to fallback
+  }
+
+  // Fuzzy match against product names
   const productRes = await client.query(
     'SELECT id FROM tour_products WHERE name_en ILIKE $1 OR name_es ILIKE $1 LIMIT 1',
     [productName]
   );
 
-  return productRes.rows[0]?.id ?? null;
+  const foundId = productRes.rows[0]?.id ?? null;
+
+  // Try to record unmapped name (if table exists)
+  try {
+    await client.query(
+      `INSERT INTO tour_name_mappings (original_name, suggested_product_id)
+       VALUES ($1, $2)
+       ON CONFLICT (original_name) DO UPDATE SET suggested_product_id = EXCLUDED.suggested_product_id`,
+      [productName, foundId]
+    );
+  } catch {
+    // Table doesn't exist yet, skip recording
+  }
+
+  return foundId;
 }
 
 // ============================================================================
