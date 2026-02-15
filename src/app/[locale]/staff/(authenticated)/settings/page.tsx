@@ -148,15 +148,26 @@ export default function SettingsPage() {
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex justify-between items-start mb-1">
           <h2 className="text-lg font-semibold text-gray-900">AppSheet Data Import</h2>
-          <Link
-            href="/staff/tour-normalization"
-            className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Tour Normalization
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/staff/vendor-normalization"
+              className="text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Vendor Normalization
+            </Link>
+            <Link
+              href="/staff/tour-normalization"
+              className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Tour Normalization
+            </Link>
+          </div>
         </div>
         <p className="text-sm text-gray-500 mb-4">
           Import historical data from AppSheet CSV exports. Select the target table, then upload the exported CSV file.
