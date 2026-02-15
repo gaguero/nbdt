@@ -125,6 +125,26 @@ function parseDate(val: string): string | null {
     return `${year}-${mStr.padStart(2, '0')}-${dStr.padStart(2, '0')}`;
   }
 
+  // Try "Day, Month D, YYYY" format (e.g., "Thursday, March 2, 2023")
+  const fullDateMatch = val.match(/^[A-Za-z]+,\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})$/);
+  if (fullDateMatch) {
+    const [, monthName, dStr, yStr] = fullDateMatch;
+    const monthMap: Record<string, number> = {
+      'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
+      'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12,
+    };
+    const month = monthMap[monthName.toLowerCase()];
+    if (!month) return null;
+
+    const day = parseInt(dStr);
+    const year = parseInt(yStr);
+
+    if (year < 1900 || year > 2100) return null;
+    if (day < 1 || day > 31) return null;
+
+    return `${year}-${month.toString().padStart(2, '0')}-${dStr.padStart(2, '0')}`;
+  }
+
   return null;
 }
 
@@ -623,8 +643,9 @@ async function importTourBookings(rows: Record<string, string>[]): Promise<CsvIm
       await transaction(async (client) => {
         const guestId = await findOrCreateGuest(client, guestName, guestLegacyId);
         const productId = await findTourProduct(client, productName);
-        if (!productId && productName) {
-          result.errors.push(`Tour booking row "${legacyId}": product "${productName}" not found — skipped`);
+        if (!productId) {
+          const reason = productName ? `product "${productName}" not found` : 'no product name provided';
+          result.errors.push(`Tour booking row "${legacyId}": ${reason} — skipped`);
           result.unchanged++;
           return;
         }
