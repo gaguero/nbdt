@@ -94,19 +94,35 @@ function parseDate(val: string): string | null {
     return null;
   }
 
-  // Try DD/MM/YYYY or DD/MM/YY
-  const dmY = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (dmY) {
-    const [, d, m, yStr] = dmY;
-    const year = yStr.length === 2 ? (parseInt(yStr) < 50 ? 2000 + parseInt(yStr) : 1900 + parseInt(yStr)) : parseInt(yStr);
-    const month = parseInt(m);
-    const day = parseInt(d);
+  // Try M/D/YYYY or M/D/YY (American format, most common in AppSheet)
+  const mdy = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (mdy) {
+    const [, mStr, dStr, yStr] = mdy;
+    const month = parseInt(mStr);
+    const day = parseInt(dStr);
+    let year = parseInt(yStr);
+
+    // Handle 2-digit years
+    if (yStr.length === 2) {
+      year = year < 50 ? 2000 + year : 1900 + year;
+    }
+
+    // Normalize year: if year < 1900, it's likely a typo like 1015 for 2015
+    if (year < 1900) {
+      // Try to fix obvious typos: 1015 -> 2015, 1027 -> 2027, etc.
+      const yearStr = yStr.toString();
+      if (yearStr.length === 4 && yearStr.startsWith('10')) {
+        year = 2000 + parseInt(yearStr.substring(2));
+      } else {
+        return null;
+      }
+    }
 
     // Validate
-    if (year < 1900 || year > 2100) return null;
+    if (year > 2100) return null;
     if (month < 1 || month > 12 || day < 1 || day > 31) return null;
 
-    return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    return `${year}-${mStr.padStart(2, '0')}-${dStr.padStart(2, '0')}`;
   }
 
   return null;
