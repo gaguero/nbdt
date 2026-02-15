@@ -162,12 +162,7 @@ CREATE TABLE bookings (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CHECK (status IN ('pending', 'confirmed', 'in_progress', 'completed', 'cancelled', 'no_show')),
-    CHECK (number_of_guests > 0),
-    -- Prevent double-booking: same item cannot be booked at overlapping times
-    EXCLUDE USING gist (
-        item_id WITH =,
-        tsrange(booking_time, end_time) WITH &&
-    )
+    CHECK (number_of_guests > 0)
 );
 
 -- ============================================================================
