@@ -25,10 +25,22 @@ async function runMigrations() {
 
       // Split into individual statements and run each one separately so
       // an "already exists" error on one statement does not abort the rest.
-      const statements = sql
-        .split(/;\s*\n/)
-        .map(s => s.trim())
-        .filter(s => s.length > 0 && !s.startsWith('--'));
+      // Must handle dollar-quoted $$ blocks (used in functions/triggers).
+      const statements = [];
+      let current = '';
+      let inDollarQuote = false;
+      const lines = sql.split('\n');
+      for (const line of lines) {
+        const dollarCount = (line.match(/\$\$/g) || []).length;
+        if (dollarCount % 2 !== 0) inDollarQuote = !inDollarQuote;
+        current += line + '\n';
+        if (!inDollarQuote && line.trimEnd().endsWith(';')) {
+          const stmt = current.trim();
+          if (stmt.length > 0 && !stmt.startsWith('--')) statements.push(stmt);
+          current = '';
+        }
+      }
+      if (current.trim().length > 0) statements.push(current.trim());
 
       let applied = 0;
       let skipped = 0;
