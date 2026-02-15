@@ -172,13 +172,13 @@ async function importGuests(rows: Record<string, string>[]): Promise<CsvImportRe
   for (let idx = 0; idx < rows.length; idx++) {
     const row = rows[idx];
     try {
-      const legacyId = get(row, 'id', 'row_id', 'guest_id', '_rownum');
-      const fullName = get(row, 'full_name', 'name', 'fullname', 'guest_name');
-      const firstName = get(row, 'first_name', 'firstname', 'first');
-      const lastName = get(row, 'last_name', 'lastname', 'last');
-      const email = get(row, 'email', 'correo');
-      const phone = get(row, 'phone', 'telefono', 'tel', 'mobile');
-      const nationality = get(row, 'nationality', 'nacionalidad');
+      const legacyId = get(row, 'id', 'row_id', 'guest_id', 'id_huesped', '_rownum', 'row_number');
+      const fullName = get(row, 'full_name', 'nombre_completo', 'fullname', 'guest_name', 'name');
+      const firstName = get(row, 'first_name', 'firstname', 'first', 'nombre');
+      const lastName = get(row, 'last_name', 'lastname', 'last', 'apellido');
+      const email = get(row, 'email', 'correo', 'email_opera');
+      const phone = get(row, 'phone', 'telefono', 'tel', 'mobile', 'telefono_opera');
+      const nationality = get(row, 'nationality', 'nacionalidad', 'pais', 'country');
       const notes = get(row, 'notes', 'notas');
 
       let fn = firstName;
@@ -289,30 +289,30 @@ async function importTransfers(rows: Record<string, string>[]): Promise<CsvImpor
   const result: CsvImportResult = { total: rows.length, created: 0, updated: 0, unchanged: 0, errors: [] };
 
   for (const row of rows) {
-    const legacyId = get(row, 'id', 'row_id', 'transfer_id', '_rownum');
-    const dateVal = get(row, 'date', 'fecha');
+    const legacyId = get(row, 'id', 'row_id', 'transfer_id', 'id_traslado', '_rownum', 'row_number');
+    const dateVal = get(row, 'date', 'fecha', 'date_traslado');
     const date = parseDate(dateVal);
     if (!date) { result.errors.push(`Transfer row skipped — invalid date "${dateVal}"`); continue; }
 
-    const guestName = get(row, 'guest', 'guest_name', 'huesped', 'nombre_huesped');
-    const guestLegacyId = get(row, 'guest_id', 'huesped_id');
-    const vendorName = get(row, 'vendor', 'vendor_name', 'proveedor');
-    const vendorLegacyId = get(row, 'vendor_id', 'proveedor_id');
+    const guestName = get(row, 'guest', 'guest_name', 'huesped', 'nombre_huesped', 'nombre_completo');
+    const guestLegacyId = get(row, 'guest_id', 'huesped_id', 'id_huesped');
+    const vendorName = get(row, 'vendor', 'vendor_name', 'proveedor', 'nombre_proveedor');
+    const vendorLegacyId = get(row, 'vendor_id', 'proveedor_id', 'id_proveedor');
 
     try {
       await transaction(async (client) => {
         const guestId = await findOrCreateGuest(client, guestName, guestLegacyId);
         const vendorId = await findVendor(client, vendorName, vendorLegacyId);
 
-        const time = get(row, 'time', 'hora') || null;
-        const numPassengers = parseInt(get(row, 'num_passengers', 'pasajeros', 'pax') || '1') || 1;
-        const origin = get(row, 'origin', 'origen') || null;
-        const destination = get(row, 'destination', 'destino') || null;
-        const guestStatus = get(row, 'guest_status', 'estado_huesped') || 'pending';
+        const time = get(row, 'time', 'hora', 'hora_traslado') || null;
+        const numPassengers = parseInt(get(row, 'num_passengers', 'pasajeros', 'pax', 'cantidad_pasajeros') || '1') || 1;
+        const origin = get(row, 'origin', 'origen', 'lugar_origen') || null;
+        const destination = get(row, 'destination', 'destino', 'lugar_destino') || null;
+        const guestStatus = get(row, 'guest_status', 'estado_huesped', 'estado') || 'pending';
         const vendorStatus = get(row, 'vendor_status', 'estado_proveedor') || 'pending';
-        const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro'));
+        const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro', 'fecha_factura'));
         const paidDate = parseDate(get(row, 'paid_date', 'fecha_pago'));
-        const notes = get(row, 'notes', 'notas') || null;
+        const notes = get(row, 'notes', 'notas', 'observaciones') || null;
 
         const existing = legacyId
           ? await client.query('SELECT id FROM transfers WHERE legacy_appsheet_id = $1', [legacyId])
@@ -351,26 +351,26 @@ async function importSpecialRequests(rows: Record<string, string>[]): Promise<Cs
   const result: CsvImportResult = { total: rows.length, created: 0, updated: 0, unchanged: 0, errors: [] };
 
   for (const row of rows) {
-    const legacyId = get(row, 'id', 'row_id', '_rownum');
-    const dateVal = get(row, 'date', 'fecha');
+    const legacyId = get(row, 'id', 'row_id', 'id_solicitud', '_rownum', 'row_number');
+    const dateVal = get(row, 'date', 'fecha', 'fecha_solicitud');
     const date = parseDate(dateVal);
     if (!date) { result.errors.push(`Request row skipped — invalid date "${dateVal}"`); continue; }
 
-    const requestText = get(row, 'request', 'solicitud', 'description', 'descripcion');
+    const requestText = get(row, 'request', 'solicitud', 'description', 'descripcion', 'texto');
     if (!requestText) { result.errors.push(`Request row skipped — no request text`); continue; }
 
-    const guestName = get(row, 'guest', 'guest_name', 'huesped');
-    const guestLegacyId = get(row, 'guest_id');
+    const guestName = get(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
+    const guestLegacyId = get(row, 'guest_id', 'id_huesped');
 
     try {
       await transaction(async (client) => {
         const guestId = await findOrCreateGuest(client, guestName, guestLegacyId);
 
-        const time = get(row, 'time', 'hora') || null;
-        const department = get(row, 'department', 'departamento') || null;
-        const checkIn = parseDate(get(row, 'check_in', 'checkin', 'entrada'));
-        const checkOut = parseDate(get(row, 'check_out', 'checkout', 'salida'));
-        const notes = get(row, 'notes', 'notas') || null;
+        const time = get(row, 'time', 'hora', 'hora_solicitud') || null;
+        const department = get(row, 'department', 'departamento', 'area', 'departamento_solicitud') || null;
+        const checkIn = parseDate(get(row, 'check_in', 'checkin', 'entrada', 'fecha_checkin'));
+        const checkOut = parseDate(get(row, 'check_out', 'checkout', 'salida', 'fecha_checkout'));
+        const notes = get(row, 'notes', 'notas', 'observaciones') || null;
 
         const existing = legacyId
           ? await client.query('SELECT id FROM special_requests WHERE legacy_appsheet_id = $1', [legacyId])
@@ -405,28 +405,28 @@ async function importOtherHotelBookings(rows: Record<string, string>[]): Promise
   const result: CsvImportResult = { total: rows.length, created: 0, updated: 0, unchanged: 0, errors: [] };
 
   for (const row of rows) {
-    const legacyId = get(row, 'id', 'row_id', '_rownum');
-    const dateVal = get(row, 'date', 'fecha');
+    const legacyId = get(row, 'id', 'row_id', 'id_reserva_hotel', '_rownum', 'row_number');
+    const dateVal = get(row, 'date', 'fecha', 'fecha_reserva');
     const date = parseDate(dateVal);
     if (!date) { result.errors.push(`Hotel booking row skipped — invalid date "${dateVal}"`); continue; }
 
-    const guestName = get(row, 'guest', 'guest_name', 'huesped');
-    const guestLegacyId = get(row, 'guest_id');
-    const hotelName = get(row, 'hotel', 'hotel_name', 'nombre_hotel');
+    const guestName = get(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
+    const guestLegacyId = get(row, 'guest_id', 'id_huesped');
+    const hotelName = get(row, 'hotel', 'hotel_name', 'nombre_hotel', 'hotel');
 
     try {
       await transaction(async (client) => {
         const guestId = await findOrCreateGuest(client, guestName, guestLegacyId);
         const hotelId = await findHotel(client, hotelName);
 
-        const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'pax') || '1') || 1;
-        const checkin = parseDate(get(row, 'checkin', 'check_in', 'entrada'));
-        const checkout = parseDate(get(row, 'checkout', 'check_out', 'salida'));
-        const guestStatus = get(row, 'guest_status', 'estado_huesped') || 'pending';
+        const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'pax', 'cantidad_huespedes') || '1') || 1;
+        const checkin = parseDate(get(row, 'checkin', 'check_in', 'entrada', 'fecha_checkin'));
+        const checkout = parseDate(get(row, 'checkout', 'check_out', 'salida', 'fecha_checkout'));
+        const guestStatus = get(row, 'guest_status', 'estado_huesped', 'estado') || 'pending';
         const vendorStatus = get(row, 'vendor_status', 'estado_proveedor') || 'pending';
-        const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro'));
+        const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro', 'fecha_factura'));
         const paidDate = parseDate(get(row, 'paid_date', 'fecha_pago'));
-        const notes = get(row, 'notes', 'notas') || null;
+        const notes = get(row, 'notes', 'notas', 'observaciones') || null;
 
         const existing = legacyId
           ? await client.query('SELECT id FROM other_hotel_bookings WHERE legacy_appsheet_id = $1', [legacyId])
@@ -465,23 +465,23 @@ async function importRomanticDinners(rows: Record<string, string>[]): Promise<Cs
   const result: CsvImportResult = { total: rows.length, created: 0, updated: 0, unchanged: 0, errors: [] };
 
   for (const row of rows) {
-    const legacyId = get(row, 'id', 'row_id', '_rownum');
-    const dateVal = get(row, 'date', 'fecha');
+    const legacyId = get(row, 'id', 'row_id', 'id_cena', '_rownum', 'row_number');
+    const dateVal = get(row, 'date', 'fecha', 'fecha_cena');
     const date = parseDate(dateVal);
     if (!date) { result.errors.push(`Dinner row skipped — invalid date "${dateVal}"`); continue; }
 
-    const guestName = get(row, 'guest', 'guest_name', 'huesped');
-    const guestLegacyId = get(row, 'guest_id');
+    const guestName = get(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
+    const guestLegacyId = get(row, 'guest_id', 'id_huesped');
 
     try {
       await transaction(async (client) => {
         const guestId = await findOrCreateGuest(client, guestName, guestLegacyId);
 
-        const time = get(row, 'time', 'hora') || null;
-        const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'comensales') || '2') || 2;
-        const location = get(row, 'location', 'ubicacion', 'lugar') || null;
-        const status = get(row, 'status', 'estado') || 'pending';
-        const notes = get(row, 'notes', 'notas') || null;
+        const time = get(row, 'time', 'hora', 'hora_cena') || null;
+        const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'comensales', 'cantidad_comensales') || '2') || 2;
+        const location = get(row, 'location', 'ubicacion', 'lugar', 'ubicacion_cena') || null;
+        const status = get(row, 'status', 'estado', 'estado_cena') || 'pending';
+        const notes = get(row, 'notes', 'notas', 'observaciones') || null;
 
         const existing = legacyId
           ? await client.query('SELECT id FROM romantic_dinners WHERE legacy_appsheet_id = $1', [legacyId])
@@ -515,14 +515,14 @@ async function importTourBookings(rows: Record<string, string>[]): Promise<CsvIm
   const result: CsvImportResult = { total: rows.length, created: 0, updated: 0, unchanged: 0, errors: [] };
 
   for (const row of rows) {
-    const legacyId = get(row, 'id', 'row_id', '_rownum');
-    const dateVal = get(row, 'date', 'fecha');
+    const legacyId = get(row, 'id', 'row_id', 'id_actividad', '_rownum', 'row_number');
+    const dateVal = get(row, 'date', 'fecha', 'fecha_actividad');
     const date = parseDate(dateVal);
     if (!date) { result.errors.push(`Tour booking row skipped — invalid date "${dateVal}"`); continue; }
 
-    const guestName = get(row, 'guest', 'guest_name', 'huesped');
-    const guestLegacyId = get(row, 'guest_id');
-    const productName = get(row, 'product', 'product_name', 'actividad', 'tour', 'activity');
+    const guestName = get(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
+    const guestLegacyId = get(row, 'guest_id', 'id_huesped');
+    const productName = get(row, 'product', 'product_name', 'actividad', 'tour', 'activity', 'nombre_actividad');
 
     try {
       await transaction(async (client) => {
@@ -534,13 +534,13 @@ async function importTourBookings(rows: Record<string, string>[]): Promise<CsvIm
           return;
         }
 
-        const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'pax') || '1') || 1;
-        const bookingMode = get(row, 'booking_mode', 'modo', 'type') || 'shared';
-        const totalPrice = parseFloat(get(row, 'total_price', 'precio', 'price') || '0') || null;
-        const guestStatus = get(row, 'guest_status', 'estado_huesped') || 'pending';
+        const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'pax', 'cantidad_huespedes') || '1') || 1;
+        const bookingMode = get(row, 'booking_mode', 'modo', 'type', 'tipo_reserva') || 'shared';
+        const totalPrice = parseFloat(get(row, 'total_price', 'precio', 'price', 'precio_total') || '0') || null;
+        const guestStatus = get(row, 'guest_status', 'estado_huesped', 'estado') || 'pending';
         const vendorStatus = get(row, 'vendor_status', 'estado_proveedor') || 'pending';
-        const specialRequests = get(row, 'special_requests', 'solicitudes', 'notes', 'notas') || null;
-        const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro'));
+        const specialRequests = get(row, 'special_requests', 'solicitudes', 'notes', 'notas', 'observaciones') || null;
+        const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro', 'fecha_factura'));
         const paidDate = parseDate(get(row, 'paid_date', 'fecha_pago'));
 
         const existing = legacyId

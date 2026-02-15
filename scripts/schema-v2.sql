@@ -550,3 +550,10 @@ VALUES
     ('front_desk', 'Front Desk', 'Recepción', 4),
     ('concierge', 'Concierge', 'Conserjería', 5)
 ON CONFLICT (name) DO NOTHING;
+
+-- ============================================================================
+-- MIGRATION: Add Opera guest name tracking to reservations
+-- ============================================================================
+
+ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS opera_guest_name TEXT;

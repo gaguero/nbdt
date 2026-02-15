@@ -154,8 +154,8 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
                 guarantee_code = $12, guarantee_code_desc = $13, group_name = $14,
                 travel_agent = $15, company = $16,
                 share_amount = $17, share_amount_per_stay = $18,
-                insert_user = $19, insert_date = $20
-              WHERE opera_resv_id = $21`,
+                insert_user = $19, insert_date = $20, opera_guest_name = $21
+              WHERE opera_resv_id = $22`,
               [
                 guestId, parsed.status, parsed.short_status, parsed.room,
                 parsed.arrival, parsed.departure, parsed.persons, parsed.nights,
@@ -164,6 +164,7 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
                 parsed.travel_agent, parsed.company,
                 parsed.share_amount, parsed.share_amount_per_stay,
                 parsed.insert_user, parsed.insert_date,
+                parsed.full_name,
                 parsed.opera_resv_id,
               ]
             );
@@ -176,14 +177,15 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
               arrival, departure, persons, nights, no_of_rooms,
               room_category, rate_code, guarantee_code, guarantee_code_desc,
               group_name, travel_agent, company,
-              share_amount, share_amount_per_stay, insert_user, insert_date
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`,
+              share_amount, share_amount_per_stay, insert_user, insert_date, opera_guest_name
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
             [
               parsed.opera_resv_id, guestId, parsed.status, parsed.short_status, parsed.room,
               parsed.arrival, parsed.departure, parsed.persons, parsed.nights, parsed.no_of_rooms,
               parsed.room_category, parsed.rate_code, parsed.guarantee_code, parsed.guarantee_code_desc,
               parsed.group_name, parsed.travel_agent, parsed.company,
               parsed.share_amount, parsed.share_amount_per_stay, parsed.insert_user, parsed.insert_date,
+              parsed.full_name,
             ]
           );
           result.created++;
