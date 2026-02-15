@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useRef } from 'react';
 
 const APPSHEET_TABLES = [
@@ -147,15 +148,15 @@ export default function SettingsPage() {
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex justify-between items-start mb-1">
           <h2 className="text-lg font-semibold text-gray-900">AppSheet Data Import</h2>
-          <a 
-            href="/staff/tour-normalization" 
+          <Link
+            href="/staff/tour-normalization"
             className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             Tour Normalization
-          </a>
+          </Link>
         </div>
         <p className="text-sm text-gray-500 mb-4">
           Import historical data from AppSheet CSV exports. Select the target table, then upload the exported CSV file.

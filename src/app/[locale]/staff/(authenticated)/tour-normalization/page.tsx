@@ -137,7 +137,7 @@ export default function TourNormalizationPage() {
             {mappings.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-6 py-10 text-center text-sm text-gray-500">
-                  No tour names found for normalization. Import a "Tour Bookings" CSV to get started.
+                  No tour names found for normalization. Import a &quot;Tour Bookings&quot; CSV to get started.
                 </td>
               </tr>
             ) : (
