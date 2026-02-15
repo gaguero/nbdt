@@ -166,7 +166,6 @@ function normalizeDepartment(val: string): string {
     'conserje': 'concierge',
     'housekeeping': 'housekeeping',
     'limpieza': 'housekeeping',
-    'housekeeping': 'housekeeping',
     'mantenimiento': 'maintenance',
     'maintenance': 'maintenance',
     'food_beverage': 'food_beverage',
