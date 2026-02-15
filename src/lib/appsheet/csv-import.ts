@@ -167,33 +167,42 @@ async function findTourProduct(client: any, productName: string): Promise<string
 
 async function importGuests(rows: Record<string, string>[]): Promise<CsvImportResult> {
   const result: CsvImportResult = { total: rows.length, created: 0, updated: 0, unchanged: 0, errors: [] };
+  console.log(`[AppSheet] Importing ${rows.length} guests`, { firstRow: rows[0] });
 
-  for (const row of rows) {
-    const legacyId = get(row, 'id', 'row_id', 'guest_id', '_rownum');
-    const fullName = get(row, 'full_name', 'name', 'fullname', 'guest_name');
-    const firstName = get(row, 'first_name', 'firstname', 'first');
-    const lastName = get(row, 'last_name', 'lastname', 'last');
-    const email = get(row, 'email', 'correo');
-    const phone = get(row, 'phone', 'telefono', 'tel', 'mobile');
-    const nationality = get(row, 'nationality', 'nacionalidad');
-    const notes = get(row, 'notes', 'notas');
-
-    let fn = firstName;
-    let ln = lastName;
-    if (!fn && !ln && fullName) {
-      const parts = fullName.trim().split(/\s+/);
-      fn = parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0];
-      ln = parts.length > 1 ? parts[parts.length - 1] : '';
-    }
-    if (!fn) { result.errors.push(`Row skipped — no name`); continue; }
-
+  for (let idx = 0; idx < rows.length; idx++) {
+    const row = rows[idx];
     try {
+      const legacyId = get(row, 'id', 'row_id', 'guest_id', '_rownum');
+      const fullName = get(row, 'full_name', 'name', 'fullname', 'guest_name');
+      const firstName = get(row, 'first_name', 'firstname', 'first');
+      const lastName = get(row, 'last_name', 'lastname', 'last');
+      const email = get(row, 'email', 'correo');
+      const phone = get(row, 'phone', 'telefono', 'tel', 'mobile');
+      const nationality = get(row, 'nationality', 'nacionalidad');
+      const notes = get(row, 'notes', 'notas');
+
+      let fn = firstName;
+      let ln = lastName;
+      if (!fn && !ln && fullName) {
+        const parts = fullName.trim().split(/\s+/);
+        fn = parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0];
+        ln = parts.length > 1 ? parts[parts.length - 1] : '';
+      }
+      if (!fn) {
+        result.errors.push(`Row ${idx + 1}: no first name`);
+        console.warn(`[AppSheet] Row ${idx + 1} skipped: no name`, row);
+        continue;
+      }
+
+      console.log(`[AppSheet] Guest row ${idx + 1}: "${fn} ${ln}", legacy_id="${legacyId}"`);
+
       await transaction(async (client) => {
         const existing = legacyId
           ? await client.query('SELECT id FROM guests WHERE legacy_appsheet_id = $1', [legacyId])
           : await client.query('SELECT id FROM guests WHERE first_name = $1 AND last_name = $2 LIMIT 1', [fn, ln]);
 
         if (existing.rows.length > 0) {
+          console.log(`[AppSheet] Guest row ${idx + 1}: UPDATE existing guest ${existing.rows[0].id}`);
           await client.query(
             `UPDATE guests SET email = COALESCE(NULLIF($1,''), email),
                phone = COALESCE(NULLIF($2,''), phone),
@@ -205,6 +214,7 @@ async function importGuests(rows: Record<string, string>[]): Promise<CsvImportRe
           );
           result.updated++;
         } else {
+          console.log(`[AppSheet] Guest row ${idx + 1}: INSERT new guest "${fn} ${ln}"`);
           await client.query(
             `INSERT INTO guests (first_name, last_name, email, phone, nationality, notes, legacy_appsheet_id)
              VALUES ($1,$2,$3,$4,$5,$6,$7)`,
@@ -214,9 +224,12 @@ async function importGuests(rows: Record<string, string>[]): Promise<CsvImportRe
         }
       });
     } catch (err: any) {
-      result.errors.push(`Guest "${fullName || fn}": ${err.message}`);
+      const errMsg = `Row ${idx + 1}: ${err.message}`;
+      result.errors.push(errMsg);
+      console.error(`[AppSheet] Guest import error:`, errMsg, { row, error: err });
     }
   }
+  console.log(`[AppSheet] Guests import complete:`, result);
   return result;
 }
 
@@ -571,9 +584,16 @@ export async function importAppSheetCSV(
   csvText: string,
   table: AppSheetTable
 ): Promise<CsvImportResult> {
+  console.log(`[AppSheet] Starting CSV import for table: "${table}"`);
+  console.log(`[AppSheet] CSV size: ${csvText.length} bytes, first 500 chars:`, csvText.substring(0, 500));
+
   const rows = parseCSV(csvText);
+  console.log(`[AppSheet] Parsed ${rows.length} rows`, rows.length > 0 ? { firstRow: rows[0] } : {});
+
   if (rows.length === 0) {
-    return { total: 0, created: 0, updated: 0, unchanged: 0, errors: ['CSV is empty or has no data rows'] };
+    const result = { total: 0, created: 0, updated: 0, unchanged: 0, errors: ['CSV is empty or has no data rows'] };
+    console.warn(`[AppSheet] CSV parse failed:`, result);
+    return result;
   }
 
   switch (table) {
