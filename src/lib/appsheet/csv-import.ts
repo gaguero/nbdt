@@ -69,24 +69,46 @@ function get(row: Record<string, string>, ...keys: string[]): string {
 
 function parseDate(val: string): string | null {
   if (!val) return null;
+  val = val.trim();
+
   // Try YYYY-MM-DD (but detect YYYY-DD-MM if middle segment > 12)
-  const ymd = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  let ymd = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (ymd) {
-    const [, y, seg2, seg3] = ymd;
+    const [, yStr, seg2, seg3] = ymd;
+    const year = parseInt(yStr);
     const seg2Num = parseInt(seg2);
-    if (seg2Num > 12) {
-      // Likely YYYY-DD-MM format, swap
-      return `${y}-${seg3}-${seg2}`;
+    const seg3Num = parseInt(seg3);
+
+    // Validate year is reasonable (1900-2100)
+    if (year < 1900 || year > 2100) return null;
+
+    // If middle segment > 12, assume YYYY-DD-MM format and swap
+    if (seg2Num > 12 && seg3Num <= 12) {
+      return `${yStr}-${seg3.padStart(2, '0')}-${seg2.padStart(2, '0')}`;
     }
-    return val; // Valid YYYY-MM-DD
+
+    // Validate as YYYY-MM-DD
+    if (seg2Num >= 1 && seg2Num <= 12 && seg3Num >= 1 && seg3Num <= 31) {
+      return `${yStr}-${seg2.padStart(2, '0')}-${seg3.padStart(2, '0')}`;
+    }
+    return null;
   }
+
   // Try DD/MM/YYYY or DD/MM/YY
-  const dmY = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  let dmY = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (dmY) {
-    const [, d, m, y] = dmY;
-    const year = y.length === 2 ? (parseInt(y) < 50 ? `20${y}` : `19${y}`) : y;
+    const [, d, m, yStr] = dmY;
+    const year = yStr.length === 2 ? (parseInt(yStr) < 50 ? 2000 + parseInt(yStr) : 1900 + parseInt(yStr)) : parseInt(yStr);
+    const month = parseInt(m);
+    const day = parseInt(d);
+
+    // Validate
+    if (year < 1900 || year > 2100) return null;
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
     return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
+
   return null;
 }
 
