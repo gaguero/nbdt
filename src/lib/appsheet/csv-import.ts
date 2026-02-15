@@ -637,7 +637,7 @@ async function importTourBookings(rows: Record<string, string>[]): Promise<CsvIm
 
     const guestName = get(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
     const guestLegacyId = get(row, 'guest_id', 'id_huesped');
-    const productName = get(row, 'product', 'product_name', 'actividad', 'tour', 'activity', 'nombre_actividad');
+    const productName = get(row, 'product', 'product_name', 'actividad', 'tour', 'activity', 'nombre_actividad', 'nombre_de_la_actividad');
 
     try {
       await transaction(async (client) => {
