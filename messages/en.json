@@ -1,0 +1,136 @@
+{
+  "landing": {
+    "welcome": "Welcome to Nayara",
+    "subtitle": "Please select your preferred language"
+  },
+  "navigation": {
+    "language": "Language",
+    "cart": "Cart",
+    "home": "Home",
+    "menu": "Menu",
+    "orders": "My Orders",
+    "bookings": "Bookings",
+    "tours": "Tours & Activities",
+    "messages": "Chat"
+  },
+  "guest": {
+    "welcome": "Welcome",
+    "room": "Room",
+    "menu": {
+      "title": "Menu",
+      "addToCart": "Add to Cart",
+      "viewCart": "View Cart"
+    },
+    "cart": {
+      "title": "Your Cart",
+      "empty": "Your cart is empty.",
+      "specialInstructions": "Special Instructions",
+      "placeOrder": "Place Order",
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "total": "Total"
+    },
+    "orders": {
+      "title": "Your Orders",
+      "noOrders": "No orders yet.",
+      "status": {
+        "pending": "Order Received",
+        "preparing": "Being Prepared",
+        "ready": "Ready for Pickup",
+        "picked_up": "On the Way",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      }
+    },
+    "tours": {
+      "title": "Tours & Activities",
+      "book": "Request Booking",
+      "selectDate": "Select Date & Time",
+      "numGuests": "Number of Guests",
+      "specialRequests": "Special Requests",
+      "bookingConfirmed": "Booking Confirmed!",
+      "confirmationMessage": "Our concierge team will confirm your booking shortly."
+    },
+    "messages": {
+      "title": "How can we help?",
+      "subtitle": "Choose a channel to start a conversation with our team.",
+      "channels": {
+        "roomService": "Room Service",
+        "guestExperience": "Guest Experience",
+        "spa": "Spa",
+        "frontDesk": "Front Desk"
+      },
+      "typePlaceholder": "Type a message…",
+      "send": "Send"
+    }
+  },
+  "staff": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "reservations": "Reservations",
+      "guests": "Guests",
+      "transfers": "Transfers",
+      "tourBookings": "Tours & Activities",
+      "specialRequests": "Special Requests",
+      "hotelBookings": "Hotel Bookings",
+      "romanticDinners": "Romantic Dinners",
+      "orders": "Orders",
+      "messages": "Messages",
+      "vendors": "Vendors",
+      "tourProducts": "Tour Products",
+      "settings": "Settings",
+      "logout": "Sign Out"
+    },
+    "login": {
+      "title": "Staff Login",
+      "subtitle": "Sign in to access the staff portal",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign in",
+      "signingIn": "Signing in..."
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Welcome to the Staff Portal",
+      "stats": {
+        "arrivals": "Arrivals Today",
+        "departures": "Departures Today",
+        "activeGuests": "Active Guests",
+        "pendingRequests": "Pending Requests",
+        "transfers": "Today's Transfers",
+        "tours": "Today's Tours",
+        "openMessages": "Open Messages"
+      }
+    },
+    "common": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "search": "Search",
+      "filter": "Filter",
+      "loading": "Loading…",
+      "noResults": "No results found.",
+      "status": "Status",
+      "notes": "Notes",
+      "date": "Date",
+      "time": "Time"
+    }
+  },
+  "vendor": {
+    "portal": "Vendor Portal",
+    "dashboard": "Dashboard",
+    "bookings": "My Bookings",
+    "signOut": "Sign Out",
+    "login": {
+      "title": "Vendor Portal",
+      "signIn": "Sign In",
+      "signingIn": "Signing in…"
+    }
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "common": {
+    "language": "Idioma",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "back": "Volver",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No",
+    "noResults": "No se encontraron resultados",
+    "actions": "Acciones",
+    "status": "Estado",
+    "date": "Fecha",
+    "time": "Hora",
+    "notes": "Notas",
+    "today": "Hoy",
+    "upcoming": "Próximos",
+    "past": "Pasados",
+    "all": "Todos",
+    "pending": "Pendiente",
+    "confirmed": "Confirmado",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  },
+  "nav": {
+    "menu": "Menú",
+    "cart": "Carrito",
+    "orders": "Mis Órdenes",
+    "tours": "Tours y Actividades",
+    "messages": "Mensajes",
+    "staff": "Portal de Personal"
+  },
+  "guest": {
+    "welcome": "Bienvenido a Nayara Bocas del Toro",
+    "welcomeName": "Bienvenido, {name}",
+    "room": "Habitación {room}",
+    "selectCategory": "Seleccione una categoría",
+    "addToCart": "Agregar al Carrito",
+    "checkout": "Finalizar Compra",
+    "roomNumber": "Número de Habitación",
+    "orderPlaced": "Orden realizada exitosamente",
+    "enterRoom": "Ingrese su número de habitación para comenzar",
+    "identify": "Continuar",
+    "noReservation": "No se encontró reservación activa para esta habitación",
+    "yourOrders": "Sus Órdenes",
+    "orderStatus": "Estado de la Orden",
+    "placeOrder": "Realizar Orden",
+    "specialInstructions": "Instrucciones Especiales",
+    "cartEmpty": "Su carrito está vacío",
+    "cartTotal": "Total",
+    "browseTours": "Explorar Tours y Actividades",
+    "bookNow": "Reservar Ahora",
+    "selectDate": "Seleccionar Fecha",
+    "numGuests": "Número de Huéspedes",
+    "private": "Privado",
+    "shared": "Compartido",
+    "duration": "Duración",
+    "perPerson": "por persona",
+    "meetingPoint": "Punto de Encuentro",
+    "messaging": {
+      "title": "Mensajes",
+      "selectChannel": "¿Cómo podemos ayudarle?",
+      "roomService": "Servicio a la Habitación",
+      "guestExperience": "Experiencia del Huésped",
+      "spa": "Spa",
+      "frontDesk": "Recepción",
+      "typeMessage": "Escriba un mensaje...",
+      "send": "Enviar"
+    }
+  },
+  "staff": {
+    "dashboard": "Panel de Control",
+    "orders": "Órdenes",
+    "bookings": "Reservaciones",
+    "menu": "Gestión de Menú",
+    "analytics": "Analíticas",
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión",
+    "login": {
+      "title": "Inicio de Sesión del Personal",
+      "subtitle": "Inicie sesión para acceder al portal del personal",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "Ingrese su correo electrónico",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Ingrese su contraseña",
+      "rememberMe": "Recordarme",
+      "forgotPassword": "¿Olvidó su contraseña?",
+      "signIn": "Iniciar Sesión",
+      "signingIn": "Iniciando sesión..."
+    },
+    "nav": {
+      "dashboard": "Panel",
+      "orders": "Órdenes",
+      "reservations": "Reservaciones",
+      "guests": "Huéspedes",
+      "transfers": "Traslados",
+      "tourBookings": "Reservas de Tours",
+      "tourProducts": "Productos de Tours",
+      "hotelBookings": "Reservas de Hoteles",
+      "specialRequests": "Solicitudes Especiales",
+      "romanticDinners": "Cenas Románticas",
+      "vendors": "Vendedores",
+      "messages": "Mensajes",
+      "logout": "Cerrar Sesión"
+    },
+    "reservations": {
+      "title": "Reservaciones",
+      "importOpera": "Importar Opera XML",
+      "lastSync": "Última sincronización",
+      "room": "Habitación",
+      "guest": "Huésped",
+      "arrival": "Llegada",
+      "departure": "Salida",
+      "category": "Categoría",
+      "checkedIn": "Registrados",
+      "arrivingToday": "Llegadas Hoy",
+      "departingToday": "Salidas Hoy"
+    },
+    "guests": {
+      "title": "Huéspedes",
+      "searchPlaceholder": "Buscar por nombre...",
+      "profile": "Perfil del Huésped",
+      "reservations": "Reservaciones",
+      "transfers": "Traslados",
+      "tourBookings": "Reservas de Tours",
+      "specialRequests": "Solicitudes Especiales"
+    },
+    "transfers": {
+      "title": "Traslados",
+      "new": "Nuevo Traslado",
+      "origin": "Origen",
+      "destination": "Destino",
+      "vendor": "Vendedor",
+      "passengers": "Pasajeros",
+      "guestStatus": "Estado Huésped",
+      "vendorStatus": "Estado Vendedor",
+      "flightInfo": "Info de Vuelo"
+    },
+    "tourBookings": {
+      "title": "Reservas de Tours",
+      "new": "Nueva Reserva",
+      "product": "Producto",
+      "mode": "Modo",
+      "guests": "Huéspedes",
+      "price": "Precio"
+    },
+    "tourProducts": {
+      "title": "Productos de Tours",
+      "new": "Nuevo Producto",
+      "type": "Tipo",
+      "bookingMode": "Modo de Reserva",
+      "capacity": "Capacidad",
+      "price": "Precio",
+      "active": "Activo",
+      "scheduleManager": "Administrador de Horarios",
+      "generateSlots": "Generar Horarios"
+    },
+    "hotelBookings": {
+      "title": "Reservas de Hoteles",
+      "new": "Nueva Reserva",
+      "hotel": "Hotel"
+    },
+    "specialRequests": {
+      "title": "Solicitudes Especiales",
+      "new": "Nueva Solicitud",
+      "request": "Solicitud",
+      "department": "Departamento"
+    },
+    "romanticDinners": {
+      "title": "Cenas Románticas",
+      "new": "Nueva Cena",
+      "location": "Ubicación",
+      "guests": "Huéspedes"
+    },
+    "vendors": {
+      "title": "Vendedores",
+      "new": "Nuevo Vendedor",
+      "name": "Nombre",
+      "email": "Correo",
+      "type": "Tipo",
+      "createUser": "Crear Usuario del Portal"
+    },
+    "messages": {
+      "title": "Mensajes",
+      "inbox": "Bandeja de Entrada",
+      "channel": "Canal",
+      "guest": "Huésped",
+      "unread": "Sin leer",
+      "assign": "Asignar",
+      "resolve": "Resolver",
+      "reply": "Responder",
+      "internalNote": "Nota Interna"
+    },
+    "dashboard": {
+      "title": "Panel de Control",
+      "welcome": "Bienvenido al Portal del Personal",
+      "stats": {
+        "orders": "Órdenes Hoy",
+        "bookings": "Reservas Hoy",
+        "revenue": "Ingresos Hoy",
+        "active": "Órdenes Activas",
+        "arrivals": "Llegadas Hoy",
+        "departures": "Salidas Hoy",
+        "transfers": "Traslados Hoy",
+        "openMessages": "Mensajes Abiertos"
+      },
+      "sections": {
+        "recentOrders": "Órdenes Recientes",
+        "upcomingBookings": "Próximas Reservas",
+        "todayArrivals": "Llegadas de Hoy",
+        "todayDepartures": "Salidas de Hoy",
+        "todayTransfers": "Traslados de Hoy",
+        "pendingRequests": "Solicitudes Pendientes"
+      },
+      "comingSoon": "Próximamente"
+    }
+  },
+  "kds": {
+    "new": "NUEVO",
+    "preparing": "PREPARANDO",
+    "ready": "LISTO",
+    "room": "Habitación",
+    "items": "artículos",
+    "elapsed": "Transcurrido",
+    "tapToAdvance": "Toque para avanzar"
+  },
+  "vendor": {
+    "login": {
+      "title": "Portal de Vendedor",
+      "subtitle": "Inicie sesión para gestionar sus reservas",
+      "signIn": "Iniciar Sesión"
+    },
+    "dashboard": {
+      "title": "Panel del Vendedor",
+      "upcomingBookings": "Próximas Reservas",
+      "recentActivity": "Actividad Reciente"
+    },
+    "bookings": {
+      "title": "Mis Reservas",
+      "confirm": "Confirmar",
+      "complete": "Completar",
+      "noShow": "No Se Presentó",
+      "guestName": "Huésped",
+      "date": "Fecha",
+      "details": "Detalles",
+      "status": "Estado"
+    }
+  }
+}

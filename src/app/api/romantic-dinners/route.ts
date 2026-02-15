@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { queryMany, queryOne } from '@/lib/db';
+import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const { searchParams } = new URL(request.url);
+    const filter = searchParams.get('filter');
+    const date_from = searchParams.get('date_from');
+    const date_to = searchParams.get('date_to');
+
+    let whereClause = 'WHERE 1=1';
+    const params: any[] = [];
+    let idx = 1;
+    if (filter === 'today') whereClause += ` AND rd.date = CURRENT_DATE`;
+    else if (filter === 'upcoming') whereClause += ` AND rd.date >= CURRENT_DATE`;
+    if (date_from) { whereClause += ` AND rd.date >= $${idx++}`; params.push(date_from); }
+    if (date_to) { whereClause += ` AND rd.date <= $${idx++}`; params.push(date_to); }
+
+    const romantic_dinners = await queryMany(
+      `SELECT rd.*, g.full_name as guest_name
+       FROM romantic_dinners rd
+       LEFT JOIN guests g ON rd.guest_id = g.id
+       ${whereClause}
+       ORDER BY rd.date ASC, rd.time ASC LIMIT 200`,
+      params
+    );
+
+    return NextResponse.json({ romantic_dinners });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const body = await request.json();
+    const dinner = await queryOne(
+      `INSERT INTO romantic_dinners (date, time, guest_id, reservation_id, num_guests, location, status, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [body.date, body.time, body.guest_id, body.reservation_id, body.num_guests || 2, body.location, body.status || 'pending', body.notes]
+    );
+
+    return NextResponse.json({ dinner }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const body = await request.json();
+    const { id, ...fields } = body;
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const setClauses: string[] = [];
+    const params: any[] = [];
+    let idx = 1;
+
+    const allowedFields = ['date', 'time', 'guest_id', 'num_guests', 'location', 'status', 'notes'];
+    for (const field of allowedFields) {
+      if (field in fields) { setClauses.push(`${field} = $${idx++}`); params.push(fields[field]); }
+    }
+
+    if (setClauses.length === 0) return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+    params.push(id);
+    const dinner = await queryOne(`UPDATE romantic_dinners SET ${setClauses.join(', ')} WHERE id = $${idx} RETURNING *`, params);
+
+    return NextResponse.json({ dinner });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

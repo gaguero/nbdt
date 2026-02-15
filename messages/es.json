@@ -1,0 +1,136 @@
+{
+  "landing": {
+    "welcome": "Bienvenido a Nayara",
+    "subtitle": "Por favor seleccione su idioma preferido"
+  },
+  "navigation": {
+    "language": "Idioma",
+    "cart": "Carrito",
+    "home": "Inicio",
+    "menu": "Menú",
+    "orders": "Mis Órdenes",
+    "bookings": "Reservas",
+    "tours": "Tours y Actividades",
+    "messages": "Chat"
+  },
+  "guest": {
+    "welcome": "Bienvenido",
+    "room": "Habitación",
+    "menu": {
+      "title": "Menú",
+      "addToCart": "Agregar al Carrito",
+      "viewCart": "Ver Carrito"
+    },
+    "cart": {
+      "title": "Su Carrito",
+      "empty": "Su carrito está vacío.",
+      "specialInstructions": "Instrucciones Especiales",
+      "placeOrder": "Hacer Pedido",
+      "subtotal": "Subtotal",
+      "tax": "Impuesto",
+      "total": "Total"
+    },
+    "orders": {
+      "title": "Sus Pedidos",
+      "noOrders": "Sin pedidos aún.",
+      "status": {
+        "pending": "Pedido Recibido",
+        "preparing": "En Preparación",
+        "ready": "Listo para Recoger",
+        "picked_up": "En Camino",
+        "delivered": "Entregado",
+        "cancelled": "Cancelado"
+      }
+    },
+    "tours": {
+      "title": "Tours y Actividades",
+      "book": "Solicitar Reserva",
+      "selectDate": "Seleccionar Fecha y Hora",
+      "numGuests": "Número de Huéspedes",
+      "specialRequests": "Solicitudes Especiales",
+      "bookingConfirmed": "¡Reserva Confirmada!",
+      "confirmationMessage": "Nuestro equipo de conserjería confirmará su reserva en breve."
+    },
+    "messages": {
+      "title": "¿En qué podemos ayudarle?",
+      "subtitle": "Elija un canal para iniciar una conversación con nuestro equipo.",
+      "channels": {
+        "roomService": "Servicio a la Habitación",
+        "guestExperience": "Experiencia del Huésped",
+        "spa": "Spa",
+        "frontDesk": "Recepción"
+      },
+      "typePlaceholder": "Escriba un mensaje…",
+      "send": "Enviar"
+    }
+  },
+  "staff": {
+    "nav": {
+      "dashboard": "Panel de Control",
+      "reservations": "Reservaciones",
+      "guests": "Huéspedes",
+      "transfers": "Traslados",
+      "tourBookings": "Tours y Actividades",
+      "specialRequests": "Solicitudes Especiales",
+      "hotelBookings": "Hoteles",
+      "romanticDinners": "Cenas Románticas",
+      "orders": "Órdenes",
+      "messages": "Mensajes",
+      "vendors": "Vendedores",
+      "tourProducts": "Productos de Tours",
+      "settings": "Configuración",
+      "logout": "Cerrar Sesión"
+    },
+    "login": {
+      "title": "Inicio de Sesión del Personal",
+      "subtitle": "Inicie sesión para acceder al portal del personal",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "Ingrese su correo electrónico",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Ingrese su contraseña",
+      "rememberMe": "Recordarme",
+      "forgotPassword": "¿Olvidó su contraseña?",
+      "signIn": "Iniciar Sesión",
+      "signingIn": "Iniciando sesión..."
+    },
+    "dashboard": {
+      "title": "Panel de Control",
+      "welcome": "Bienvenido al Portal del Personal",
+      "stats": {
+        "arrivals": "Llegadas Hoy",
+        "departures": "Salidas Hoy",
+        "activeGuests": "Huéspedes Activos",
+        "pendingRequests": "Solicitudes Pendientes",
+        "transfers": "Traslados Hoy",
+        "tours": "Tours Hoy",
+        "openMessages": "Mensajes Abiertos"
+      }
+    },
+    "common": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "create": "Crear",
+      "search": "Buscar",
+      "filter": "Filtrar",
+      "loading": "Cargando…",
+      "noResults": "Sin resultados.",
+      "status": "Estado",
+      "notes": "Notas",
+      "date": "Fecha",
+      "time": "Hora"
+    }
+  },
+  "vendor": {
+    "portal": "Portal de Vendedores",
+    "dashboard": "Panel",
+    "bookings": "Mis Reservas",
+    "signOut": "Cerrar Sesión",
+    "login": {
+      "title": "Portal de Vendedores",
+      "signIn": "Iniciar Sesión",
+      "signingIn": "Iniciando sesión…"
+    }
+  }
+}

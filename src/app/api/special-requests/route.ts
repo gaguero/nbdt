@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { queryMany, queryOne } from '@/lib/db';
+import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const { searchParams } = new URL(request.url);
+    const filter = searchParams.get('filter');
+    const status = searchParams.get('status');
+    const department = searchParams.get('department');
+
+    let whereClause = 'WHERE 1=1';
+    const params: any[] = [];
+    let idx = 1;
+
+    if (filter === 'today') whereClause += ` AND sr.date = CURRENT_DATE`;
+    if (status) { whereClause += ` AND sr.status = $${idx++}`; params.push(status); }
+    if (department && department !== 'all') { whereClause += ` AND sr.department = $${idx++}`; params.push(department); }
+
+    const special_requests = await queryMany(
+      `SELECT sr.*, g.full_name as guest_name
+       FROM special_requests sr
+       LEFT JOIN guests g ON sr.guest_id = g.id
+       ${whereClause}
+       ORDER BY sr.date DESC, sr.time DESC LIMIT 200`,
+      params
+    );
+
+    return NextResponse.json({ special_requests });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const body = await request.json();
+    const result = await queryOne(
+      `INSERT INTO special_requests (date, time, guest_id, reservation_id, request, department, status, check_in, check_out, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [body.date, body.time, body.guest_id, body.reservation_id, body.request, body.department, body.status || 'pending', body.check_in, body.check_out, body.notes]
+    );
+
+    return NextResponse.json({ request: result }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const body = await request.json();
+    const { id, ...fields } = body;
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const setClauses: string[] = [];
+    const params: any[] = [];
+    let idx = 1;
+
+    const allowedFields = ['date', 'time', 'guest_id', 'request', 'department', 'status', 'check_in', 'check_out', 'notes'];
+    for (const field of allowedFields) {
+      if (field in fields) { setClauses.push(`${field} = $${idx++}`); params.push(fields[field]); }
+    }
+
+    if (setClauses.length === 0) return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+    params.push(id);
+    const result = await queryOne(`UPDATE special_requests SET ${setClauses.join(', ')} WHERE id = $${idx} RETURNING *`, params);
+
+    return NextResponse.json({ request: result });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

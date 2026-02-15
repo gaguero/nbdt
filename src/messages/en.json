@@ -1,0 +1,260 @@
+{
+  "common": {
+    "language": "Language",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "create": "Create",
+    "update": "Update",
+    "back": "Back",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "noResults": "No results found",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "time": "Time",
+    "notes": "Notes",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "all": "All",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "nav": {
+    "menu": "Menu",
+    "cart": "Cart",
+    "orders": "My Orders",
+    "tours": "Tours & Activities",
+    "messages": "Messages",
+    "staff": "Staff Portal"
+  },
+  "guest": {
+    "welcome": "Welcome to Nayara Bocas del Toro",
+    "welcomeName": "Welcome, {name}",
+    "room": "Room {room}",
+    "selectCategory": "Select a category",
+    "addToCart": "Add to Cart",
+    "checkout": "Checkout",
+    "roomNumber": "Room Number",
+    "orderPlaced": "Order placed successfully",
+    "enterRoom": "Enter your room number to get started",
+    "identify": "Continue",
+    "noReservation": "No active reservation found for this room",
+    "yourOrders": "Your Orders",
+    "orderStatus": "Order Status",
+    "placeOrder": "Place Order",
+    "specialInstructions": "Special Instructions",
+    "cartEmpty": "Your cart is empty",
+    "cartTotal": "Total",
+    "browseTours": "Browse Tours & Activities",
+    "bookNow": "Book Now",
+    "selectDate": "Select Date",
+    "numGuests": "Number of Guests",
+    "private": "Private",
+    "shared": "Shared",
+    "duration": "Duration",
+    "perPerson": "per person",
+    "meetingPoint": "Meeting Point",
+    "messaging": {
+      "title": "Messages",
+      "selectChannel": "How can we help you?",
+      "roomService": "Room Service",
+      "guestExperience": "Guest Experience",
+      "spa": "Spa",
+      "frontDesk": "Front Desk",
+      "typeMessage": "Type a message...",
+      "send": "Send"
+    }
+  },
+  "staff": {
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "bookings": "Bookings",
+    "menu": "Menu Management",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": {
+      "title": "Staff Login",
+      "subtitle": "Sign in to access the staff portal",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign in",
+      "signingIn": "Signing in..."
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "orders": "Orders",
+      "reservations": "Reservations",
+      "guests": "Guests",
+      "transfers": "Transfers",
+      "tourBookings": "Tour Bookings",
+      "tourProducts": "Tour Products",
+      "hotelBookings": "Hotel Bookings",
+      "specialRequests": "Special Requests",
+      "romanticDinners": "Romantic Dinners",
+      "vendors": "Vendors",
+      "messages": "Messages",
+      "logout": "Logout"
+    },
+    "reservations": {
+      "title": "Reservations",
+      "importOpera": "Import Opera XML",
+      "lastSync": "Last sync",
+      "room": "Room",
+      "guest": "Guest",
+      "arrival": "Arrival",
+      "departure": "Departure",
+      "category": "Category",
+      "checkedIn": "Checked In",
+      "arrivingToday": "Arriving Today",
+      "departingToday": "Departing Today"
+    },
+    "guests": {
+      "title": "Guests",
+      "searchPlaceholder": "Search by name...",
+      "profile": "Guest Profile",
+      "reservations": "Reservations",
+      "transfers": "Transfers",
+      "tourBookings": "Tour Bookings",
+      "specialRequests": "Special Requests"
+    },
+    "transfers": {
+      "title": "Transfers",
+      "new": "New Transfer",
+      "origin": "Origin",
+      "destination": "Destination",
+      "vendor": "Vendor",
+      "passengers": "Passengers",
+      "guestStatus": "Guest Status",
+      "vendorStatus": "Vendor Status",
+      "flightInfo": "Flight Info"
+    },
+    "tourBookings": {
+      "title": "Tour Bookings",
+      "new": "New Booking",
+      "product": "Product",
+      "mode": "Mode",
+      "guests": "Guests",
+      "price": "Price"
+    },
+    "tourProducts": {
+      "title": "Tour Products",
+      "new": "New Product",
+      "type": "Type",
+      "bookingMode": "Booking Mode",
+      "capacity": "Capacity",
+      "price": "Price",
+      "active": "Active",
+      "scheduleManager": "Schedule Manager",
+      "generateSlots": "Generate Slots"
+    },
+    "hotelBookings": {
+      "title": "Hotel Bookings",
+      "new": "New Booking",
+      "hotel": "Hotel"
+    },
+    "specialRequests": {
+      "title": "Special Requests",
+      "new": "New Request",
+      "request": "Request",
+      "department": "Department"
+    },
+    "romanticDinners": {
+      "title": "Romantic Dinners",
+      "new": "New Dinner",
+      "location": "Location",
+      "guests": "Guests"
+    },
+    "vendors": {
+      "title": "Vendors",
+      "new": "New Vendor",
+      "name": "Name",
+      "email": "Email",
+      "type": "Type",
+      "createUser": "Create Portal User"
+    },
+    "messages": {
+      "title": "Messages",
+      "inbox": "Inbox",
+      "channel": "Channel",
+      "guest": "Guest",
+      "unread": "Unread",
+      "assign": "Assign",
+      "resolve": "Resolve",
+      "reply": "Reply",
+      "internalNote": "Internal Note"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Welcome to the Staff Portal",
+      "stats": {
+        "orders": "Orders Today",
+        "bookings": "Bookings Today",
+        "revenue": "Revenue Today",
+        "active": "Active Orders",
+        "arrivals": "Arrivals Today",
+        "departures": "Departures Today",
+        "transfers": "Transfers Today",
+        "openMessages": "Open Messages"
+      },
+      "sections": {
+        "recentOrders": "Recent Orders",
+        "upcomingBookings": "Upcoming Bookings",
+        "todayArrivals": "Today's Arrivals",
+        "todayDepartures": "Today's Departures",
+        "todayTransfers": "Today's Transfers",
+        "pendingRequests": "Pending Requests"
+      },
+      "comingSoon": "Coming soon"
+    }
+  },
+  "kds": {
+    "new": "NEW",
+    "preparing": "PREPARING",
+    "ready": "READY",
+    "room": "Room",
+    "items": "items",
+    "elapsed": "Elapsed",
+    "tapToAdvance": "Tap to advance"
+  },
+  "vendor": {
+    "login": {
+      "title": "Vendor Portal",
+      "subtitle": "Sign in to manage your bookings",
+      "signIn": "Sign in"
+    },
+    "dashboard": {
+      "title": "Vendor Dashboard",
+      "upcomingBookings": "Upcoming Bookings",
+      "recentActivity": "Recent Activity"
+    },
+    "bookings": {
+      "title": "My Bookings",
+      "confirm": "Confirm",
+      "complete": "Complete",
+      "noShow": "No Show",
+      "guestName": "Guest",
+      "date": "Date",
+      "details": "Details",
+      "status": "Status"
+    }
+  }
+}
