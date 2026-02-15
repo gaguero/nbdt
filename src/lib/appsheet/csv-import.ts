@@ -157,6 +157,36 @@ function normalizeStatus(val: string): string {
   return statusMap[lower] || 'pending';
 }
 
+function normalizeDepartment(val: string): string {
+  if (!val) return 'concierge';
+  const lower = val.toLowerCase().trim();
+  // Map Spanish/English department names to standard values
+  const deptMap: Record<string, string> = {
+    'concierge': 'concierge',
+    'conserje': 'concierge',
+    'housekeeping': 'housekeeping',
+    'limpieza': 'housekeeping',
+    'housekeeping': 'housekeeping',
+    'mantenimiento': 'maintenance',
+    'maintenance': 'maintenance',
+    'food_beverage': 'food_beverage',
+    'comida_y_bebida': 'food_beverage',
+    'alimentos_y_bebidas': 'food_beverage',
+    'comida y bebida': 'food_beverage',
+    'alimentos y bebidas': 'food_beverage',
+    'f&b': 'food_beverage',
+    'spa': 'spa',
+    'front_desk': 'front_desk',
+    'recepción': 'front_desk',
+    'recepcion': 'front_desk',
+    'management': 'management',
+    'gerencia': 'management',
+    'administración': 'management',
+    'administracion': 'management',
+  };
+  return deptMap[lower] || 'concierge';
+}
+
 // ============================================================================
 // GUEST / VENDOR LOOKUP HELPERS
 // ============================================================================
@@ -433,7 +463,7 @@ async function importSpecialRequests(rows: Record<string, string>[]): Promise<Cs
         const guestId = await findOrCreateGuest(client, guestName, guestLegacyId);
 
         const time = get(row, 'time', 'hora', 'hora_solicitud') || null;
-        const department = get(row, 'department', 'departamento', 'area', 'departamento_solicitud') || null;
+        const department = normalizeDepartment(get(row, 'department', 'departamento', 'area', 'departamento_solicitud'));
         const checkIn = parseDate(get(row, 'check_in', 'checkin', 'entrada', 'fecha_checkin'));
         const checkOut = parseDate(get(row, 'check_out', 'checkout', 'salida', 'fecha_checkout'));
         const notes = get(row, 'notes', 'notas', 'observaciones') || null;
