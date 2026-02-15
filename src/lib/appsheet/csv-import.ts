@@ -69,8 +69,17 @@ function get(row: Record<string, string>, ...keys: string[]): string {
 
 function parseDate(val: string): string | null {
   if (!val) return null;
-  // Try YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+  // Try YYYY-MM-DD (but detect YYYY-DD-MM if middle segment > 12)
+  const ymd = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (ymd) {
+    const [, y, seg2, seg3] = ymd;
+    const seg2Num = parseInt(seg2);
+    if (seg2Num > 12) {
+      // Likely YYYY-DD-MM format, swap
+      return `${y}-${seg3}-${seg2}`;
+    }
+    return val; // Valid YYYY-MM-DD
+  }
   // Try DD/MM/YYYY or DD/MM/YY
   const dmY = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (dmY) {
@@ -78,17 +87,36 @@ function parseDate(val: string): string | null {
     const year = y.length === 2 ? (parseInt(y) < 50 ? `20${y}` : `19${y}`) : y;
     return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
-  // Try MM/DD/YYYY
-  const mDY = val.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-  if (mDY) {
-    const [, m, d, y] = mDY;
-    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-  }
   return null;
 }
 
 function parseBool(val: string): boolean {
   return ['true', '1', 'yes', 'sí', 'si'].includes(val.toLowerCase());
+}
+
+function normalizeStatus(val: string): string {
+  if (!val) return 'pending';
+  const lower = val.toLowerCase().trim();
+  // Map Spanish status values to English
+  const statusMap: Record<string, string> = {
+    'pendiente': 'pending',
+    'pending': 'pending',
+    'confirmado': 'confirmed',
+    'confirmed': 'confirmed',
+    'confirmada': 'confirmed',
+    'realizado': 'completed',
+    'realizada': 'completed',
+    'completado': 'completed',
+    'completada': 'completed',
+    'completed': 'completed',
+    'cancelado': 'cancelled',
+    'cancelada': 'cancelled',
+    'cancelled': 'cancelled',
+    'no_show': 'no_show',
+    'no show': 'no_show',
+    'noshow': 'no_show',
+  };
+  return statusMap[lower] || 'pending';
 }
 
 // ============================================================================
@@ -308,8 +336,8 @@ async function importTransfers(rows: Record<string, string>[]): Promise<CsvImpor
         const numPassengers = parseInt(get(row, 'num_passengers', 'pasajeros', 'pax', 'cantidad_pasajeros') || '1') || 1;
         const origin = get(row, 'origin', 'origen', 'lugar_origen') || null;
         const destination = get(row, 'destination', 'destino', 'lugar_destino') || null;
-        const guestStatus = get(row, 'guest_status', 'estado_huesped', 'estado') || 'pending';
-        const vendorStatus = get(row, 'vendor_status', 'estado_proveedor') || 'pending';
+        const guestStatus = normalizeStatus(get(row, 'guest_status', 'estado_huesped', 'estado'));
+        const vendorStatus = normalizeStatus(get(row, 'vendor_status', 'estado_proveedor'));
         const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro', 'fecha_factura'));
         const paidDate = parseDate(get(row, 'paid_date', 'fecha_pago'));
         const notes = get(row, 'notes', 'notas', 'observaciones') || null;
@@ -422,8 +450,8 @@ async function importOtherHotelBookings(rows: Record<string, string>[]): Promise
         const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'pax', 'cantidad_huespedes') || '1') || 1;
         const checkin = parseDate(get(row, 'checkin', 'check_in', 'entrada', 'fecha_checkin'));
         const checkout = parseDate(get(row, 'checkout', 'check_out', 'salida', 'fecha_checkout'));
-        const guestStatus = get(row, 'guest_status', 'estado_huesped', 'estado') || 'pending';
-        const vendorStatus = get(row, 'vendor_status', 'estado_proveedor') || 'pending';
+        const guestStatus = normalizeStatus(get(row, 'guest_status', 'estado_huesped', 'estado'));
+        const vendorStatus = normalizeStatus(get(row, 'vendor_status', 'estado_proveedor'));
         const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro', 'fecha_factura'));
         const paidDate = parseDate(get(row, 'paid_date', 'fecha_pago'));
         const notes = get(row, 'notes', 'notas', 'observaciones') || null;
@@ -480,7 +508,7 @@ async function importRomanticDinners(rows: Record<string, string>[]): Promise<Cs
         const time = get(row, 'time', 'hora', 'hora_cena') || null;
         const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'comensales', 'cantidad_comensales') || '2') || 2;
         const location = get(row, 'location', 'ubicacion', 'lugar', 'ubicacion_cena') || null;
-        const status = get(row, 'status', 'estado', 'estado_cena') || 'pending';
+        const status = normalizeStatus(get(row, 'status', 'estado', 'estado_cena'));
         const notes = get(row, 'notes', 'notas', 'observaciones') || null;
 
         const existing = legacyId
@@ -537,8 +565,8 @@ async function importTourBookings(rows: Record<string, string>[]): Promise<CsvIm
         const numGuests = parseInt(get(row, 'num_guests', 'huespedes', 'pax', 'cantidad_huespedes') || '1') || 1;
         const bookingMode = get(row, 'booking_mode', 'modo', 'type', 'tipo_reserva') || 'shared';
         const totalPrice = parseFloat(get(row, 'total_price', 'precio', 'price', 'precio_total') || '0') || null;
-        const guestStatus = get(row, 'guest_status', 'estado_huesped', 'estado') || 'pending';
-        const vendorStatus = get(row, 'vendor_status', 'estado_proveedor') || 'pending';
+        const guestStatus = normalizeStatus(get(row, 'guest_status', 'estado_huesped', 'estado'));
+        const vendorStatus = normalizeStatus(get(row, 'vendor_status', 'estado_proveedor'));
         const specialRequests = get(row, 'special_requests', 'solicitudes', 'notes', 'notas', 'observaciones') || null;
         const billedDate = parseDate(get(row, 'billed_date', 'fecha_cobro', 'fecha_factura'));
         const paidDate = parseDate(get(row, 'paid_date', 'fecha_pago'));
