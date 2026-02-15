@@ -41,12 +41,17 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (res.ok) {
-        const { created: added, updated, unchanged, total } = data.result;
-        setImportStatus(
-          `Import complete: ${total} records — ${added} new, ${updated} updated, ${unchanged} unchanged.`
-        );
+        const { created: added, updated, unchanged, total, errors } = data.result;
+        const errorCount = errors?.length ?? 0;
+        const msg = `Import complete: ${total} records — ${added} new, ${updated} updated, ${unchanged} unchanged${errorCount > 0 ? `, ${errorCount} errors` : ''}.`;
+        setImportStatus(msg);
+        console.log('✓ Opera import complete', data.result);
+        if (errors && errors.length > 0) {
+          console.warn('Import errors:', errors.slice(0, 20));
+        }
       } else {
         setImportStatus(`Error: ${data.error}`);
+        console.error('Opera import failed:', data.error);
       }
     } catch (err: any) {
       setImportStatus(`Error: ${err.message}`);
@@ -76,13 +81,17 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (res.ok) {
-        const { created, updated, unchanged, total } = data.result;
-        const errCount = data.result.errors?.length ?? 0;
-        setCsvStatus(
-          `Import complete: ${total} rows — ${created} new, ${updated} updated, ${unchanged} unchanged${errCount > 0 ? `, ${errCount} errors` : ''}.`
-        );
+        const { created, updated, unchanged, total, errors } = data.result;
+        const errCount = errors?.length ?? 0;
+        const msg = `Import complete: ${total} rows — ${created} new, ${updated} updated, ${unchanged} unchanged${errCount > 0 ? `, ${errCount} errors` : ''}.`;
+        setCsvStatus(msg);
+        console.log('✓ AppSheet CSV import complete', data.result);
+        if (errors && errors.length > 0) {
+          console.warn('Import errors:', errors.slice(0, 20));
+        }
       } else {
         setCsvStatus(`Error: ${data.error}`);
+        console.error('AppSheet CSV import failed:', data.error);
       }
     } catch (err: any) {
       setCsvStatus(`Error: ${err.message}`);
