@@ -74,11 +74,9 @@ async function analyzeBatch(names: string[], products: any[]) {
 
   const productsList = products.map(p => 
     `- ID: ${p.id} | Name: ${p.name_en} / ${p.name_es}`
-  ).join('
-');
+  ).join('\n');
 
-  const namesList = names.join('
-');
+  const namesList = names.join('\n');
 
   const prompt = `
     You are an expert data normalization assistant for a luxury hotel's tour booking system.
