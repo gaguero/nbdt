@@ -270,42 +270,13 @@ async function findHotel(client: any, hotelName: string): Promise<string | null>
 async function findTourProduct(client: any, productName: string): Promise<string | null> {
   if (!productName) return null;
 
-  // 1. Check for confirmed mapping
-  const mappingRes = await client.query(
-    'SELECT confirmed_product_id, suggested_product_id FROM tour_name_mappings WHERE original_name = $1',
-    [productName]
-  );
-
-  if (mappingRes.rows.length > 0) {
-    if (mappingRes.rows[0].confirmed_product_id) {
-      return mappingRes.rows[0].confirmed_product_id;
-    }
-  }
-
-  // 2. Fallback to existing product lookup (ILIKE)
+  // Simple ILIKE fuzzy match against product names
   const productRes = await client.query(
     'SELECT id FROM tour_products WHERE name_en ILIKE $1 OR name_es ILIKE $1 LIMIT 1',
     [productName]
   );
 
-  const foundId = productRes.rows[0]?.id ?? null;
-
-  // 3. Upsert into mappings for future review/AI analysis
-  if (mappingRes.rows.length === 0) {
-    await client.query(
-      `INSERT INTO tour_name_mappings (original_name, suggested_product_id)
-       VALUES ($1, $2)
-       ON CONFLICT (original_name) DO NOTHING`,
-      [productName, foundId]
-    );
-  } else if (!mappingRes.rows[0].suggested_product_id && foundId) {
-    await client.query(
-      'UPDATE tour_name_mappings SET suggested_product_id = $1 WHERE original_name = $2',
-      [foundId, productName]
-    );
-  }
-
-  return foundId;
+  return productRes.rows[0]?.id ?? null;
 }
 
 // ============================================================================
