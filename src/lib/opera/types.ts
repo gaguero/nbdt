@@ -51,7 +51,7 @@ export interface ParsedReservation {
   travel_agent: string;
   company: string;
   insert_user: string;
-  insert_date: string;
+  insert_date: string | null;
   share_amount: number | null;
   share_amount_per_stay: number | null;
 }

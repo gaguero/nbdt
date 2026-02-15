@@ -80,7 +80,7 @@ function parseReservation(gRoom: OperaGRoom): ParsedReservation {
     travel_agent: gRoom.TRAVEL_AGENT_NAME || '',
     company: gRoom.COMPANY_NAME || '',
     insert_user: gRoom.INSERT_USER || '',
-    insert_date: gRoom.INSERT_DATE || '',
+    insert_date: parseDate(String(gRoom.INSERT_DATE || '')),
     share_amount: parseNumber(String(gRoom.SHARE_AMOUNT || '')),
     share_amount_per_stay: parseNumber(String(gRoom.SHARE_AMOUNT_PER_STAY || '')),
   };
