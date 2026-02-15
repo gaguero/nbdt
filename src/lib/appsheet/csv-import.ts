@@ -72,7 +72,7 @@ function parseDate(val: string): string | null {
   val = val.trim();
 
   // Try YYYY-MM-DD (but detect YYYY-DD-MM if middle segment > 12)
-  let ymd = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const ymd = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (ymd) {
     const [, yStr, seg2, seg3] = ymd;
     const year = parseInt(yStr);
@@ -95,7 +95,7 @@ function parseDate(val: string): string | null {
   }
 
   // Try DD/MM/YYYY or DD/MM/YY
-  let dmY = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  const dmY = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (dmY) {
     const [, d, m, yStr] = dmY;
     const year = yStr.length === 2 ? (parseInt(yStr) < 50 ? 2000 + parseInt(yStr) : 1900 + parseInt(yStr)) : parseInt(yStr);
