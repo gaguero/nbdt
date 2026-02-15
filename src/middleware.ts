@@ -14,7 +14,7 @@ const PROTECTED_STAFF_PATTERNS = [
 ];
 
 const PROTECTED_VENDOR_PATTERNS = [
-  /^\/[^\/]+\/vendor(?!\/login)/,
+  /^\/[^\/]+\/vendor\/(?!login)/,
 ];
 
 const PROTECTED_KDS_PATTERNS = [
