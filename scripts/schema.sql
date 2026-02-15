@@ -155,9 +155,7 @@ CREATE TABLE bookings (
     guest_phone TEXT,
     booking_date DATE NOT NULL,
     booking_time TIMESTAMPTZ NOT NULL,
-    end_time TIMESTAMPTZ GENERATED ALWAYS AS (
-        booking_time + (INTERVAL '1 minute' * COALESCE((SELECT duration_minutes FROM menu_items WHERE id = item_id), 60))
-    ) STORED,
+    end_time TIMESTAMPTZ,
     number_of_guests INT DEFAULT 1,
     status TEXT NOT NULL DEFAULT 'pending',
     special_requests TEXT,

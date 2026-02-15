@@ -1,7 +1,7 @@
 'use strict';
 
 const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 async function seedDatabase() {
   const pool = new Pool({
