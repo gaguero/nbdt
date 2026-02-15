@@ -12,7 +12,6 @@ async function runMigrations() {
   try {
     console.log('Running database migrations...');
 
-    // schema.sql first (base tables), then schema-v2.sql (additions)
     const schemaFiles = ['schema.sql', 'schema-v2.sql'];
 
     for (const file of schemaFiles) {
@@ -23,24 +22,28 @@ async function runMigrations() {
       }
       console.log('Applying:', file);
       const sql = fs.readFileSync(filePath, 'utf8');
-      await pool.query(sql);
-      console.log('Done:', file);
+      try {
+        await pool.query(sql);
+        console.log('Done:', file);
+      } catch (err) {
+        if (
+          err.code === '42P07' ||
+          (err.message && err.message.includes('already exists'))
+        ) {
+          console.log('Done (some objects already existed):', file);
+        } else {
+          throw err;
+        }
+      }
     }
 
     console.log('Migration completed successfully.');
-    process.exit(0);
   } catch (error) {
-    if (
-      error.code === '42P07' ||
-      (error.message && error.message.includes('already exists'))
-    ) {
-      console.log('Some objects already exist — migration already applied.');
-      process.exit(0);
-    }
     console.error('Migration failed:', error.message);
     process.exit(1);
   } finally {
     await pool.end();
+    process.exit(0);
   }
 }
 
