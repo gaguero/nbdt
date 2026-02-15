@@ -1,16 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import pg from 'pg';
-import dotenv from 'dotenv';
+'use strict';
 
-// Load environment variables
-dotenv.config({ path: '.env.local' });
-
-const { Pool } = pg;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const fs = require('fs');
+const path = require('path');
+const { Pool } = require('pg');
 
 async function runMigrations() {
   const pool = new Pool({
@@ -18,37 +10,35 @@ async function runMigrations() {
   });
 
   try {
-    console.log('🚀 Running database migrations...');
-    console.log(`📁 Reading schema from: ${path.join(__dirname, 'schema-v2.sql')}`);
+    console.log('Running database migrations...');
 
-    // Read the schema SQL file
-    const schemaSQL = fs.readFileSync(
-      path.join(__dirname, 'schema-v2.sql'),
-      'utf8'
-    );
+    // schema.sql first (base tables), then schema-v2.sql (additions)
+    const schemaFiles = ['schema.sql', 'schema-v2.sql'];
 
-    // Execute the schema
-    await pool.query(schemaSQL);
+    for (const file of schemaFiles) {
+      const filePath = path.join(__dirname, file);
+      if (!fs.existsSync(filePath)) {
+        console.log('Skipping (not found):', file);
+        continue;
+      }
+      console.log('Applying:', file);
+      const sql = fs.readFileSync(filePath, 'utf8');
+      await pool.query(sql);
+      console.log('Done:', file);
+    }
 
-    console.log('✓ Database schema created successfully');
-    console.log('✓ All tables, indexes, and triggers have been set up');
+    console.log('Migration completed successfully.');
     process.exit(0);
   } catch (error) {
-    // Handle "already exists" errors gracefully
-    if (error.code === '42P07') {
-      console.log('⚠️  Some tables already exist - this is okay');
-      console.log('✓ Migration completed (schema already initialized)');
+    if (
+      error.code === '42P07' ||
+      (error.message && error.message.includes('already exists'))
+    ) {
+      console.log('Some objects already exist — migration already applied.');
       process.exit(0);
-    } else if (error.message && error.message.includes('already exists')) {
-      console.log('⚠️  Some database objects already exist - this is okay');
-      console.log('✓ Migration completed (schema already initialized)');
-      process.exit(0);
-    } else {
-      console.error('❌ Migration failed:', error);
-      console.error('Error code:', error.code);
-      console.error('Error message:', error.message);
-      process.exit(1);
     }
+    console.error('Migration failed:', error.message);
+    process.exit(1);
   } finally {
     await pool.end();
   }
