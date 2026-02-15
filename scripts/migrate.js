@@ -57,6 +57,7 @@ async function runMigrations() {
             skipped++;
           } else {
             console.error('Statement failed:', stmt.substring(0, 80));
+            console.error('Error details:', err.code, err.message);
             throw err;
           }
         }

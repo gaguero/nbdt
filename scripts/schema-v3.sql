@@ -1,7 +1,9 @@
 -- Nayara Ordering System — Schema v3
 -- Tour Name Normalization System
 
-CREATE TABLE IF NOT EXISTS tour_name_mappings (
+DROP TABLE IF EXISTS tour_name_mappings CASCADE;
+
+CREATE TABLE tour_name_mappings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     original_name TEXT UNIQUE NOT NULL,
     suggested_product_id UUID REFERENCES tour_products(id) ON DELETE SET NULL,
