@@ -24,7 +24,7 @@ type GroupDecision =
   | { action: 'merge'; masterId: string }
   | { action: 'skip' };
 
-type Step = 'analyze' | 'analyzing' | 'review' | 'executing' | 'done';
+type Step = 'generate' | 'paste' | 'review' | 'executing' | 'done';
 
 const TYPE_COLORS: Record<string, string> = {
   transfer: 'bg-blue-100 text-blue-700',
@@ -35,11 +35,16 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function VendorNormalizationPage() {
-  const [step, setStep] = useState<Step>('analyze');
+  const [step, setStep] = useState<Step>('generate');
+  const [prompt, setPrompt] = useState('');
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [pastedResponse, setPastedResponse] = useState('');
   const [groups, setGroups] = useState<VendorGroup[]>([]);
-  const [totalVendors, setTotalVendors] = useState(0);
   const [decisions, setDecisions] = useState<Record<number, GroupDecision>>({});
-  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [loadingPrompt, setLoadingPrompt] = useState(false);
+  const [promptError, setPromptError] = useState<string | null>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [executeResult, setExecuteResult] = useState<{
     groupsProcessed: number;
     vendorsDeactivated: number;
@@ -49,39 +54,83 @@ export default function VendorNormalizationPage() {
     errors: string[];
   } | null>(null);
 
-  async function handleAnalyze() {
-    setStep('analyzing');
-    setAnalyzeError(null);
-
+  async function handleGeneratePrompt() {
+    setLoadingPrompt(true);
+    setPromptError(null);
     try {
       const res = await fetch('/api/admin/vendor-normalization/analyze');
       const data = await res.json();
-
-      if (!res.ok) {
-        setAnalyzeError(data.error);
-        setStep('analyze');
-        return;
-      }
-
-      setGroups(data.groups);
-      setTotalVendors(data.totalVendors);
-
-      // Auto-set default decisions: merge with AI-suggested master, skip if no duplicates
-      const auto: Record<number, GroupDecision> = {};
-      for (const g of data.groups as VendorGroup[]) {
-        const suggested = g.vendors.find(v => v.isSuggestedMaster);
-        if (suggested) {
-          auto[g.groupId] = { action: 'merge', masterId: suggested.id };
-        } else {
-          auto[g.groupId] = { action: 'skip' };
-        }
-      }
-      setDecisions(auto);
-      setStep('review');
+      if (!res.ok) { setPromptError(data.error); return; }
+      setPrompt(data.prompt);
+      setVendors(data.vendors);
+      setStep('paste');
     } catch (err: any) {
-      setAnalyzeError(err.message);
-      setStep('analyze');
+      setPromptError(err.message);
+    } finally {
+      setLoadingPrompt(false);
     }
+  }
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(prompt);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleParseResponse() {
+    setParseError(null);
+    const text = pastedResponse.trim();
+    if (!text) { setParseError('Please paste the AI response first.'); return; }
+
+    // Extract JSON array from the response (handle markdown code blocks)
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      setParseError('Could not find a JSON array in the response. Make sure you copied the full AI reply.');
+      return;
+    }
+
+    let rawGroups: { groupId: number; reason: string; vendors: { id: string; name: string; isSuggestedMaster: boolean }[] }[];
+    try {
+      rawGroups = JSON.parse(jsonMatch[0]);
+    } catch (_e) {
+      setParseError('The JSON is invalid. Try asking the AI to return only the JSON array with no extra text.');
+      return;
+    }
+
+    // Enrich with full vendor data
+    const vendorMap = new Map(vendors.map((v: any) => [v.id, v]));
+    const enriched: VendorGroup[] = rawGroups.map(g => ({
+      ...g,
+      vendors: g.vendors.map(gv => {
+        const full = vendorMap.get(gv.id) as any;
+        return {
+          id: gv.id,
+          name: full?.name ?? gv.name,
+          type: full?.type ?? 'other',
+          email: full?.email ?? null,
+          phone: full?.phone ?? null,
+          is_active: full?.is_active ?? false,
+          transfer_count: full?.transfer_count ?? 0,
+          tour_product_count: full?.tour_product_count ?? 0,
+          isSuggestedMaster: gv.isSuggestedMaster,
+        };
+      }),
+    }));
+
+    setGroups(enriched);
+
+    // Auto-set decisions using the AI suggestion
+    const auto: Record<number, GroupDecision> = {};
+    for (const g of enriched) {
+      const suggested = g.vendors.find(v => v.isSuggestedMaster);
+      if (suggested) {
+        auto[g.groupId] = { action: 'merge', masterId: suggested.id };
+      } else {
+        auto[g.groupId] = { action: 'skip' };
+      }
+    }
+    setDecisions(auto);
+    setStep('review');
   }
 
   async function handleExecute() {
@@ -91,10 +140,10 @@ export default function VendorNormalizationPage() {
       .filter(g => decisions[g.groupId]?.action === 'merge')
       .map(g => {
         const dec = decisions[g.groupId] as { action: 'merge'; masterId: string };
-        const duplicateIds = g.vendors
-          .filter(v => v.id !== dec.masterId)
-          .map(v => v.id);
-        return { masterId: dec.masterId, duplicateIds };
+        return {
+          masterId: dec.masterId,
+          duplicateIds: g.vendors.filter(v => v.id !== dec.masterId).map(v => v.id),
+        };
       })
       .filter(m => m.duplicateIds.length > 0);
 
@@ -105,39 +154,47 @@ export default function VendorNormalizationPage() {
         body: JSON.stringify({ merges }),
       });
       const data = await res.json();
-
-      if (res.ok) {
-        setExecuteResult(data.result);
-      } else {
-        setExecuteResult({
-          groupsProcessed: 0,
-          vendorsDeactivated: 0,
-          transfersUpdated: 0,
-          tourProductsUpdated: 0,
-          vendorUsersUpdated: 0,
-          errors: [data.error],
-        });
-      }
+      setExecuteResult(res.ok ? data.result : {
+        groupsProcessed: 0, vendorsDeactivated: 0, transfersUpdated: 0,
+        tourProductsUpdated: 0, vendorUsersUpdated: 0, errors: [data.error],
+      });
     } catch (err: any) {
       setExecuteResult({
-        groupsProcessed: 0,
-        vendorsDeactivated: 0,
-        transfersUpdated: 0,
-        tourProductsUpdated: 0,
-        vendorUsersUpdated: 0,
-        errors: [err.message],
+        groupsProcessed: 0, vendorsDeactivated: 0, transfersUpdated: 0,
+        tourProductsUpdated: 0, vendorUsersUpdated: 0, errors: [err.message],
       });
     } finally {
       setStep('done');
     }
   }
 
+  function reset() {
+    setStep('generate');
+    setPrompt('');
+    setVendors([]);
+    setPastedResponse('');
+    setGroups([]);
+    setDecisions({});
+    setExecuteResult(null);
+    setPromptError(null);
+    setParseError(null);
+  }
+
   const mergeCount = groups.filter(g => decisions[g.groupId]?.action === 'merge').length;
   const skipCount = groups.filter(g => decisions[g.groupId]?.action === 'skip').length;
-
   const totalDuplicatesToDeactivate = groups
     .filter(g => decisions[g.groupId]?.action === 'merge')
     .reduce((sum, g) => sum + (g.vendors.length - 1), 0);
+
+  // Step labels
+  const stepLabels = [
+    { key: 'generate', label: 'Get Prompt' },
+    { key: 'paste', label: 'Paste AI Response' },
+    { key: 'review', label: 'Review & Confirm' },
+    { key: 'done', label: 'Results' },
+  ];
+  const stepIndex = { generate: 0, paste: 1, review: 2, executing: 2, done: 3 };
+  const currentIndex = stepIndex[step];
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -145,70 +202,148 @@ export default function VendorNormalizationPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Vendor Normalization</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Use AI to detect duplicate vendor records and merge them — preserving all transfers, tour products, and users.
+          Detect and merge duplicate vendor records using any AI assistant — no API key needed.
         </p>
       </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-2 text-sm">
-        {(['analyze', 'review', 'done'] as const).map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
+        {stepLabels.map((s, i) => (
+          <div key={s.key} className="flex items-center gap-2">
             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-              step === s || (step === 'analyzing' && s === 'analyze') ? 'bg-orange-500 text-white' :
-              (step === 'review' && s === 'analyze') || step === 'done' || step === 'executing' ? 'bg-green-500 text-white' :
+              i === currentIndex ? 'bg-orange-500 text-white' :
+              i < currentIndex ? 'bg-green-500 text-white' :
               'bg-gray-200 text-gray-500'
             }`}>{i + 1}</span>
-            <span className={(step === s || (step === 'analyzing' && s === 'analyze')) ? 'font-medium text-gray-900' : 'text-gray-400'}>
-              {s === 'analyze' ? 'AI Analysis' : s === 'review' ? 'Review & Confirm' : 'Results'}
+            <span className={i === currentIndex ? 'font-medium text-gray-900' : 'text-gray-400'}>
+              {s.label}
             </span>
-            {i < 2 && <span className="text-gray-300">→</span>}
+            {i < stepLabels.length - 1 && <span className="text-gray-300">→</span>}
           </div>
         ))}
       </div>
 
-      {/* Step 1: Analyze */}
-      {(step === 'analyze' || step === 'analyzing') && (
+      {/* ── Step 1: Generate Prompt ── */}
+      {step === 'generate' && (
         <div className="bg-white rounded-xl border border-gray-200 p-10 text-center space-y-5">
           <div className="w-16 h-16 mx-auto rounded-full bg-orange-50 flex items-center justify-center">
             <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.416A4.003 4.003 0 0112 16a4.003 4.003 0 01-2.79-1.134l-.347-.416z" />
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
-          <div>
-            <p className="text-base font-semibold text-gray-800">Analyze vendors with Gemini AI</p>
-            <p className="text-sm text-gray-500 mt-1">
-              The AI will scan all vendors and identify duplicate records (typos, abbreviations, language variants).
-              You will review every suggestion before any changes are made.
-            </p>
+          <div className="max-w-md mx-auto">
+            <p className="text-base font-semibold text-gray-800">How it works</p>
+            <ol className="text-sm text-gray-500 mt-3 text-left space-y-2 list-decimal list-inside">
+              <li>Click <strong>Generate Prompt</strong> — we build a prompt from your vendor database.</li>
+              <li>Copy the prompt and paste it into any AI (ChatGPT, Claude, Gemini, etc.).</li>
+              <li>Copy the AI response and paste it back here.</li>
+              <li>Review the suggested merges and confirm.</li>
+            </ol>
           </div>
-          {analyzeError && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2 inline-block">{analyzeError}</p>
+          {promptError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2 inline-block">{promptError}</p>
           )}
           <button
-            onClick={handleAnalyze}
-            disabled={step === 'analyzing'}
+            onClick={handleGeneratePrompt}
+            disabled={loadingPrompt}
             className="px-8 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50 flex items-center gap-2 mx-auto"
           >
-            {step === 'analyzing' ? (
+            {loadingPrompt ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Analyzing with AI…
+                Loading vendors…
               </>
-            ) : (
-              'Analyze Vendors →'
-            )}
+            ) : 'Generate Prompt →'}
           </button>
         </div>
       )}
 
-      {/* Step 2: Review */}
+      {/* ── Step 2: Copy prompt + Paste response ── */}
+      {step === 'paste' && (
+        <div className="space-y-5">
+          {/* Prompt box */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-gray-800">1. Copy this prompt</h2>
+              <button
+                onClick={handleCopy}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  copied
+                    ? 'bg-green-500 text-white'
+                    : 'bg-orange-500 text-white hover:bg-orange-600'
+                }`}
+              >
+                {copied ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy Prompt
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">
+              Paste into ChatGPT, Claude, Gemini, or any AI assistant. Ask it to return only the JSON.
+            </p>
+            <textarea
+              readOnly
+              value={prompt}
+              rows={10}
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 font-mono resize-none focus:outline-none"
+            />
+          </div>
+
+          {/* Paste response */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+            <h2 className="font-semibold text-gray-800">2. Paste the AI response here</h2>
+            <p className="text-xs text-gray-500">
+              The AI should return a JSON array. Paste the entire response — we will extract the JSON automatically.
+            </p>
+            <textarea
+              value={pastedResponse}
+              onChange={e => setPastedResponse(e.target.value)}
+              rows={10}
+              placeholder='Paste the AI response here...'
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+            {parseError && (
+              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{parseError}</p>
+            )}
+            <div className="flex justify-between items-center pt-1">
+              <button
+                onClick={() => setStep('generate')}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+              >
+                ← Back
+              </button>
+              <button
+                onClick={handleParseResponse}
+                disabled={!pastedResponse.trim()}
+                className="px-6 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50"
+              >
+                Parse &amp; Review →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 3: Review groups ── */}
       {step === 'review' && (
         <div className="space-y-5">
-          {/* Summary bar */}
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-orange-50 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-orange-600">{totalVendors}</p>
+              <p className="text-2xl font-bold text-orange-600">{vendors.length}</p>
               <p className="text-sm text-orange-500">Total vendors</p>
             </div>
             <div className="bg-red-50 rounded-xl p-4 text-center">
@@ -221,7 +356,6 @@ export default function VendorNormalizationPage() {
             </div>
           </div>
 
-          {/* Groups */}
           <div className="space-y-4">
             {groups.map(g => {
               const dec = decisions[g.groupId] || { action: 'skip' };
@@ -235,7 +369,6 @@ export default function VendorNormalizationPage() {
                     isMerge ? 'border-orange-300' : 'border-gray-200'
                   }`}
                 >
-                  {/* Group header */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-gray-800">Group {g.groupId}</p>
@@ -271,7 +404,6 @@ export default function VendorNormalizationPage() {
                     </div>
                   </div>
 
-                  {/* Vendor cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {g.vendors.map(v => {
                       const isMaster = masterId === v.id;
@@ -283,7 +415,9 @@ export default function VendorNormalizationPage() {
                               setDecisions(prev => ({ ...prev, [g.groupId]: { action: 'merge', masterId: v.id } }));
                             }
                           }}
-                          className={`rounded-lg border-2 p-3 cursor-pointer transition-all ${
+                          className={`rounded-lg border-2 p-3 transition-all ${
+                            isMerge ? 'cursor-pointer' : ''
+                          } ${
                             isMaster
                               ? 'border-orange-400 bg-orange-50'
                               : isMerge
@@ -296,17 +430,10 @@ export default function VendorNormalizationPage() {
                               {v.type}
                             </span>
                             {isMaster && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500 text-white font-semibold">
-                                MASTER
-                              </span>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500 text-white font-semibold">MASTER</span>
                             )}
                             {!isMaster && isMerge && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">
-                                MERGE
-                              </span>
-                            )}
-                            {v.isSuggestedMaster && !isMaster && (
-                              <span className="text-xs text-orange-500">AI pick</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">MERGE</span>
                             )}
                           </div>
                           <p className="text-sm font-semibold text-gray-900 leading-tight">{v.name}</p>
@@ -318,7 +445,7 @@ export default function VendorNormalizationPage() {
                             {!v.is_active && <span className="text-red-400">inactive</span>}
                           </div>
                           {isMerge && !isMaster && (
-                            <p className="text-xs text-orange-600 mt-1.5">Click to make master</p>
+                            <p className="text-xs text-orange-500 mt-1.5">Click to make master</p>
                           )}
                         </div>
                       );
@@ -329,7 +456,6 @@ export default function VendorNormalizationPage() {
             })}
           </div>
 
-          {/* Footer actions */}
           <div className="flex justify-between items-center pt-2">
             <p className="text-sm text-gray-500">
               {mergeCount} group{mergeCount !== 1 ? 's' : ''} to merge &middot; {skipCount} skipped &middot;{' '}
@@ -337,10 +463,10 @@ export default function VendorNormalizationPage() {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => setStep('analyze')}
+                onClick={() => setStep('paste')}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
               >
-                ← Re-analyze
+                ← Back
               </button>
               <button
                 onClick={handleExecute}
@@ -354,7 +480,7 @@ export default function VendorNormalizationPage() {
         </div>
       )}
 
-      {/* Executing spinner */}
+      {/* ── Executing spinner ── */}
       {step === 'executing' && (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <div className="animate-spin w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4" />
@@ -363,7 +489,7 @@ export default function VendorNormalizationPage() {
         </div>
       )}
 
-      {/* Done */}
+      {/* ── Done ── */}
       {step === 'done' && executeResult && (
         <div className="bg-white rounded-xl border border-gray-200 p-8 space-y-5">
           <div className="flex items-center gap-3">
@@ -404,13 +530,10 @@ export default function VendorNormalizationPage() {
           )}
 
           <p className="text-sm text-gray-500">
-            Duplicate vendors are now inactive (marked with [MERGED]). You can review them in the Vendors page. Now you can run the Tour Product Builder.
+            Duplicate vendors are now inactive (marked [MERGED]). You can review them in the Vendors page.
           </p>
 
-          <button
-            onClick={() => { setStep('analyze'); setGroups([]); setDecisions({}); setExecuteResult(null); }}
-            className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
-          >
+          <button onClick={reset} className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600">
             Run Again
           </button>
         </div>
