@@ -70,7 +70,7 @@ export async function analyzeTourNames() {
 
 async function analyzeBatch(names: string[], products: any[]) {
   if (!genAI) return;
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const productsList = products.map(p => 
     `- ID: ${p.id} | Name: ${p.name_en} / ${p.name_es}`
