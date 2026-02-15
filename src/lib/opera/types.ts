@@ -16,7 +16,6 @@ export interface OperaGRoom {
   GROUP_NAME: string;
   TRAVEL_AGENT_NAME: string;
   COMPANY_NAME: string;
-  C_T_S_NAME: string;
   INSERT_USER: string;
   INSERT_DATE: string;
   SHARE_AMOUNT: string;
@@ -51,7 +50,6 @@ export interface ParsedReservation {
   group_name: string;
   travel_agent: string;
   company: string;
-  c_t_s_name: string;
   insert_user: string;
   insert_date: string;
   share_amount: number | null;

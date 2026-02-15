@@ -2,10 +2,25 @@
 
 import { useState, useRef } from 'react';
 
+const APPSHEET_TABLES = [
+  { value: 'guests', label: 'Guests' },
+  { value: 'vendors', label: 'Vendors' },
+  { value: 'transfers', label: 'Transfers' },
+  { value: 'special_requests', label: 'Special Requests' },
+  { value: 'other_hotel_bookings', label: 'Other Hotel Bookings' },
+  { value: 'romantic_dinners', label: 'Romantic Dinners' },
+  { value: 'tour_bookings', label: 'Tour Bookings' },
+];
+
 export default function SettingsPage() {
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const [csvStatus, setCsvStatus] = useState<string | null>(null);
+  const [csvImporting, setCsvImporting] = useState(false);
+  const [csvTable, setCsvTable] = useState('guests');
+  const csvFileRef = useRef<HTMLInputElement>(null);
 
   async function handleOperaImport(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +41,7 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (res.ok) {
-        const { new: added, updated, unchanged, total } = data;
+        const { created: added, updated, unchanged, total } = data.result;
         setImportStatus(
           `Import complete: ${total} records — ${added} new, ${updated} updated, ${unchanged} unchanged.`
         );
@@ -38,6 +53,42 @@ export default function SettingsPage() {
     } finally {
       setImporting(false);
       if (fileRef.current) fileRef.current.value = '';
+    }
+  }
+
+  async function handleCsvImport(e: React.FormEvent) {
+    e.preventDefault();
+    const file = csvFileRef.current?.files?.[0];
+    if (!file) return;
+
+    setCsvImporting(true);
+    setCsvStatus(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('table', csvTable);
+
+      const res = await fetch('/api/appsheet/import', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        const { created, updated, unchanged, total } = data.result;
+        const errCount = data.result.errors?.length ?? 0;
+        setCsvStatus(
+          `Import complete: ${total} rows — ${created} new, ${updated} updated, ${unchanged} unchanged${errCount > 0 ? `, ${errCount} errors` : ''}.`
+        );
+      } else {
+        setCsvStatus(`Error: ${data.error}`);
+      }
+    } catch (err: any) {
+      setCsvStatus(`Error: ${err.message}`);
+    } finally {
+      setCsvImporting(false);
+      if (csvFileRef.current) csvFileRef.current.value = '';
     }
   }
 
@@ -78,6 +129,58 @@ export default function SettingsPage() {
                 : 'bg-green-50 text-green-700'
             }`}>
               {importStatus}
+            </p>
+          )}
+        </form>
+      </section>
+
+      {/* AppSheet CSV Import */}
+      <section className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">AppSheet Data Import</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Import historical data from AppSheet CSV exports. Select the target table, then upload the exported CSV file.
+        </p>
+        <form onSubmit={handleCsvImport} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Target Table
+            </label>
+            <select
+              value={csvTable}
+              onChange={e => setCsvTable(e.target.value)}
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {APPSHEET_TABLES.map(t => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              CSV File
+            </label>
+            <input
+              ref={csvFileRef}
+              type="file"
+              accept=".csv"
+              required
+              className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={csvImporting}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+          >
+            {csvImporting ? 'Importing…' : 'Upload & Import CSV'}
+          </button>
+          {csvStatus && (
+            <p className={`text-sm rounded-lg px-3 py-2 ${
+              csvStatus.startsWith('Error')
+                ? 'bg-red-50 text-red-700'
+                : 'bg-green-50 text-green-700'
+            }`}>
+              {csvStatus}
             </p>
           )}
         </form>

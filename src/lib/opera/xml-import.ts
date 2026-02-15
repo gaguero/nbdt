@@ -79,7 +79,6 @@ function parseReservation(gRoom: OperaGRoom): ParsedReservation {
     group_name: gRoom.GROUP_NAME || '',
     travel_agent: gRoom.TRAVEL_AGENT_NAME || '',
     company: gRoom.COMPANY_NAME || '',
-    c_t_s_name: gRoom.C_T_S_NAME || '',
     insert_user: gRoom.INSERT_USER || '',
     insert_date: gRoom.INSERT_DATE || '',
     share_amount: parseNumber(String(gRoom.SHARE_AMOUNT || '')),
@@ -118,20 +117,20 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
       }
 
       await transaction(async (client) => {
-        // Upsert guest by full_name
+        // Upsert guest by first_name + last_name
         let guestId: string;
         const existingGuest = await client.query(
-          'SELECT id FROM guests WHERE full_name = $1 LIMIT 1',
-          [parsed.full_name]
+          'SELECT id FROM guests WHERE first_name = $1 AND last_name = $2 LIMIT 1',
+          [parsed.first_name, parsed.last_name]
         );
 
         if (existingGuest.rows.length > 0) {
           guestId = existingGuest.rows[0].id;
         } else {
           const newGuest = await client.query(
-            `INSERT INTO guests (first_name, last_name, full_name)
-             VALUES ($1, $2, $3) RETURNING id`,
-            [parsed.first_name, parsed.last_name, parsed.full_name]
+            `INSERT INTO guests (first_name, last_name)
+             VALUES ($1, $2) RETURNING id`,
+            [parsed.first_name, parsed.last_name]
           );
           guestId = newGuest.rows[0].id;
         }
@@ -153,16 +152,16 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
                 arrival = $5, departure = $6, persons = $7, nights = $8,
                 no_of_rooms = $9, room_category = $10, rate_code = $11,
                 guarantee_code = $12, guarantee_code_desc = $13, group_name = $14,
-                travel_agent = $15, company = $16, c_t_s_name = $17,
-                share_amount = $18, share_amount_per_stay = $19,
-                insert_user = $20, insert_date = $21
-              WHERE opera_resv_id = $22`,
+                travel_agent = $15, company = $16,
+                share_amount = $17, share_amount_per_stay = $18,
+                insert_user = $19, insert_date = $20
+              WHERE opera_resv_id = $21`,
               [
                 guestId, parsed.status, parsed.short_status, parsed.room,
                 parsed.arrival, parsed.departure, parsed.persons, parsed.nights,
                 parsed.no_of_rooms, parsed.room_category, parsed.rate_code,
                 parsed.guarantee_code, parsed.guarantee_code_desc, parsed.group_name,
-                parsed.travel_agent, parsed.company, parsed.c_t_s_name,
+                parsed.travel_agent, parsed.company,
                 parsed.share_amount, parsed.share_amount_per_stay,
                 parsed.insert_user, parsed.insert_date,
                 parsed.opera_resv_id,
@@ -176,14 +175,14 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
               opera_resv_id, guest_id, status, short_status, room,
               arrival, departure, persons, nights, no_of_rooms,
               room_category, rate_code, guarantee_code, guarantee_code_desc,
-              group_name, travel_agent, company, c_t_s_name,
+              group_name, travel_agent, company,
               share_amount, share_amount_per_stay, insert_user, insert_date
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`,
             [
               parsed.opera_resv_id, guestId, parsed.status, parsed.short_status, parsed.room,
               parsed.arrival, parsed.departure, parsed.persons, parsed.nights, parsed.no_of_rooms,
               parsed.room_category, parsed.rate_code, parsed.guarantee_code, parsed.guarantee_code_desc,
-              parsed.group_name, parsed.travel_agent, parsed.company, parsed.c_t_s_name,
+              parsed.group_name, parsed.travel_agent, parsed.company,
               parsed.share_amount, parsed.share_amount_per_stay, parsed.insert_user, parsed.insert_date,
             ]
           );
