@@ -22,19 +22,34 @@ async function runMigrations() {
       }
       console.log('Applying:', file);
       const sql = fs.readFileSync(filePath, 'utf8');
-      try {
-        await pool.query(sql);
-        console.log('Done:', file);
-      } catch (err) {
-        if (
-          err.code === '42P07' ||
-          (err.message && err.message.includes('already exists'))
-        ) {
-          console.log('Done (some objects already existed):', file);
-        } else {
-          throw err;
+
+      // Split into individual statements and run each one separately so
+      // an "already exists" error on one statement does not abort the rest.
+      const statements = sql
+        .split(/;\s*\n/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0 && !s.startsWith('--'));
+
+      let applied = 0;
+      let skipped = 0;
+      for (const stmt of statements) {
+        try {
+          await pool.query(stmt);
+          applied++;
+        } catch (err) {
+          if (
+            err.code === '42P07' ||
+            err.code === '42701' ||
+            (err.message && err.message.includes('already exists'))
+          ) {
+            skipped++;
+          } else {
+            console.error('Statement failed:', stmt.substring(0, 80));
+            throw err;
+          }
         }
       }
+      console.log(`Done: ${file} (${applied} applied, ${skipped} skipped)`);
     }
 
     console.log('Migration completed successfully.');
