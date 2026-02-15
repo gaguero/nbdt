@@ -217,10 +217,6 @@ CREATE TABLE IF NOT EXISTS romantic_dinners (
 -- TOUR PRODUCTS & SCHEDULING
 -- ============================================================================
 
-CREATE TYPE IF NOT EXISTS tour_product_type AS ENUM ('tour', 'spa', 'restaurant', 'experience', 'transfer');
-CREATE TYPE IF NOT EXISTS tour_booking_mode AS ENUM ('private', 'shared', 'either');
-CREATE TYPE IF NOT EXISTS tour_scheduling_mode AS ENUM ('fixed_slots', 'flexible', 'on_request');
-
 CREATE TABLE IF NOT EXISTS tour_products (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name_en TEXT NOT NULL,
@@ -228,8 +224,8 @@ CREATE TABLE IF NOT EXISTS tour_products (
     description_en TEXT,
     description_es TEXT,
     vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL,
-    type tour_product_type NOT NULL DEFAULT 'tour',
-    booking_mode tour_booking_mode NOT NULL DEFAULT 'either',
+    type TEXT NOT NULL DEFAULT 'tour' CHECK (type IN ('tour', 'spa', 'restaurant', 'experience', 'transfer')),
+    booking_mode TEXT NOT NULL DEFAULT 'either' CHECK (booking_mode IN ('private', 'shared', 'either')),
     max_capacity_shared INT DEFAULT 12,
     max_capacity_private INT DEFAULT 20,
     duration_minutes INT DEFAULT 60,
@@ -242,7 +238,7 @@ CREATE TABLE IF NOT EXISTS tour_products (
     meeting_point_en TEXT,
     meeting_point_es TEXT,
     cancellation_policy_hours INT DEFAULT 24,
-    scheduling_mode tour_scheduling_mode NOT NULL DEFAULT 'fixed_slots',
+    scheduling_mode TEXT NOT NULL DEFAULT 'fixed_slots' CHECK (scheduling_mode IN ('fixed_slots', 'flexible', 'on_request')),
     is_active BOOLEAN DEFAULT TRUE,
     images JSONB DEFAULT '[]',
     tags TEXT[] DEFAULT '{}',
