@@ -12,7 +12,7 @@ async function runMigrations() {
   try {
     console.log('Running database migrations...');
 
-    const schemaFiles = ['schema.sql', 'schema-v2.sql'];
+    const schemaFiles = ['schema.sql', 'schema-v2.sql', 'schema-v3.sql'];
 
     for (const file of schemaFiles) {
       const filePath = path.join(__dirname, file);
