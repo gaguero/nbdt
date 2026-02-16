@@ -38,6 +38,21 @@ function getField(row: Record<string, string>, ...keys: string[]): string {
   return '';
 }
 
+/**
+ * Parse a time string from the legacy "Hora" column (e.g. "9:30:00", "19:30:00")
+ * into a PostgreSQL TIME-compatible string "HH:MM:SS".
+ */
+function parseTime(val: string): string | null {
+  if (!val) return null;
+  const m = val.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (!m) return null;
+  const h = parseInt(m[1]);
+  const min = parseInt(m[2]);
+  if (h > 23 || min > 59) return null;
+  const sec = m[3] ?? '00';
+  return `${h.toString().padStart(2, '0')}:${m[2]}:${sec}`;
+}
+
 function parseDate(val: string): string | null {
   if (!val) return null;
   val = val.trim();
@@ -191,14 +206,21 @@ export async function POST(request: NextRequest) {
 
       const guestName = getField(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
       const guestLegacyId = getField(row, 'guest_id', 'id_huesped');
-      const numGuests = parseInt(getField(row, 'num_guests', 'huespedes', 'pax', 'cantidad_huespedes') || '1') || 1;
+      // CSV: "Numero de participantes" → normalized key is "numero_de_participantes"
+      const numGuests = parseInt(getField(row, 'numero_de_participantes', 'num_guests', 'huespedes', 'pax', 'cantidad_huespedes') || '1') || 1;
       const bookingMode = getField(row, 'booking_mode', 'modo', 'type', 'tipo_reserva') || 'shared';
       const totalPrice = parseFloat(getField(row, 'total_price', 'precio', 'price', 'precio_total') || '0') || null;
-      const guestStatus = normalizeStatus(getField(row, 'guest_status', 'estado_huesped', 'estado'));
-      const vendorStatus = normalizeStatus(getField(row, 'vendor_status', 'estado_proveedor'));
+      const guestStatus = normalizeStatus(getField(row, 'estado_huesped', 'guest_status', 'estado'));
+      // CSV: "Estado vendodor" (typo in legacy) → normalized key is "estado_vendodor"
+      const vendorStatus = normalizeStatus(getField(row, 'estado_vendodor', 'vendor_status', 'estado_proveedor'));
       const specialRequests = getField(row, 'special_requests', 'solicitudes', 'notes', 'notas') || null;
-      const billedDate = parseDate(getField(row, 'billed_date', 'fecha_cobro', 'fecha_factura'));
-      const paidDate = parseDate(getField(row, 'paid_date', 'fecha_pago'));
+      // CSV: "Fecha facturado" / "Fecha pagado" — note the exact normalized column names
+      const billedDate = parseDate(getField(row, 'fecha_facturado', 'billed_date', 'fecha_cobro', 'fecha_factura'));
+      const paidDate = parseDate(getField(row, 'fecha_pagado', 'paid_date', 'fecha_pago'));
+      // New: time and legacy vendor
+      const startTime = parseTime(getField(row, 'hora', 'start_time', 'time'));
+      // CSV: "ID Vendedor" → normalized key is "id_vendedor" — store as legacy reference
+      const legacyVendorId = getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor') || null;
 
       try {
         await transaction(async (client) => {
@@ -230,21 +252,27 @@ export async function POST(request: NextRequest) {
 
           if (existing.rows.length > 0) {
             await client.query(
-              `UPDATE tour_bookings SET guest_id=$1, product_id=$2, num_guests=$3,
-               booking_mode=$4, total_price=$5, guest_status=$6, vendor_status=$7,
-               special_requests=$8, billed_date=$9, paid_date=$10 WHERE id=$11`,
+              `UPDATE tour_bookings
+               SET guest_id=$1, product_id=$2, num_guests=$3, booking_mode=$4,
+                   total_price=$5, guest_status=$6, vendor_status=$7,
+                   special_requests=$8, billed_date=$9, paid_date=$10,
+                   start_time=$11, legacy_vendor_id=$12
+               WHERE id=$13`,
               [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
-               vendorStatus, specialRequests, billedDate, paidDate, existing.rows[0].id]
+               vendorStatus, specialRequests, billedDate, paidDate,
+               startTime, legacyVendorId, existing.rows[0].id]
             );
             result.updated++;
           } else {
             await client.query(
               `INSERT INTO tour_bookings
                (guest_id, product_id, num_guests, booking_mode, total_price,
-                guest_status, vendor_status, special_requests, billed_date, paid_date, legacy_appsheet_id)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+                guest_status, vendor_status, special_requests, billed_date, paid_date,
+                start_time, legacy_vendor_id, legacy_appsheet_id)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
               [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
-               vendorStatus, specialRequests, billedDate, paidDate, legacyId || null]
+               vendorStatus, specialRequests, billedDate, paidDate,
+               startTime, legacyVendorId, legacyId || null]
             );
             result.created++;
           }
