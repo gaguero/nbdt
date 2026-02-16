@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     if (filter === 'today') whereClause += ` AND ts.date = CURRENT_DATE`;
     else if (filter === 'upcoming') whereClause += ` AND ts.date >= CURRENT_DATE`;
     if (date_from) { whereClause += ` AND (ts.date >= $${idx++} OR (ts.date IS NULL AND tb.created_at::date >= $${idx - 1}))`; params.push(date_from); }
-    if (date_to) { whereClause += ` AND (ts.date <= $${idx++} OR ts.date IS NULL)`; params.push(date_to); }
+    if (date_to) { whereClause += ` AND (ts.date <= $${idx++} OR (ts.date IS NULL AND tb.created_at::date <= $${idx - 1}))`; params.push(date_to); }
 
     const tour_bookings = await queryMany(
       `SELECT tb.*, g.full_name as guest_name, tp.name_en, tp.name_es,

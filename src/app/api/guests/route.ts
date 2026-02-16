@@ -60,12 +60,11 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { first_name, last_name, email, phone, nationality, notes } = body;
-    const full_name = `${first_name || ''} ${last_name || ''}`.trim();
 
     const guest = await queryOne(
-      `INSERT INTO guests (first_name, last_name, full_name, email, phone, nationality, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [first_name, last_name, full_name, email, phone, nationality || null, notes]
+      `INSERT INTO guests (first_name, last_name, email, phone, nationality, notes)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [first_name, last_name, email, phone, nationality || null, notes]
     );
 
     return NextResponse.json({ guest }, { status: 201 });
@@ -86,12 +85,11 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     const { first_name, last_name, email, phone, nationality, notes } = body;
-    const full_name = `${first_name || ''} ${last_name || ''}`.trim();
 
     const guest = await queryOne(
-      `UPDATE guests SET first_name = $1, last_name = $2, full_name = $3, email = $4, phone = $5, nationality = $6, notes = $7
-       WHERE id = $8 RETURNING *`,
-      [first_name, last_name, full_name, email, phone, nationality || null, notes, id]
+      `UPDATE guests SET first_name = $1, last_name = $2, email = $3, phone = $4, nationality = $5, notes = $6
+       WHERE id = $7 RETURNING *`,
+      [first_name, last_name, email, phone, nationality || null, notes, id]
     );
     if (!guest) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
