@@ -36,7 +36,7 @@ async function runMigrations() {
         current += line + '\n';
         if (!inDollarQuote && line.trimEnd().endsWith(';')) {
           const stmt = current.trim();
-          if (stmt.length > 0 && !stmt.startsWith('--')) statements.push(stmt);
+          if (stmt.length > 0) statements.push(stmt);
           current = '';
         }
       }
@@ -44,7 +44,14 @@ async function runMigrations() {
 
       let applied = 0;
       let skipped = 0;
-      for (const stmt of statements) {
+      for (const rawStmt of statements) {
+        // Strip leading comment lines so a statement preceded by -- comments is not skipped
+        const stmt = rawStmt
+          .split('\n')
+          .filter(line => !line.trimStart().startsWith('--'))
+          .join('\n')
+          .trim();
+        if (!stmt) continue;
         try {
           await pool.query(stmt);
           applied++;
