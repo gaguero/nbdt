@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
             (SELECT string_agg(ch, '') FROM (SELECT unnest(string_to_array(LOWER(REPLACE(REPLACE(full_name, ' ', ''), ',', '')), NULL)) as ch ORDER BY ch) s) as fingerprint
           FROM guests
         )
-        SELECT fingerprint, email, COUNT(*) as count FROM normalized_guests GROUP BY fingerprint, email HAVING COUNT(*) > 1 ORDER BY count DESC
+        SELECT fingerprint, email, COUNT(*) as count FROM normalized_guests GROUP BY fingerprint, email HAVING COUNT(*) > 1 ORDER BY count DESC LIMIT 30
       `);
 
       const duplicates = await Promise.all(clusters.map(async (cluster) => {
@@ -81,6 +81,9 @@ export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = verifyToken(token);
+    if (!['admin', 'manager'].includes(user.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
     const { action, primaryId, secondaryId, reservationId, guestId } = await request.json();
 
     if (action === 'delete') {
@@ -89,18 +92,27 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'merge') {
+      if (!primaryId || !secondaryId || primaryId === secondaryId) {
+        return NextResponse.json({ error: 'Invalid IDs for merge' }, { status: 400 });
+      }
+
       await transaction(async (client) => {
         // 1. Read secondary guest data
         const secondaryData = await client.query(
-          'SELECT id, first_name, last_name, email, legacy_appsheet_id, profile_type, created_at FROM guests WHERE id = $1::uuid',
+          'SELECT id, first_name, last_name, email, legacy_appsheet_id, profile_type FROM guests WHERE id = $1::uuid',
           [secondaryId]
         );
+        
+        if (secondaryData.rows.length === 0) {
+          throw new Error(`Secondary guest ${secondaryId} not found`);
+        }
+        
         const secondary = secondaryData.rows[0];
 
         // 2. Append to primary's legacy_profiles
         await client.query(`
           UPDATE guests
-          SET legacy_profiles = legacy_profiles || jsonb_build_array(
+          SET legacy_profiles = COALESCE(legacy_profiles, '[]'::jsonb) || jsonb_build_array(
             jsonb_build_object(
               'id', $1::text,
               'first_name', $2,
@@ -114,14 +126,25 @@ export async function POST(request: NextRequest) {
           WHERE id = $7::uuid
         `, [secondary.id, secondary.first_name, secondary.last_name, secondary.email, secondary.legacy_appsheet_id, secondary.profile_type, primaryId]);
 
-        // 3. Reassign FKs
-        await client.query('UPDATE reservations SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
-        await client.query('UPDATE transfers SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
-        await client.query('UPDATE tour_bookings SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
-        await client.query('UPDATE special_requests SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
-        await client.query('UPDATE romantic_dinners SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
+        // 3. Reassign FKs in all relevant tables
+        const tables = [
+          'reservations', 'transfers', 'tour_bookings', 
+          'special_requests', 'romantic_dinners', 'other_hotel_bookings',
+          'conversations', 'orders'
+        ];
 
-        // 4. Delete secondary
+        for (const table of tables) {
+          await client.query(`UPDATE ${table} SET guest_id = $1::uuid WHERE guest_id = $2::uuid`, [primaryId, secondaryId]);
+        }
+
+        // 4. Update messages where sender is this guest
+        await client.query(`
+          UPDATE messages 
+          SET sender_id = $1::uuid 
+          WHERE sender_type = 'guest' AND sender_id = $2::uuid
+        `, [primaryId, secondaryId]);
+
+        // 5. Delete secondary
         await client.query('DELETE FROM guests WHERE id = $1::uuid', [secondaryId]);
       });
       return NextResponse.json({ success: true });
@@ -133,6 +156,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error: any) {
+    console.error('Guest Normalization POST error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

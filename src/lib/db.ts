@@ -26,7 +26,12 @@ export async function query<T extends QueryResultRow = any>(
   try {
     const result = await pool.query<T>(text, params);
     const duration = Date.now() - start;
-    console.log('Executed query', { text, duration, rows: result.rowCount });
+    
+    // Only log if not in production or if query is slow
+    if (process.env.NODE_ENV !== 'production' || duration > 1000) {
+      const summary = text.trim().substring(0, 100).replace(/\n/g, ' ');
+      console.log(`DB Query [${duration}ms, ${result.rowCount} rows]: ${summary}${text.length > 100 ? '...' : ''}`);
+    }
     return result;
   } catch (error) {
     console.error('Database query error:', error);
