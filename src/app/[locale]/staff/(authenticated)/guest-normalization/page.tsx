@@ -28,7 +28,24 @@ export default function GuestNormalizationPage() {
     try {
       const res = await fetch(`/api/admin/guest-normalization?mode=${activeTab}`);
       const data = await res.json();
-      setItems(activeTab === 'duplicates' ? data.duplicates : data.orphans);
+      const fetchedItems = activeTab === 'duplicates' ? data.duplicates : data.orphans;
+      setItems(fetchedItems);
+
+      // Auto-select rules for duplicates
+      if (activeTab === 'duplicates') {
+        const autoActions: Record<string, 'merge' | 'delete' | null> = {};
+        fetchedItems.forEach((cluster: any) => {
+          cluster.members.forEach((member: any, idx: number) => {
+            if (idx === 0) return; // Skip primary
+            if (member.total_records > 0) {
+              autoActions[member.id] = 'merge';
+            } else {
+              autoActions[member.id] = 'delete';
+            }
+          });
+        });
+        setSelectedActions(autoActions);
+      }
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
@@ -222,11 +239,19 @@ export default function GuestNormalizationPage() {
               <p className="font-black text-sm uppercase tracking-widest">{ls('Ready to Process', 'Listo para Procesar')}</p>
               <p className="text-xs opacity-90">{Object.values(selectedActions).filter(v => v !== null).length} {ls('actions selected', 'acciones seleccionadas')}</p>
             </div>
-            <button
-              onClick={handleProcessSelection}
-              disabled={processing}
-              className="px-6 py-2 bg-white text-blue-600 rounded-lg font-black text-sm hover:bg-blue-50 disabled:opacity-50 flex items-center gap-2"
-            >
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSelectedActions({})}
+                disabled={processing}
+                className="px-4 py-2 bg-blue-700 text-white rounded-lg font-bold text-xs hover:bg-blue-800 disabled:opacity-50"
+              >
+                {ls('Deselect All', 'Deseleccionar Todo')}
+              </button>
+              <button
+                onClick={handleProcessSelection}
+                disabled={processing}
+                className="px-6 py-2 bg-white text-blue-600 rounded-lg font-black text-sm hover:bg-blue-50 disabled:opacity-50 flex items-center gap-2"
+              >
               {processing ? (
                 <>
                   <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
@@ -287,10 +312,19 @@ export default function GuestNormalizationPage() {
 
                           <div className="flex justify-between items-start">
                             <div>
-                              <p className="text-[10px] font-bold text-gray-400 uppercase">{idx === 0 ? ls('Primary Candidate', 'Candidato Principal') : ls('Secondary Profile', 'Perfil Secundario')}</p>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase">
+                                {idx === 0 ? (
+                                  <span className="text-blue-600">{ls('Master Profile', 'Perfil Maestro')} ({member.res_list?.length > 0 ? ls('Has Reservations', 'Tiene Reservas') : ls('Most Active', 'Más Activo')})</span>
+                                ) : ls('Secondary Profile', 'Perfil Secundario')}
+                              </p>
                               <p className="font-black text-gray-900">{member.full_name}</p>
                               <p className="text-[10px] text-gray-400">ID: {member.id.slice(0,8)}... • {new Date(member.created_at).toLocaleDateString()}</p>
                             </div>
+                            {idx > 0 && (
+                              <div className="bg-yellow-100 text-yellow-700 text-[8px] font-black px-1.5 py-0.5 rounded animate-pulse">
+                                {ls('AUTO-SELECTED', 'AUTO-SELECCIONADO')}
+                              </div>
+                            )}
                           </div>
 
                                                                                                   <div className="grid grid-cols-2 gap-2">

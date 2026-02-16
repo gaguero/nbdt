@@ -93,9 +93,16 @@ export async function GET(request: NextRequest) {
             )) FROM special_requests sr WHERE sr.guest_id = g.id) as req_list
           FROM guests g
           WHERE full_name = $1 AND (email = $2::text OR (email IS NULL AND $2::text IS NULL))
-          ORDER BY created_at ASC
         `, [cluster.full_name, cluster.email]);
-        return { name: cluster.full_name, email: cluster.email, members };
+
+        // Calculate weights for ranking: Resv = 100 points, others = 1 point
+        const rankedMembers = members.map(m => {
+          const resCount = m.res_list?.length || 0;
+          const otherCount = (m.trans_list?.length || 0) + (m.tour_list?.length || 0) + (m.req_list?.length || 0);
+          return { ...m, weight: (resCount * 100) + otherCount, total_records: resCount + otherCount };
+        }).sort((a, b) => b.weight - a.weight);
+
+        return { name: cluster.full_name, email: cluster.email, members: rankedMembers };
       }));
 
       return NextResponse.json({ duplicates });
