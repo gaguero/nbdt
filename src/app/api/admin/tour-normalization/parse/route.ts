@@ -40,8 +40,8 @@ function getField(row: Record<string, string>, ...keys: string[]): string {
 
 /**
  * POST /api/admin/tour-normalization/parse
- * Upload a tour bookings CSV, extract unique tour names, fuzzy-match against tour_products.
- * Returns: { uniqueNames, matches } where matches is name → { product | null, rowCount }
+ * Upload CSV → extract unique tour names → generate AI prompt.
+ * Returns: { uniqueNames, nameCountMap, products, vendors, prompt, totalRows }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -60,67 +60,97 @@ export async function POST(request: NextRequest) {
     const rows = parseCSV(csvText);
     if (rows.length === 0) return NextResponse.json({ error: 'CSV is empty' }, { status: 400 });
 
-    // Count rows per tour name
+    // Extract unique tour names with booking counts
     const nameCount: Record<string, number> = {};
     for (const row of rows) {
       const name = getField(row,
         'nombre_de_la_actividad', 'product', 'product_name',
         'actividad', 'tour', 'activity', 'nombre_actividad'
       );
-      if (name) {
-        nameCount[name] = (nameCount[name] || 0) + 1;
-      }
+      if (name) nameCount[name] = (nameCount[name] || 0) + 1;
     }
 
-    const uniqueNames = Object.keys(nameCount);
+    const uniqueNames = Object.entries(nameCount)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
 
-    // Fetch all tour products
+    // Fetch existing tour products
     const productsRes = await query(`
-      SELECT tp.id, tp.name_en, tp.name_es, v.name as vendor_name
+      SELECT tp.id, tp.name_en, tp.name_es, v.name AS vendor_name, v.id AS vendor_id
       FROM tour_products tp
       LEFT JOIN vendors v ON tp.vendor_id = v.id
       WHERE tp.is_active = true
       ORDER BY tp.name_en
     `);
-    const products = productsRes.rows;
 
-    // Try to fuzzy-match each unique name
-    const matches: Record<string, {
-      type: 'exact' | 'fuzzy' | 'none';
-      product: { id: string; name_en: string; name_es: string; vendor_name: string } | null;
-      rowCount: number;
-    }> = {};
+    // Fetch all active vendors for the review step
+    const vendorsRes = await query(`
+      SELECT id, name, type FROM vendors WHERE is_active = true ORDER BY name
+    `);
 
-    for (const name of uniqueNames) {
-      const nameLower = name.toLowerCase().trim();
+    // Build AI prompt
+    const namesList = uniqueNames
+      .map(n => `"${n.name}" (${n.count} booking${n.count !== 1 ? 's' : ''})`)
+      .join('\n');
 
-      // Exact match (case-insensitive)
-      const exact = products.find(p =>
-        p.name_en.toLowerCase() === nameLower ||
-        p.name_es.toLowerCase() === nameLower
-      );
-      if (exact) {
-        matches[name] = { type: 'exact', product: exact, rowCount: nameCount[name] };
-        continue;
-      }
+    const productsList = productsRes.rows.length > 0
+      ? productsRes.rows.map(p =>
+          `ID: ${p.id} | EN: ${p.name_en} | ES: ${p.name_es} | Vendor: ${p.vendor_name ?? 'none'}`
+        ).join('\n')
+      : '(no existing tour products yet — all will be created as new)';
 
-      // Fuzzy: check if product name contains the CSV name or vice versa
-      const fuzzy = products.find(p =>
-        p.name_en.toLowerCase().includes(nameLower) ||
-        nameLower.includes(p.name_en.toLowerCase()) ||
-        p.name_es.toLowerCase().includes(nameLower) ||
-        nameLower.includes(p.name_es.toLowerCase())
-      );
-      if (fuzzy) {
-        matches[name] = { type: 'fuzzy', product: fuzzy, rowCount: nameCount[name] };
-        continue;
-      }
+    const prompt = `You are a tour data normalization expert for a luxury hotel concierge platform.
+Below are tour activity names extracted from a historical CSV import, with their booking counts.
+Your job is to group name variants that refer to the same real tour, then map each group to an
+existing product or propose a new one.
 
-      matches[name] = { type: 'none', product: null, rowCount: nameCount[name] };
-    }
+EXISTING TOUR PRODUCTS (already in the system):
+${productsList}
 
-    // Store csv rows in session via JSON response so execute can use them
-    return NextResponse.json({ matches, products, totalRows: rows.length });
+CSV TOUR NAMES TO NORMALIZE (with booking counts):
+${namesList}
+
+INSTRUCTIONS:
+1. Group CSV names that clearly refer to the same real-world tour or activity
+   (typos, abbreviations, Spanish/English variants, partial names, etc.).
+2. For each group decide:
+   - "map"    → it matches an existing product above (provide its productId)
+   - "create" → it is a new tour not yet in the system (provide name_en and name_es)
+   - "skip"   → the entry is invalid / test data (e.g. "cancelado", "n/a", blank)
+3. Suggest clear, professional names for new tours (English and Spanish).
+4. Every CSV name must appear in exactly one group.
+5. Return ONLY a valid JSON array — no markdown, no explanation outside the JSON.
+
+OUTPUT FORMAT (return exactly this structure):
+[
+  {
+    "groupId": 1,
+    "csvNames": ["Snorkeling", "Snorkel trip", "Snorkeling Tour"],
+    "action": "create",
+    "name_en": "Snorkeling Tour",
+    "name_es": "Tour de Snorkel"
+  },
+  {
+    "groupId": 2,
+    "csvNames": ["Sunset Cruise"],
+    "action": "map",
+    "productId": "paste-existing-product-uuid-here"
+  },
+  {
+    "groupId": 3,
+    "csvNames": ["cancelado", "test"],
+    "action": "skip"
+  }
+]`;
+
+    return NextResponse.json({
+      uniqueNames,
+      nameCountMap: nameCount,
+      products: productsRes.rows,
+      vendors: vendorsRes.rows,
+      prompt,
+      totalRows: rows.length,
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

@@ -91,10 +91,25 @@ function normalizeStatus(val: string): string {
   return map[val.toLowerCase().trim()] || 'pending';
 }
 
+interface GroupDecision {
+  groupId: number;
+  csvNames: string[];
+  action: 'create' | 'map' | 'skip';
+  productId?: string;
+  name_en?: string;
+  name_es?: string;
+  vendor_id?: string;
+}
+
 /**
  * POST /api/admin/tour-normalization/execute
- * Takes CSV file + confirmed mappings (name → productId or {create: true, name_en, name_es})
- * Creates any new tour products, then imports all bookings.
+ * Accepts: multipart/form-data with:
+ *   - file: the original CSV
+ *   - groups: JSON array of GroupDecision
+ *
+ * Step 1: create new tour_products for 'create' groups (with vendor_id)
+ * Step 2: save tour_name_mappings for future reference
+ * Step 3: import all tour_bookings
  */
 export async function POST(request: NextRequest) {
   try {
@@ -107,44 +122,60 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const mappingsJson = formData.get('mappings') as string;
-    if (!file || !mappingsJson) {
-      return NextResponse.json({ error: 'file and mappings required' }, { status: 400 });
+    const groupsJson = formData.get('groups') as string;
+    if (!file || !groupsJson) {
+      return NextResponse.json({ error: 'file and groups required' }, { status: 400 });
     }
 
-    // mappings: { [csvName]: { productId: string } | { create: true, name_en: string, name_es: string } | { skip: true } }
-    const mappings: Record<string, { productId?: string; create?: boolean; name_en?: string; name_es?: string; skip?: boolean }> = JSON.parse(mappingsJson);
+    const groups: GroupDecision[] = JSON.parse(groupsJson);
 
-    const csvText = await file.text();
-    const rows = parseCSV(csvText);
+    // Step 1: build csvName → productId map
+    const csvNameToProductId: Record<string, string> = {};
 
-    const result = { total: rows.length, created: 0, updated: 0, skipped: 0, errors: [] as string[] };
+    for (const group of groups) {
+      if (group.action === 'skip' || !group.csvNames?.length) continue;
 
-    // Step 1: create new tour products
-    const newProductIds: Record<string, string> = {};
-    for (const [csvName, mapping] of Object.entries(mappings)) {
-      if (mapping.create && mapping.name_en) {
+      let productId: string | null = null;
+
+      if (group.action === 'create' && group.name_en) {
         const res = await query(
-          `INSERT INTO tour_products (name_en, name_es) VALUES ($1, $2) RETURNING id`,
-          [mapping.name_en, mapping.name_es || mapping.name_en]
+          `INSERT INTO tour_products (name_en, name_es, vendor_id)
+           VALUES ($1, $2, $3) RETURNING id`,
+          [group.name_en, group.name_es || group.name_en, group.vendor_id || null]
         );
-        newProductIds[csvName] = res.rows[0].id;
-        // Save mapping for future use
-        await query(
-          `INSERT INTO tour_name_mappings (original_name, confirmed_product_id)
-           VALUES ($1, $2) ON CONFLICT (original_name) DO UPDATE SET confirmed_product_id = $2`,
-          [csvName, res.rows[0].id]
-        );
-      } else if (mapping.productId) {
-        await query(
-          `INSERT INTO tour_name_mappings (original_name, confirmed_product_id)
-           VALUES ($1, $2) ON CONFLICT (original_name) DO UPDATE SET confirmed_product_id = $2`,
-          [csvName, mapping.productId]
-        );
+        productId = res.rows[0].id;
+      } else if (group.action === 'map' && group.productId) {
+        productId = group.productId;
+      }
+
+      if (!productId) continue;
+
+      for (const csvName of group.csvNames) {
+        csvNameToProductId[csvName] = productId;
+        try {
+          await query(
+            `INSERT INTO tour_name_mappings (original_name, confirmed_product_id)
+             VALUES ($1, $2) ON CONFLICT (original_name) DO UPDATE SET confirmed_product_id = $2`,
+            [csvName, productId]
+          );
+        } catch {
+          // non-fatal if tour_name_mappings doesn't exist yet
+        }
       }
     }
 
     // Step 2: import bookings
+    const csvText = await file.text();
+    const rows = parseCSV(csvText);
+
+    const result = {
+      total: rows.length,
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [] as string[],
+    };
+
     for (const row of rows) {
       const csvName = getField(row,
         'nombre_de_la_actividad', 'product', 'product_name',
@@ -155,10 +186,7 @@ export async function POST(request: NextRequest) {
       const date = parseDate(dateVal);
       if (!date) { result.skipped++; continue; }
 
-      const mapping = mappings[csvName];
-      if (!mapping || mapping.skip) { result.skipped++; continue; }
-
-      const productId = mapping.create ? newProductIds[csvName] : mapping.productId;
+      const productId = csvNameToProductId[csvName];
       if (!productId) { result.skipped++; continue; }
 
       const guestName = getField(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
