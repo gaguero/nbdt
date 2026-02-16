@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { GuestDrawerProvider } from '@/contexts/GuestDrawerContext';
+import { GuestDrawer } from '@/components/GuestDrawer';
+import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
 import {
   HomeIcon,
   CalendarDaysIcon,
@@ -32,11 +35,12 @@ interface NavItem {
   group?: string;
 }
 
-export default function StaffLayout({ children }: { children: React.ReactNode }) {
+function StaffLayoutContent({ children }: { children: React.ReactNode }) {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { guestId, closeGuest } = useGuestDrawer();
 
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
 
@@ -80,6 +84,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <GuestDrawer guestId={guestId} onClose={closeGuest} />
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
@@ -176,5 +181,13 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
         </main>
       </div>
     </div>
+  );
+}
+
+export default function StaffLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <GuestDrawerProvider>
+      <StaffLayoutContent>{children}</StaffLayoutContent>
+    </GuestDrawerProvider>
   );
 }
