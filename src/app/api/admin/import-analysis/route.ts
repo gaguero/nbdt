@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       headers.forEach((h, idx) => { row[h] = (vals[idx] ?? '').trim(); });
 
       const legacyId = row.id_huesped || '';
-      const fullName = row.nombre_completo || '';
+      let fullName = row.nombre_completo || '';
       const email = row.email || '';
       let firstName = row.nombre || '';
       let lastName = row.apellido || '';
@@ -144,6 +144,19 @@ export async function POST(request: NextRequest) {
           lastName = parts[parts.length - 1];
         } else {
           firstName = primaryName;
+          lastName = '';
+        }
+      }
+
+      // Fix G: Fallback to apellido for derivation if firstName still empty
+      // This handles rows where the name was entered in the wrong column (apellido only)
+      if (!firstName && lastName) {
+        const parts = lastName.trim().split(/\s+/);
+        if (parts.length > 1) {
+          firstName = parts.slice(0, -1).join(' ');
+          lastName = parts[parts.length - 1];
+        } else {
+          firstName = lastName;
           lastName = '';
         }
       }
@@ -175,6 +188,11 @@ export async function POST(request: NextRequest) {
     // Phase B: ONE batch query for all rows (excluding SKIP rows)
     // First, classify all rows for junk/profile type
     const classified = parsedRows.map((r, idx) => {
+      // Fix H: If firstName is empty after all derivation, skip the row (no valid name data)
+      if (!r.firstName) {
+        return { row: r, idx, skip: true, skipReason: 'No valid name data — firstName empty after derivation' };
+      }
+
       const classification = classifyRow(r.primaryName, r.legacyId, r.email);
       return { row: r, idx, ...classification };
     });
