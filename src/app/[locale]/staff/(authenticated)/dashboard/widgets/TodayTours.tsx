@@ -5,7 +5,7 @@ import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
 import { MapIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import { TourBookingModal } from '../tour-bookings/TourBookingModal';
+import { TourBookingModal } from '../../tour-bookings/TourBookingModal';
 
 interface TourBooking {
   id: string;

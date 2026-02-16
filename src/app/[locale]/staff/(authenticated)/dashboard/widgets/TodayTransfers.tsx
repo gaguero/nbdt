@@ -5,7 +5,7 @@ import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
 import { TruckIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import { TransferModal } from '../transfers/TransferModal';
+import { TransferModal } from '../../transfers/TransferModal';
 
 interface Transfer {
   id: string;
