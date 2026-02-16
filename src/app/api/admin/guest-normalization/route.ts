@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
             (SELECT json_agg(json_build_object('id', sr.id, 'type', 'request', 'info', sr.date || ': ' || sr.request, 'full_detail', json_build_object('Date', sr.date, 'Request', sr.request, 'Status', sr.status))) FROM special_requests sr WHERE sr.guest_id = g.id) as req_list
           FROM guests g
           WHERE (SELECT string_agg(ch, '') FROM (SELECT unnest(string_to_array(LOWER(REPLACE(REPLACE(g.full_name, ' ', ''), ',', '')), NULL)) as ch ORDER BY ch) s) = $1 
-          AND (email = $2::text OR (email IS NULL AND $2 IS NULL))
+          AND (email = $2::text OR (email IS NULL AND $2::text IS NULL))
         `, [cluster.fingerprint, cluster.email]);
 
         const rankedMembers = members.map(m => {
@@ -115,16 +115,24 @@ export async function POST(request: NextRequest) {
           SET legacy_profiles = COALESCE(legacy_profiles, '[]'::jsonb) || jsonb_build_array(
             jsonb_build_object(
               'id', $1::text,
-              'first_name', $2,
-              'last_name', $3,
-              'email', $4,
-              'legacy_appsheet_id', $5,
-              'profile_type', $6,
+              'first_name', $2::text,
+              'last_name', $3::text,
+              'email', $4::text,
+              'legacy_appsheet_id', $5::text,
+              'profile_type', $6::text,
               'merged_at', NOW()::text
             )
           )
           WHERE id = $7::uuid
-        `, [secondary.id, secondary.first_name, secondary.last_name, secondary.email, secondary.legacy_appsheet_id, secondary.profile_type, primaryId]);
+        `, [
+          secondary.id, 
+          secondary.first_name || null, 
+          secondary.last_name || null, 
+          secondary.email || null, 
+          secondary.legacy_appsheet_id || null, 
+          secondary.profile_type || null, 
+          primaryId
+        ]);
 
         // 3. Reassign FKs in all relevant tables
         const tables = [
