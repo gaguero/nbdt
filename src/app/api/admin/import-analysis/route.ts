@@ -26,6 +26,75 @@ function parseCSVLine(line: string): string[] {
 }
 
 /**
+ * Fix C: Classify a row as SKIP or infer profile type
+ */
+function classifyRow(primaryName: string, _legacyId: string, _email: string): {
+  skip: boolean;
+  skipReason?: string;
+  inferredProfileType?: 'guest' | 'staff' | 'visitor' | 'musician' | 'artist' | 'other';
+} {
+  const trimmed = primaryName.trim().toLowerCase();
+
+  // SKIP triggers: symbols/zeros/dots only
+  if (/^[#0\.\*x\s]+$/.test(trimmed)) {
+    return { skip: true, skipReason: 'Junk data: symbols/zeros only' };
+  }
+
+  // SKIP exact values
+  const skipExact = [
+    'cancelado', 'cancelled', 'canceled', 'duplicado', 'error', 'eliminado',
+    'none', 'externo', 'tour', 'visita', 'bailarines', 'fumigadores', 'artesanas', 'artesanos',
+    'managers', 'cocineros', 'personal bar', 'personal construccion', 'abogados abogados',
+    'nayara staff', 'profe yoga', 'rhomina masajista', 'dj fat', 'gapa', '0', '#error!',
+    '****', 'xxx', 'xxxxx', '.', '. .'
+  ];
+
+  if (skipExact.includes(trimmed)) {
+    return { skip: true, skipReason: `Junk data: "${primaryName}"` };
+  }
+
+  // SKIP starts with
+  const skipStarts = [
+    'cancelado', 'duplicado', 'perfil duplicado', 'usuario duplicado', 'cance',
+    'can celdes', 'cancelled', 'cancel'
+  ];
+
+  if (skipStarts.some(s => trimmed.startsWith(s))) {
+    return { skip: true, skipReason: `Junk data: starts with "${skipStarts.find(s => trimmed.startsWith(s))}"` };
+  }
+
+  // Not skipped, infer profile type
+  let inferredProfileType: 'guest' | 'staff' | 'visitor' | 'musician' | 'artist' | 'other' = 'guest';
+
+  // musician
+  if (trimmed.startsWith('musicos') || trimmed.startsWith('musico y')) {
+    inferredProfileType = 'musician';
+  }
+
+  // staff
+  if (trimmed.includes('chef ') || trimmed.includes('masajista') || trimmed.includes('fotografo') ||
+      trimmed.includes('fotografa') || trimmed.includes('maquillista') || trimmed.includes('violinista') ||
+      trimmed.includes('guitarrista') || trimmed.includes('musico ')) {
+    inferredProfileType = 'staff';
+  }
+
+  // visitor
+  if (trimmed.includes('site inspection') || trimmed.includes('famtrip') || trimmed.includes('fam trip') ||
+      trimmed.includes('press trip') || trimmed.includes('inspeccion agencia') || trimmed.includes('inspeccion municipio') ||
+      trimmed.includes('agente') || trimmed.includes('biondi travel') || trimmed.includes('panama journeys') ||
+      trimmed.includes('panama trails') || trimmed.includes('ogaya travel')) {
+    inferredProfileType = 'visitor';
+  }
+
+  // artist
+  if (trimmed.includes('artesano')) {
+    inferredProfileType = 'artist';
+  }
+
+  return { skip: false, inferredProfileType };
+}
+
+/**
  * POST /api/admin/import-analysis
  * Analyzes a Guest CSV file before actual import.
  */
@@ -46,53 +115,137 @@ export async function POST(request: NextRequest) {
     const lines = csvText.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) return NextResponse.json({ error: 'CSV is empty' }, { status: 400 });
 
-    const headers = parseCSVLine(lines[0]).map(h => 
+    const headers = parseCSVLine(lines[0]).map(h =>
       h.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
     );
 
-    const analysis = [];
-    const rows = lines.slice(1);
-
-    for (const line of rows) {
+    // Phase A: Parse all CSV rows (pure JS, no DB calls)
+    const parsedRows = lines.slice(1).map(line => {
       const vals = parseCSVLine(line);
       const row: any = {};
       headers.forEach((h, idx) => { row[h] = (vals[idx] ?? '').trim(); });
 
-      // Map critical fields
       const legacyId = row.id_huesped || '';
       const fullName = row.nombre_completo || '';
       const email = row.email || '';
-      const firstName = row.nombre || '';
-      const lastName = row.apellido || '';
-      const companion = row.acompaante || '';
+      let firstName = row.nombre || '';
+      let lastName = row.apellido || '';
+      let companion = row.acompaante || '';
       const vip = parseInt(row.vip) || 0;
 
-      // Logic: Split companion if present in Name
-      const cleanFirstName = firstName;
-      const cleanLastName = lastName;
-      let detectedCompanion = companion;
+      // Fix A: Strip companion from name before DB lookup
+      const primaryName = fullName.includes(' y ') ? fullName.split(' y ')[0].trim() : fullName;
 
-      if (fullName.includes(' y ')) {
-        const parts = fullName.split(' y ');
-        detectedCompanion = parts[1].trim();
+      // Fix B: Derive firstName/lastName if empty
+      if (!firstName && !lastName && primaryName) {
+        const parts = primaryName.trim().split(/\s+/);
+        if (parts.length > 1) {
+          firstName = parts.slice(0, -1).join(' ');
+          lastName = parts[parts.length - 1];
+        } else {
+          firstName = primaryName;
+          lastName = '';
+        }
       }
 
-      // Search for match in DB
-      const existing = await queryMany(`
-        SELECT id, first_name, last_name, full_name, email, legacy_appsheet_id, nationality, companion_name
-        FROM guests
-        WHERE legacy_appsheet_id = $1::text
-           OR (email = $2::text AND email IS NOT NULL AND email != '')
-           OR (LOWER(full_name) = LOWER($3::text))
-        LIMIT 1
-      `, [legacyId, email, fullName]);
+      if (fullName.includes(' y ')) {
+        companion = fullName.split(' y ')[1].trim();
+      }
 
-      const match = existing[0] || null;
-      let action: 'CREATE' | 'UPDATE' | 'CONFLICT' = 'CREATE';
+      return {
+        legacyId,
+        fullName,
+        primaryName,
+        email,
+        firstName,
+        lastName,
+        companion,
+        vip,
+        phone: row.telefono || '',
+        nationality: row.pais || '',
+        notes: row.notas || '',
+        stats: {
+          arrivals: row.llegadas || '0',
+          nights: row.noches || '0',
+          revenue: row.room_revenue || '0'
+        }
+      };
+    }).filter(r => r.fullName || r.legacyId); // skip completely blank rows
+
+    // Phase B: ONE batch query for all rows (excluding SKIP rows)
+    // First, classify all rows for junk/profile type
+    const classified = parsedRows.map((r, idx) => {
+      const classification = classifyRow(r.primaryName, r.legacyId, r.email);
+      return { row: r, idx, ...classification };
+    });
+
+    const nonSkipRows = classified.filter(c => !c.skip);
+    const allLegacyIds = nonSkipRows.map(c => c.row.legacyId).filter(Boolean);
+    const allEmails = nonSkipRows.map(c => c.row.email).filter(Boolean);
+    // Use primaryName for DB lookup (Fix A)
+    const allNames = nonSkipRows.map(c => c.row.primaryName.toLowerCase()).filter(Boolean);
+
+    const existingGuests = (allLegacyIds.length || allEmails.length || allNames.length)
+      ? await queryMany(`
+          SELECT id, first_name, last_name, full_name, email, legacy_appsheet_id, companion_name
+          FROM guests
+          WHERE legacy_appsheet_id = ANY($1::text[])
+             OR (email = ANY($2::text[]) AND email IS NOT NULL AND email != '')
+             OR LOWER(full_name) = ANY($3::text[])
+        `, [allLegacyIds, allEmails, allNames])
+      : [];
+
+    // Phase C: Build in-memory lookup maps (instant, no DB)
+    const byLegacyId = new Map(
+      existingGuests.filter(g => g.legacy_appsheet_id).map(g => [g.legacy_appsheet_id, g])
+    );
+    const byEmail = new Map(
+      existingGuests.filter(g => g.email).map(g => [g.email, g])
+    );
+    const byName = new Map(
+      existingGuests.map(g => [g.full_name.toLowerCase(), g])
+    );
+
+    // Phase D: Match rows against maps
+    const analysis = classified.map((c, rowIndex) => {
+      const r = c.row;
+
+      // If this row is SKIP, return early
+      if (c.skip) {
+        return {
+          csv: {
+            legacyId: r.legacyId,
+            firstName: r.firstName,
+            lastName: r.lastName,
+            fullName: r.fullName,
+            primaryName: r.primaryName,
+            email: r.email,
+            phone: r.phone,
+            nationality: r.nationality,
+            companion: r.companion,
+            vip: r.vip,
+            notes: r.notes,
+            stats: r.stats
+          },
+          match: null,
+          action: 'SKIP' as const,
+          reason: c.skipReason || 'Junk data',
+          inferredProfileType: 'guest' as const,
+          multiCompanion: false
+        };
+      }
+
+      // Check DB match
+      let action: 'CREATE' | 'UPDATE' | 'CONFLICT' | 'SKIP' = 'CREATE';
       let reason = 'New Profile';
 
+      const match = byLegacyId.get(r.legacyId)
+                 || byEmail.get(r.email)
+                 || byName.get(r.primaryName.toLowerCase())
+                 || null;
+
       if (match) {
-        if (match.legacy_appsheet_id === legacyId || match.email === email) {
+        if (match.legacy_appsheet_id === r.legacyId || match.email === r.email) {
           action = 'UPDATE';
           reason = 'ID/Email Match';
         } else {
@@ -101,43 +254,64 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      analysis.push({
+      // Fix F: Check for multi-companion
+      const multiCompanion = (r.fullName.match(/ y /g) || []).length > 1;
+
+      return {
         csv: {
-          legacyId,
-          firstName: cleanFirstName,
-          lastName: cleanLastName,
-          fullName,
-          email,
-          phone: row.telefono || '',
-          nationality: row.pais || '',
-          companion: detectedCompanion,
-          vip,
-          notes: row.notas || '',
-          stats: {
-            arrivals: row.llegadas || '0',
-            nights: row.noches || '0',
-            revenue: row.room_revenue || '0'
-          }
+          legacyId: r.legacyId,
+          firstName: r.firstName,
+          lastName: r.lastName,
+          fullName: r.fullName,
+          primaryName: r.primaryName,
+          email: r.email,
+          phone: r.phone,
+          nationality: r.nationality,
+          companion: r.companion,
+          vip: r.vip,
+          notes: r.notes,
+          stats: r.stats
         },
+        match: null,
+        action,
+        reason,
+        inferredProfileType: c.inferredProfileType,
+        multiCompanion
+      };
+    });
+
+    // Now add match info back (only for non-SKIP rows)
+    const analysisWithMatches = analysis.map((item, idx) => {
+      if (item.action === 'SKIP') {
+        return item;
+      }
+
+      const r = parsedRows[idx];
+      const match = byLegacyId.get(r.legacyId)
+                 || byEmail.get(r.email)
+                 || byName.get(r.primaryName.toLowerCase())
+                 || null;
+
+      return {
+        ...item,
         match: match ? {
           id: match.id,
           fullName: match.full_name,
           email: match.email,
           legacyId: match.legacy_appsheet_id
-        } : null,
-        action,
-        reason
-      });
-    }
+        } : null
+      };
+    });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       summary: {
         total: analysis.length,
         create: analysis.filter(a => a.action === 'CREATE').length,
         update: analysis.filter(a => a.action === 'UPDATE').length,
-        conflict: analysis.filter(a => a.action === 'CONFLICT').length
+        conflict: analysis.filter(a => a.action === 'CONFLICT').length,
+        skip: analysis.filter(a => a.action === 'SKIP').length
       },
-      analysis 
+      analysis: analysisWithMatches
     });
 
   } catch (error: any) {

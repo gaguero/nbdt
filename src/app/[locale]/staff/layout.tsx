@@ -59,6 +59,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     { name: ls('Dashboard', 'Panel'), href: `/${locale}/staff/dashboard`, icon: HomeIcon, group: ls('Overview', 'Vista General') },
     { name: ls('Reservations', 'Reservaciones'), href: `/${locale}/staff/reservations`, icon: CalendarDaysIcon, group: ls('Overview', 'Vista General') },
     { name: ls('Guests', 'Huéspedes'), href: `/${locale}/staff/guests`, icon: UsersIcon, group: ls('Overview', 'Vista General') },
+    { name: ls('Profiles', 'Perfiles'), href: `/${locale}/staff/profiles`, icon: UserGroupIcon, group: ls('Overview', 'Vista General') },
 
     // Concierge Operations
     { name: ls('Transfers', 'Traslados'), href: `/${locale}/staff/transfers`, icon: TruckIcon, group: ls('Concierge', 'Concierge') },

@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search');
     const id = searchParams.get('id');
+    const profileType = searchParams.get('profileType');
 
     if (id) {
       const guest = await queryOne(
@@ -36,9 +37,29 @@ export async function GET(request: NextRequest) {
 
     let whereClause = '';
     const params: any[] = [];
+    let paramIndex = 1;
+
+    // Default: only 'guest' profile type unless explicitly requested otherwise
+    if (!profileType || profileType !== 'all') {
+      if (profileType && profileType !== 'guest') {
+        whereClause = `WHERE profile_type = $${paramIndex}`;
+        params.push(profileType);
+        paramIndex++;
+      } else {
+        whereClause = `WHERE profile_type = $${paramIndex}`;
+        params.push('guest');
+        paramIndex++;
+      }
+    }
+
     if (search) {
-      whereClause = `WHERE full_name ILIKE $1`;
+      if (whereClause) {
+        whereClause += ` AND full_name ILIKE $${paramIndex}`;
+      } else {
+        whereClause = `WHERE full_name ILIKE $${paramIndex}`;
+      }
       params.push(`%${search}%`);
+      paramIndex++;
     }
 
     const guests = await queryMany(
@@ -59,12 +80,12 @@ export async function POST(request: NextRequest) {
     verifyToken(token);
 
     const body = await request.json();
-    const { first_name, last_name, email, phone, nationality, notes } = body;
+    const { first_name, last_name, email, phone, nationality, notes, profile_type } = body;
 
     const guest = await queryOne(
-      `INSERT INTO guests (first_name, last_name, email, phone, nationality, notes)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [first_name, last_name, email, phone, nationality || null, notes]
+      `INSERT INTO guests (first_name, last_name, email, phone, nationality, notes, profile_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [first_name, last_name, email, phone, nationality || null, notes, profile_type || 'guest']
     );
 
     return NextResponse.json({ guest }, { status: 201 });
@@ -84,12 +105,12 @@ export async function PUT(request: NextRequest) {
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
     const body = await request.json();
-    const { first_name, last_name, email, phone, nationality, notes } = body;
+    const { first_name, last_name, email, phone, nationality, notes, profile_type } = body;
 
     const guest = await queryOne(
-      `UPDATE guests SET first_name = $1, last_name = $2, email = $3, phone = $4, nationality = $5, notes = $6
-       WHERE id = $7 RETURNING *`,
-      [first_name, last_name, email, phone, nationality || null, notes, id]
+      `UPDATE guests SET first_name = $1, last_name = $2, email = $3, phone = $4, nationality = $5, notes = $6, profile_type = $7
+       WHERE id = $8 RETURNING *`,
+      [first_name, last_name, email, phone, nationality || null, notes, profile_type || 'guest', id]
     );
     if (!guest) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 

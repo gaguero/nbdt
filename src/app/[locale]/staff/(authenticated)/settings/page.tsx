@@ -5,13 +5,13 @@ import { useState, useRef, useEffect } from 'react';
 import { TrashIcon, ServerIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const APPSHEET_TABLES = [
-  { value: 'guests', label: 'Guests' },
   { value: 'vendors', label: 'Vendors' },
   { value: 'transfers', label: 'Transfers' },
   { value: 'special_requests', label: 'Special Requests' },
   { value: 'other_hotel_bookings', label: 'Other Hotel Bookings' },
   { value: 'romantic_dinners', label: 'Romantic Dinners' },
   // Tour Bookings has its own dedicated import flow at /staff/tour-normalization
+  // Guests have their own dedicated import flow at /staff/import-wizard
 ];
 
 export default function SettingsPage() {
@@ -243,6 +243,20 @@ export default function SettingsPage() {
             </p>
           )}
         </form>
+      </section>
+
+      {/* Import Guests */}
+      <section className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Import Guests</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Guest CSV imports are processed through the Guest Import Wizard for duplicate detection, profile type inference, and data quality review.
+        </p>
+        <Link
+          href="/staff/import-wizard"
+          className="inline-flex px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          Open Import Wizard
+        </Link>
       </section>
 
       {/* Database Manager (Admin Only) */}

@@ -52,7 +52,7 @@ export default function TourBookingsPage() {
 
   useEffect(() => { fetchBookings(); }, [filter]);
   useEffect(() => {
-    fetch('/api/guests').then(r => r.json()).then(d => setGuests(d.guests ?? []));
+    fetch('/api/guests?profileType=all').then(r => r.json()).then(d => setGuests(d.guests ?? []));
     fetch('/api/tour-products').then(r => r.json()).then(d => setProducts(d.tour_products ?? []));
   }, []);
 

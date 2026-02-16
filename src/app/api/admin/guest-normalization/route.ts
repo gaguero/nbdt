@@ -90,11 +90,38 @@ export async function POST(request: NextRequest) {
 
     if (action === 'merge') {
       await transaction(async (client) => {
+        // 1. Read secondary guest data
+        const secondaryData = await client.query(
+          'SELECT id, first_name, last_name, email, legacy_appsheet_id, profile_type, created_at FROM guests WHERE id = $1::uuid',
+          [secondaryId]
+        );
+        const secondary = secondaryData.rows[0];
+
+        // 2. Append to primary's legacy_profiles
+        await client.query(`
+          UPDATE guests
+          SET legacy_profiles = legacy_profiles || jsonb_build_array(
+            jsonb_build_object(
+              'id', $1::text,
+              'first_name', $2,
+              'last_name', $3,
+              'email', $4,
+              'legacy_appsheet_id', $5,
+              'profile_type', $6,
+              'merged_at', NOW()::text
+            )
+          )
+          WHERE id = $7::uuid
+        `, [secondary.id, secondary.first_name, secondary.last_name, secondary.email, secondary.legacy_appsheet_id, secondary.profile_type, primaryId]);
+
+        // 3. Reassign FKs
         await client.query('UPDATE reservations SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         await client.query('UPDATE transfers SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         await client.query('UPDATE tour_bookings SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         await client.query('UPDATE special_requests SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         await client.query('UPDATE romantic_dinners SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
+
+        // 4. Delete secondary
         await client.query('DELETE FROM guests WHERE id = $1::uuid', [secondaryId]);
       });
       return NextResponse.json({ success: true });

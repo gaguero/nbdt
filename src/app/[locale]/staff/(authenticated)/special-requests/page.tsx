@@ -47,7 +47,7 @@ export default function SpecialRequestsPage() {
 
   useEffect(() => { fetchRequests(); }, [statusFilter, deptFilter]);
   useEffect(() => {
-    fetch('/api/guests').then(r => r.json()).then(d => setGuests(d.guests ?? []));
+    fetch('/api/guests?profileType=all').then(r => r.json()).then(d => setGuests(d.guests ?? []));
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {

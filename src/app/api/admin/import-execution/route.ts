@@ -21,27 +21,30 @@ export async function POST(request: NextRequest) {
     await transaction(async (client) => {
       for (const item of rows) {
         try {
-          const { csv, match, action } = item;
+          const { csv, match, action, inferredProfileType } = item;
 
+          // Only process CREATE and UPDATE actions
           if (action === 'CREATE') {
             await client.query(
-              `INSERT INTO guests (first_name, last_name, email, phone, nationality, notes, companion_name, legacy_appsheet_id, crm_metadata)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-              [csv.firstName, csv.lastName, csv.email, csv.phone, csv.nationality, csv.notes, csv.companion, csv.legacyId, JSON.stringify(csv.stats)]
+              `INSERT INTO guests (first_name, last_name, email, phone, nationality, notes, companion_name, legacy_appsheet_id, crm_metadata, profile_type)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+              [csv.firstName, csv.lastName, csv.email, csv.phone, csv.nationality, csv.notes, csv.companion, csv.legacyId, JSON.stringify(csv.stats), inferredProfileType || 'guest']
             );
             result.created++;
           } else if (action === 'UPDATE' && match) {
             await client.query(
-              `UPDATE guests SET 
+              `UPDATE guests SET
                 email = COALESCE(NULLIF($1, ''), email),
                 phone = COALESCE(NULLIF($2, ''), phone),
                 companion_name = COALESCE(NULLIF($3, ''), companion_name),
-                crm_metadata = $4::jsonb
-               WHERE id = $5::uuid`,
-              [csv.email, csv.phone, csv.companion, JSON.stringify(csv.stats), match.id]
+                crm_metadata = $4::jsonb,
+                profile_type = $5
+               WHERE id = $6::uuid`,
+              [csv.email, csv.phone, csv.companion, JSON.stringify(csv.stats), inferredProfileType || 'guest', match.id]
             );
             result.updated++;
           }
+          // SKIP, INTRA_DUPLICATE, INCOMPLETE rows are silently ignored
         } catch (err: any) {
           result.errors.push(`Error processing ${item.csv.fullName}: ${err.message}`);
         }
