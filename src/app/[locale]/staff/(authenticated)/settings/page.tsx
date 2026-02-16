@@ -157,6 +157,16 @@ export default function SettingsPage() {
             </p>
           </Link>
 
+          <Link href="/staff/guest-normalization" className="group flex flex-col gap-2 p-4 rounded-xl border border-teal-200 bg-teal-50 hover:bg-teal-100 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-teal-600 text-lg">🔀</span>
+              <span className="font-semibold text-teal-800">Guest Normalization</span>
+            </div>
+            <p className="text-xs text-teal-600">
+              Detect and merge duplicate guest profiles, link orphaned reservations.
+            </p>
+          </Link>
+
         </div>
       </section>
 
