@@ -4,25 +4,10 @@ import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { TrashIcon, ServerIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
-const APPSHEET_TABLES = [
-  { value: 'vendors', label: 'Vendors' },
-  // Transfers have their own dedicated import wizard at /staff/transfer-wizard
-  { value: 'special_requests', label: 'Special Requests' },
-  { value: 'other_hotel_bookings', label: 'Other Hotel Bookings' },
-  { value: 'romantic_dinners', label: 'Romantic Dinners' },
-  // Tour Bookings has its own dedicated import flow at /staff/tour-normalization
-  // Guests have their own dedicated import flow at /staff/import-wizard
-];
-
 export default function SettingsPage() {
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const [csvStatus, setCsvStatus] = useState<string | null>(null);
-  const [csvImporting, setCsvImporting] = useState(false);
-  const [csvTable, setCsvTable] = useState('guests');
-  const csvFileRef = useRef<HTMLInputElement>(null);
 
   const [dbStats, setDbStats] = useState<any[]>([]);
   const [loadingDb, setLoadingDb] = useState(false);
@@ -41,12 +26,9 @@ export default function SettingsPage() {
 
   const handleClearTable = async (table: string) => {
     if (!confirm(`DANGER: Are you sure you want to PERMANENTLY DELETE ALL records from ${table}? This will also delete linked data in other tables via CASCADE.`)) return;
-    
     try {
       const res = await fetch(`/api/admin/db-manager?table=${table}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchDbStats();
-      }
+      if (res.ok) fetchDbStats();
     } catch (err) { alert('Failed to clear table'); }
   };
 
@@ -73,59 +55,15 @@ export default function SettingsPage() {
         const errorCount = errors?.length ?? 0;
         const msg = `Import complete: ${total} records — ${added} new, ${updated} updated, ${unchanged} unchanged${errorCount > 0 ? `, ${errorCount} errors` : ''}.`;
         setImportStatus(msg);
-        console.log('✓ Opera import complete', data.result);
-        if (errors && errors.length > 0) {
-          console.warn('Import errors:', errors.slice(0, 20));
-        }
+        if (errors && errors.length > 0) console.warn('Import errors:', errors.slice(0, 20));
       } else {
         setImportStatus(`Error: ${data.error}`);
-        console.error('Opera import failed:', data.error);
       }
     } catch (err: any) {
       setImportStatus(`Error: ${err.message}`);
     } finally {
       setImporting(false);
       if (fileRef.current) fileRef.current.value = '';
-    }
-  }
-
-  async function handleCsvImport(e: React.FormEvent) {
-    e.preventDefault();
-    const file = csvFileRef.current?.files?.[0];
-    if (!file) return;
-
-    setCsvImporting(true);
-    setCsvStatus(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('table', csvTable);
-
-      const res = await fetch('/api/appsheet/import', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        const { created, updated, unchanged, total, errors } = data.result;
-        const errCount = errors?.length ?? 0;
-        const msg = `Import complete: ${total} rows — ${created} new, ${updated} updated, ${unchanged} unchanged${errCount > 0 ? `, ${errCount} errors` : ''}.`;
-        setCsvStatus(msg);
-        console.log('✓ AppSheet CSV import complete', data.result);
-        if (errors && errors.length > 0) {
-          console.warn('Import errors:', errors.slice(0, 20));
-        }
-      } else {
-        setCsvStatus(`Error: ${data.error}`);
-        console.error('AppSheet CSV import failed:', data.error);
-      }
-    } catch (err: any) {
-      setCsvStatus(`Error: ${err.message}`);
-    } finally {
-      setCsvImporting(false);
-      if (csvFileRef.current) csvFileRef.current.value = '';
     }
   }
 
@@ -171,106 +109,55 @@ export default function SettingsPage() {
         </form>
       </section>
 
-      {/* AppSheet CSV Import */}
+      {/* Imports & Normalization */}
       <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex justify-between items-start mb-1">
-          <h2 className="text-lg font-semibold text-gray-900">AppSheet Data Import</h2>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/staff/vendor-normalization"
-              className="text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-              Vendor Normalization
-            </Link>
-            <Link
-              href="/staff/tour-normalization"
-              className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Tour Normalization
-            </Link>
-          </div>
-        </div>
-        <p className="text-sm text-gray-500 mb-4">
-          Import historical data from AppSheet CSV exports. Select the target table, then upload the exported CSV file.
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Imports &amp; Normalization</h2>
+        <p className="text-sm text-gray-500 mb-5">
+          All data import wizards and normalization tools for historical AppSheet data.
         </p>
-        <form onSubmit={handleCsvImport} className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Target Table
-            </label>
-            <select
-              value={csvTable}
-              onChange={e => setCsvTable(e.target.value)}
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {APPSHEET_TABLES.map(t => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              CSV File
-            </label>
-            <input
-              ref={csvFileRef}
-              type="file"
-              accept=".csv"
-              required
-              className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={csvImporting}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
-          >
-            {csvImporting ? 'Importing…' : 'Upload & Import CSV'}
-          </button>
-          {csvStatus && (
-            <p className={`text-sm rounded-lg px-3 py-2 ${
-              csvStatus.startsWith('Error')
-                ? 'bg-red-50 text-red-700'
-                : 'bg-green-50 text-green-700'
-            }`}>
-              {csvStatus}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <Link href="/staff/import-wizard" className="group flex flex-col gap-2 p-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 text-lg">👤</span>
+              <span className="font-semibold text-blue-800">Guest Import Wizard</span>
+            </div>
+            <p className="text-xs text-blue-600">
+              Analyze CSV, detect duplicates, infer profile types, and review before importing.
             </p>
-          )}
-        </form>
-      </section>
+          </Link>
 
-      {/* Import Guests */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Import Guests</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Guest CSV imports are processed through the Guest Import Wizard for duplicate detection, profile type inference, and data quality review.
-        </p>
-        <Link
-          href="/staff/import-wizard"
-          className="inline-flex px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          Open Import Wizard
-        </Link>
-      </section>
+          <Link href="/staff/transfer-wizard" className="group flex flex-col gap-2 p-4 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-indigo-600 text-lg">🚗</span>
+              <span className="font-semibold text-indigo-800">Transfer Import Wizard</span>
+            </div>
+            <p className="text-xs text-indigo-600">
+              Validate dates, match guests and vendors, fix invalid rows before importing.
+            </p>
+          </Link>
 
-      {/* Import Transfers */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Import Transfers</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Transfer CSV imports are processed through the Transfer Import Wizard for date validation, guest matching, and row-by-row review.
-        </p>
-        <Link
-          href="/staff/transfer-wizard"
-          className="inline-flex px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          Open Transfer Wizard
-        </Link>
+          <Link href="/staff/vendor-normalization" className="group flex flex-col gap-2 p-4 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-orange-600 text-lg">🏢</span>
+              <span className="font-semibold text-orange-800">Vendor Normalization</span>
+            </div>
+            <p className="text-xs text-orange-600">
+              Merge duplicate vendor records and clean up vendor data.
+            </p>
+          </Link>
+
+          <Link href="/staff/tour-normalization" className="group flex flex-col gap-2 p-4 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-purple-600 text-lg">🗺️</span>
+              <span className="font-semibold text-purple-800">Tour Normalization</span>
+            </div>
+            <p className="text-xs text-purple-600">
+              Import and normalize tour booking records from AppSheet CSV exports.
+            </p>
+          </Link>
+
+        </div>
       </section>
 
       {/* Database Manager (Admin Only) */}
@@ -282,7 +169,7 @@ export default function SettingsPage() {
         <p className="text-sm text-gray-500">
           Monitor record counts across all operational tables. Use these controls to clear data during development.
         </p>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {loadingDb ? (
             <div className="col-span-2 text-center py-4 text-gray-400 animate-pulse">Loading stats...</div>
