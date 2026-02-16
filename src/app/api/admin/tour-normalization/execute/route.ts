@@ -217,10 +217,12 @@ export async function POST(request: NextRequest) {
       // CSV: "Fecha facturado" / "Fecha pagado" — note the exact normalized column names
       const billedDate = parseDate(getField(row, 'fecha_facturado', 'billed_date', 'fecha_cobro', 'fecha_factura'));
       const paidDate = parseDate(getField(row, 'fecha_pagado', 'paid_date', 'fecha_pago'));
-      // New: time and legacy vendor
+      // New: time and legacy fields
       const startTime = parseTime(getField(row, 'hora', 'start_time', 'time'));
       // CSV: "ID Vendedor" → normalized key is "id_vendedor" — store as legacy reference
       const legacyVendorId = getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor') || null;
+      // CSV: "Nombre de la actividad" — store raw original name before product normalization
+      const legacyActivityName = csvName || null;
 
       try {
         await transaction(async (client) => {
@@ -256,11 +258,11 @@ export async function POST(request: NextRequest) {
                SET guest_id=$1, product_id=$2, num_guests=$3, booking_mode=$4,
                    total_price=$5, guest_status=$6, vendor_status=$7,
                    special_requests=$8, billed_date=$9, paid_date=$10,
-                   start_time=$11, legacy_vendor_id=$12
-               WHERE id=$13`,
+                   start_time=$11, legacy_vendor_id=$12, legacy_activity_name=$13
+               WHERE id=$14`,
               [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
                vendorStatus, specialRequests, billedDate, paidDate,
-               startTime, legacyVendorId, existing.rows[0].id]
+               startTime, legacyVendorId, legacyActivityName, existing.rows[0].id]
             );
             result.updated++;
           } else {
@@ -268,11 +270,11 @@ export async function POST(request: NextRequest) {
               `INSERT INTO tour_bookings
                (guest_id, product_id, num_guests, booking_mode, total_price,
                 guest_status, vendor_status, special_requests, billed_date, paid_date,
-                start_time, legacy_vendor_id, legacy_appsheet_id)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+                start_time, legacy_vendor_id, legacy_activity_name, legacy_appsheet_id)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
               [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
                vendorStatus, specialRequests, billedDate, paidDate,
-               startTime, legacyVendorId, legacyId || null]
+               startTime, legacyVendorId, legacyActivityName, legacyId || null]
             );
             result.created++;
           }

@@ -7,3 +7,7 @@ ALTER TABLE tour_bookings ADD COLUMN IF NOT EXISTS start_time TIME;
 -- legacy_vendor_id preserves the original AppSheet vendor ID (e.g. "e85dc51f", "vnd017")
 -- so we can trace which legacy vendor was assigned even after vendor normalization
 ALTER TABLE tour_bookings ADD COLUMN IF NOT EXISTS legacy_vendor_id TEXT;
+
+-- legacy_activity_name preserves the original tour name string from the CSV
+-- (e.g. "ZAPATILLA TOUR", "green acress") before it was normalized into a product_id
+ALTER TABLE tour_bookings ADD COLUMN IF NOT EXISTS legacy_activity_name TEXT;
