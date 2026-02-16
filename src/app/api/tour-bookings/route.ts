@@ -39,14 +39,16 @@ export async function GET(request: NextRequest) {
     const effectiveVendorId = autoVendorId || vendor_id_param;
     if (effectiveVendorId) { whereClause += ` AND tp.vendor_id = $${idx++}`; params.push(effectiveVendorId); }
 
-    if (filter === 'today') whereClause += ` AND ts.date = CURRENT_DATE`;
-    else if (filter === 'upcoming') whereClause += ` AND ts.date >= CURRENT_DATE`;
-    if (date_from) { whereClause += ` AND (ts.date >= $${idx++} OR (ts.date IS NULL AND tb.created_at::date >= $${idx - 1}))`; params.push(date_from); }
-    if (date_to) { whereClause += ` AND (ts.date <= $${idx++} OR (ts.date IS NULL AND tb.created_at::date <= $${idx - 1}))`; params.push(date_to); }
+    if (filter === 'today') whereClause += ` AND COALESCE(ts.date, tb.activity_date) = CURRENT_DATE`;
+    else if (filter === 'upcoming') whereClause += ` AND COALESCE(ts.date, tb.activity_date) >= CURRENT_DATE`;
+    if (date_from) { whereClause += ` AND COALESCE(ts.date, tb.activity_date) >= $${idx++}`; params.push(date_from); }
+    if (date_to) { whereClause += ` AND COALESCE(ts.date, tb.activity_date) <= $${idx++}`; params.push(date_to); }
 
     const tour_bookings = await queryMany(
       `SELECT tb.*, g.full_name as guest_name, tp.name_en, tp.name_es,
-              ts.date as schedule_date, ts.start_time, tp.vendor_id,
+              COALESCE(ts.date, tb.activity_date) as schedule_date,
+              COALESCE(ts.start_time, tb.start_time) as start_time,
+              tp.vendor_id,
               v.name as vendor_name,
               lv.name AS legacy_vendor_name
        FROM tour_bookings tb
@@ -56,7 +58,7 @@ export async function GET(request: NextRequest) {
        LEFT JOIN vendors v ON tp.vendor_id = v.id
        LEFT JOIN vendors lv ON lv.legacy_appsheet_id = tb.legacy_vendor_id
        ${whereClause}
-       ORDER BY COALESCE(ts.date, tb.created_at::date) ASC, ts.start_time ASC
+       ORDER BY COALESCE(ts.date, tb.activity_date) ASC, COALESCE(ts.start_time, tb.start_time) ASC
        LIMIT 200`,
       params
     );

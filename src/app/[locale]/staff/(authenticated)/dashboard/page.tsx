@@ -45,7 +45,7 @@ export default function DashboardPage() {
             fetch('/api/reservations?filter=checked_in'),
             fetch(`/api/transfers?date_from=${today}&date_to=${today}`),
             fetch(`/api/tour-bookings?date_from=${today}&date_to=${today}`),
-            fetch(`/api/special-requests?status=pending`),
+            fetch(`/api/special-requests?filter=today&status=pending&count=true`),
             fetch(`/api/conversations?status=open`),
           ]);
 
@@ -68,7 +68,7 @@ export default function DashboardPage() {
         setConciergeStats({
           pendingTransfers: transfers.length,
           pendingTourBookings: tours.length,
-          pendingSpecialRequests: requestsData.special_requests?.length ?? 0,
+          pendingSpecialRequests: requestsData.count ?? 0,
           openConversations: convsData.conversations?.length ?? 0,
         });
         setTodayTransfers(transfers);

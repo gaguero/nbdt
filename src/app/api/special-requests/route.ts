@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const filter = searchParams.get('filter');
     const status = searchParams.get('status');
     const department = searchParams.get('department');
+    const countOnly = searchParams.get('count') === 'true';
 
     let whereClause = 'WHERE 1=1';
     const params: any[] = [];
@@ -20,6 +21,14 @@ export async function GET(request: NextRequest) {
     if (filter === 'today') whereClause += ` AND sr.date = CURRENT_DATE`;
     if (status) { whereClause += ` AND sr.status = $${idx++}`; params.push(status); }
     if (department && department !== 'all') { whereClause += ` AND sr.department = $${idx++}`; params.push(department); }
+
+    if (countOnly) {
+      const result = await queryOne(
+        `SELECT COUNT(*) as count FROM special_requests sr ${whereClause}`,
+        params
+      );
+      return NextResponse.json({ count: parseInt(result.count) });
+    }
 
     const special_requests = await queryMany(
       `SELECT sr.*, g.full_name as guest_name
