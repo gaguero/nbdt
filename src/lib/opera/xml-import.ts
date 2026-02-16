@@ -117,15 +117,17 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
       }
 
       await transaction(async (client) => {
-        // Upsert guest by first_name + last_name
+        // Upsert guest by first_name + last_name, with full_name fallback
         let guestId: string;
         const existingGuest = await client.query(
-          'SELECT id FROM guests WHERE first_name = $1 AND last_name = $2 LIMIT 1',
-          [parsed.first_name, parsed.last_name]
+          'SELECT id FROM guests WHERE (first_name = $1 AND last_name = $2) OR full_name = $3 LIMIT 1',
+          [parsed.first_name, parsed.last_name, parsed.full_name]
         );
 
         if (existingGuest.rows.length > 0) {
           guestId = existingGuest.rows[0].id;
+          // Optionally update guest full_name if it was different?
+          // full_name is generated, so we just ensure we have the ID.
         } else {
           const newGuest = await client.query(
             `INSERT INTO guests (first_name, last_name)

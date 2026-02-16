@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importOperaXml } from '@/lib/opera/xml-import';
 import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { queryOne } from '@/lib/db';
+
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const lastSync = await queryOne(
+      'SELECT MAX(last_synced_at) as "lastSync" FROM reservations'
+    );
+
+    return NextResponse.json(lastSync || { lastSync: null });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

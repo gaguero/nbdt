@@ -69,13 +69,15 @@ export function InHouseGuests({ limit = 20 }: { limit?: number }) {
                 </td>
                 <td className="px-6 py-3 text-xs text-gray-600">{g.nationality || '—'}</td>
                 <td className="px-6 py-3">{nightsRemaining(g.arrival, g.departure)}</td>
-                <td className="px-6 py-3 text-xs space-x-2">
-                  <span className={`inline-block px-2 py-1 rounded ${g.transfer_booked ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                    {g.transfer_booked ? '✓ Transfer' : 'No Transfer'}
-                  </span>
-                  <span className={`inline-block px-2 py-1 rounded ${g.tour_booked ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
-                    {g.tour_booked ? '✓ Tour' : 'No Tour'}
-                  </span>
+                <td className="px-6 py-3 text-xs">
+                  <div className="flex gap-2">
+                    <span className={`flex items-center gap-1 px-2 py-1 rounded-full font-medium ${g.transfer_booked ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                      {g.transfer_booked ? '✓' : '×'} {ls('Transfer', 'Traslado')}
+                    </span>
+                    <span className={`flex items-center gap-1 px-2 py-1 rounded-full font-medium ${g.tour_booked ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                      {g.tour_booked ? '✓' : '×'} {ls('Tour', 'Tour')}
+                    </span>
+                  </div>
                 </td>
               </tr>
             ))}

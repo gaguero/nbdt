@@ -37,7 +37,9 @@ export async function GET(request: NextRequest) {
     }
 
     const reservations = await queryMany(
-      `SELECT r.*, g.full_name as guest_name, g.first_name, g.last_name, r.opera_guest_name
+      `SELECT r.*, g.full_name as guest_name, g.first_name, g.last_name, g.nationality, r.opera_guest_name,
+              EXISTS (SELECT 1 FROM transfers t WHERE t.guest_id = r.guest_id AND t.guest_status != 'cancelled') as transfer_booked,
+              EXISTS (SELECT 1 FROM tour_bookings tb WHERE tb.guest_id = r.guest_id AND tb.guest_status != 'cancelled') as tour_booked
        FROM reservations r
        LEFT JOIN guests g ON r.guest_id = g.id
        ${whereClause}

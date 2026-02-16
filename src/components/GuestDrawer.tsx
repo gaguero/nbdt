@@ -39,7 +39,7 @@ export function GuestDrawer({ guestId, onClose }: { guestId: string | null; onCl
     setLoading(true);
     fetch(`/api/guests?id=${guestId}`)
       .then(r => r.json())
-      .then(d => setGuest(d.guests?.[0] || null))
+      .then(d => setGuest(d.guest || null))
       .finally(() => setLoading(false));
   }, [guestId]);
 
