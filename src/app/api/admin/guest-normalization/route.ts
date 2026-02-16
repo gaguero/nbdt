@@ -32,13 +32,11 @@ export async function GET(request: NextRequest) {
       const duplicates = await Promise.all(clusters.map(async (cluster) => {
         const members = await queryMany(`
           SELECT g.*,
-            (SELECT COUNT(*) FROM reservations WHERE guest_id = g.id) as res_count,
-            (SELECT COUNT(*) FROM transfers WHERE guest_id = g.id) as trans_count,
-            (SELECT COUNT(*) FROM tour_bookings WHERE guest_id = g.id) as tour_count,
-            (SELECT COUNT(*) FROM special_requests WHERE guest_id = g.id) as req_count,
-            (SELECT COUNT(*) FROM romantic_dinners WHERE guest_id = g.id) as dinner_count,
-            (SELECT COUNT(*) FROM other_hotel_bookings WHERE guest_id = g.id) as hotel_count,
-            (SELECT COUNT(*) FROM conversations WHERE guest_id = g.id) as conv_count
+            (SELECT json_agg(json_build_object('id', id, 'info', 'Room ' || COALESCE(room, '?') || ' (' || arrival || ')')) FROM reservations WHERE guest_id = g.id) as res_list,
+            (SELECT json_agg(json_build_object('id', id, 'info', date || ' ' || COALESCE(origin, '?') || ' -> ' || COALESCE(destination, '?'))) FROM transfers WHERE guest_id = g.id) as trans_list,
+            (SELECT json_agg(json_build_object('id', id, 'info', COALESCE(activity_date::text, 'No Date') || ': ' || num_guests || ' pax')) FROM tour_bookings WHERE guest_id = g.id) as tour_list,
+            (SELECT json_agg(json_build_object('id', id, 'info', date || ': ' || request)) FROM special_requests WHERE guest_id = g.id) as req_list,
+            (SELECT json_agg(json_build_object('id', id, 'info', date || ': ' || COALESCE(location, 'Restaurant'))) FROM romantic_dinners WHERE guest_id = g.id) as dinner_list
           FROM guests g
           WHERE full_name = $1 AND (email = $2::text OR (email IS NULL AND $2::text IS NULL))
           ORDER BY created_at ASC

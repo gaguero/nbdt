@@ -257,14 +257,13 @@ export default function GuestNormalizationPage() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2">
-                            <CountBadge count={member.res_count} label={ls('Resv', 'Resv')} color="blue" />
-                            <CountBadge count={member.trans_count} label={ls('Trans', 'Trasl')} color="purple" />
-                            <CountBadge count={member.tour_count} label={ls('Tours', 'Tours')} color="yellow" />
-                            <CountBadge count={member.req_count} label={ls('Reqs', 'Sol')} color="orange" />
-                          </div>
-
-                          {/* Action Selectors */}
+                                                  <div className="grid grid-cols-2 gap-2">
+                                                    <CountBadge items={member.res_list} label={ls('Resv', 'Resv')} color="blue" />
+                                                    <CountBadge items={member.trans_list} label={ls('Trans', 'Trasl')} color="purple" />
+                                                    <CountBadge items={member.tour_list} label={ls('Tours', 'Tours')} color="yellow" />
+                                                    <CountBadge items={member.req_list} label={ls('Reqs', 'Sol')} color="orange" />
+                                                  </div>
+                                                    {/* Action Selectors */}
                           <div className="pt-2 mt-auto border-t border-gray-100 flex gap-2">
                             {idx === 0 ? (
                               <div className="w-full text-center py-2 text-[10px] font-black text-green-600 uppercase tracking-widest bg-green-50 rounded border border-green-100">
@@ -390,17 +389,34 @@ export default function GuestNormalizationPage() {
   );
 }
 
-function CountBadge({ count, label, color }: { count: number, label: string, color: string }) {
+function CountBadge({ items, label, color }: { items: any[], label: string, color: string }) {
+  const count = items?.length || 0;
   const colors: any = {
     blue: 'bg-blue-50 text-blue-700 border-blue-100',
     purple: 'bg-purple-50 text-purple-700 border-purple-100',
     yellow: 'bg-yellow-50 text-yellow-700 border-yellow-100',
     orange: 'bg-orange-50 text-orange-700 border-orange-100',
   };
+
   return (
-    <div className={`flex items-center justify-between px-2 py-1 rounded border text-[10px] font-bold ${colors[color]}`}>
+    <div className={`group relative flex items-center justify-between px-2 py-1 rounded border text-[10px] font-bold ${colors[color]}`}>
       <span>{label}</span>
       <span className="bg-white/50 px-1.5 rounded-full">{count}</span>
+
+      {/* Tooltip */}
+      {count > 0 && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-30 w-48 bg-gray-900 text-white p-2 rounded shadow-xl text-[9px] font-normal pointer-events-none">
+          <div className="space-y-1">
+            {items.map((it: any, i: number) => (
+              <div key={it.id || i} className="border-b border-gray-700 last:border-0 pb-1 last:pb-0">
+                {it.info}
+              </div>
+            ))}
+          </div>
+          {/* Arrow */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-900"></div>
+        </div>
+      )}
     </div>
   );
 }
