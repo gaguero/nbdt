@@ -61,6 +61,27 @@ export default function GuestNormalizationPage() {
     }
   };
 
+  const handleDelete = async (guestId: string) => {
+    if (!confirm(ls('Are you sure you want to delete this guest profile? This action is permanent and only possible if the guest has NO linked records.', '¿Está seguro de que desea eliminar este perfil de huésped? Esta acción es permanente y solo es posible si el huésped NO tiene registros vinculados.'))) return;
+    
+    try {
+      const res = await fetch('/api/admin/guest-normalization', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', guestId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessage({ type: 'success', text: data.message });
+        fetchData();
+      } else {
+        setMessage({ type: 'error', text: data.error });
+      }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message });
+    }
+  };
+
   const handleLink = async (reservationId: string, guestId: string) => {
     try {
       const res = await fetch('/api/admin/guest-normalization', {
@@ -153,32 +174,56 @@ export default function GuestNormalizationPage() {
         ) : (
           <div className="divide-y divide-gray-100">
             {activeTab === 'duplicates' ? (
-              items.map((dup, i) => (
-                <div key={i} className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">{ls('Guest A (Keep)', 'Huésped A (Mantener)')}</p>
-                    <p className="font-bold text-gray-900">{dup.name1}</p>
-                    <p className="text-xs text-gray-500">{dup.email1 || ls('No email', 'Sin correo')}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">ID: {dup.id1.slice(0,8)}... • {new Date(dup.date1).toLocaleDateString()}</p>
+              items.map((cluster, i) => (
+                <div key={i} className="p-6 space-y-4 border-b last:border-0 bg-gray-50/30">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">{ls('Group', 'Grupo')} #{i+1}</span>
+                    <h3 className="font-bold text-gray-900">{cluster.name}</h3>
+                    {cluster.email && <span className="text-xs text-gray-500">({cluster.email})</span>}
                   </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="h-px w-full bg-gray-200 relative">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="bg-white px-2 text-[10px] font-bold text-blue-600 uppercase tracking-widest">{ls('Merge Into', 'Fusionar En')}</span>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {cluster.members.map((member: any, idx: number) => (
+                      <div key={member.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3 flex flex-col">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase">{idx === 0 ? ls('Primary Candidate', 'Candidato Principal') : ls('Duplicate', 'Duplicado')}</p>
+                            <p className="font-black text-gray-900">{member.full_name}</p>
+                            <p className="text-[10px] text-gray-400">ID: {member.id.slice(0,8)}... • {new Date(member.created_at).toLocaleDateString()}</p>
+                          </div>
+                          <button 
+                            onClick={() => handleDelete(member.id)}
+                            className="text-red-400 hover:text-red-600 p-1"
+                            title={ls('Delete Guest', 'Eliminar Huésped')}
+                          >
+                            <ExclamationTriangleIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+
+                        {/* Record Counts */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <CountBadge count={member.res_count} label={ls('Resv', 'Resv')} color="blue" />
+                          <CountBadge count={member.trans_count} label={ls('Trans', 'Trasl')} color="purple" />
+                          <CountBadge count={member.tour_count} label={ls('Tours', 'Tours')} color="yellow" />
+                          <CountBadge count={member.req_count} label={ls('Reqs', 'Sol')} color="orange" />
+                        </div>
+
+                        <div className="pt-2 mt-auto">
+                          {idx === 0 ? (
+                            <div className="text-center py-2 px-4 bg-green-50 text-green-700 rounded-lg text-xs font-bold border border-green-100">
+                              {ls('Target for Merges', 'Objetivo de Fusión')}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleMerge(cluster.members[0].id, member.id)}
+                              className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 shadow-sm"
+                            >
+                              {ls('Merge Into Primary', 'Fusionar en Principal')}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <button 
-                      onClick={() => handleMerge(dup.id1, dup.id2)}
-                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 shadow-sm"
-                    >
-                      {ls('Execute Merge', 'Ejecutar Fusión')}
-                    </button>
-                  </div>
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-100">
-                    <p className="text-xs font-bold text-red-400 uppercase mb-1">{ls('Guest B (Delete)', 'Huésped B (Eliminar)')}</p>
-                    <p className="font-bold text-gray-900">{dup.name2}</p>
-                    <p className="text-xs text-gray-500">{dup.email2 || ls('No email', 'Sin correo')}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">ID: {dup.id2.slice(0,8)}... • {new Date(dup.date2).toLocaleDateString()}</p>
+                    ))}
                   </div>
                 </div>
               ))
@@ -214,14 +259,22 @@ export default function GuestNormalizationPage() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {orphan.suggestions.map((s: any) => (
-                            <button
-                              key={s.id}
-                              onClick={() => handleLink(orphan.id, s.id)}
-                              className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold border border-blue-100 hover:bg-blue-100 transition-colors flex items-center gap-2"
-                            >
-                              {s.full_name}
-                              <LinkIcon className="h-3 w-3" />
-                            </button>
+                            <div key={s.id} className="flex items-center gap-2 bg-blue-50 p-2 rounded-lg border border-blue-100">
+                              <div className="flex-1">
+                                <p className="text-xs font-bold text-blue-700">{s.full_name}</p>
+                                <div className="flex gap-1 mt-1">
+                                  <span className="text-[8px] bg-blue-100 px-1 rounded">Res: {s.res_count || 0}</span>
+                                  <span className="text-[8px] bg-purple-100 px-1 rounded">Tra: {s.trans_count || 0}</span>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleLink(orphan.id, s.id)}
+                                className="p-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                title={ls('Link to this guest', 'Vincular a este huésped')}
+                              >
+                                <LinkIcon className="h-4 w-4" />
+                              </button>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -261,6 +314,21 @@ export default function GuestNormalizationPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function CountBadge({ count, label, color }: { count: number, label: string, color: string }) {
+  const colors: any = {
+    blue: 'bg-blue-50 text-blue-700 border-blue-100',
+    purple: 'bg-purple-50 text-purple-700 border-purple-100',
+    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-100',
+    orange: 'bg-orange-50 text-orange-700 border-orange-100',
+  };
+  return (
+    <div className={`flex items-center justify-between px-2 py-1 rounded border text-[10px] font-bold ${colors[color]}`}>
+      <span>{label}</span>
+      <span className="bg-white/50 px-1.5 rounded-full">{count}</span>
     </div>
   );
 }

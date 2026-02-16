@@ -20,20 +20,32 @@ export async function GET(request: NextRequest) {
     const mode = searchParams.get('mode') || 'duplicates';
 
     if (mode === 'duplicates') {
-      // Find guests with similar names
-      // Using a simple self-join on first 4 characters or Soundex if available
-      // For now, let's find exact full_name duplicates or very similar ones
-      const duplicates = await queryMany(`
-        SELECT g1.id as id1, g1.full_name as name1, g1.email as email1, g1.created_at as date1,
-               g2.id as id2, g2.full_name as name2, g2.email as email2, g2.created_at as date2
-        FROM guests g1
-        JOIN guests g2 ON g1.id < g2.id 
-          AND (
-            g1.full_name ILIKE g2.full_name 
-            OR (g1.email = g2.email AND g1.email IS NOT NULL AND g1.email != '')
-          )
-        ORDER BY g1.full_name ASC
+      // Find clusters of guests with the same name or email
+      const clusters = await queryMany(`
+        SELECT full_name, email, COUNT(*) as count
+        FROM guests
+        GROUP BY full_name, email
+        HAVING COUNT(*) > 1
+        ORDER BY count DESC
       `);
+
+      const duplicates = await Promise.all(clusters.map(async (cluster) => {
+        const members = await queryMany(`
+          SELECT g.*,
+            (SELECT COUNT(*) FROM reservations WHERE guest_id = g.id) as res_count,
+            (SELECT COUNT(*) FROM transfers WHERE guest_id = g.id) as trans_count,
+            (SELECT COUNT(*) FROM tour_bookings WHERE guest_id = g.id) as tour_count,
+            (SELECT COUNT(*) FROM special_requests WHERE guest_id = g.id) as req_count,
+            (SELECT COUNT(*) FROM romantic_dinners WHERE guest_id = g.id) as dinner_count,
+            (SELECT COUNT(*) FROM other_hotel_bookings WHERE guest_id = g.id) as hotel_count,
+            (SELECT COUNT(*) FROM conversations WHERE guest_id = g.id) as conv_count
+          FROM guests g
+          WHERE full_name = $1 AND (email = $2 OR (email IS NULL AND $2 IS NULL))
+          ORDER BY created_at ASC
+        `, [cluster.full_name, cluster.email]);
+        return { name: cluster.full_name, email: cluster.email, members };
+      }));
+
       return NextResponse.json({ duplicates });
     }
 
@@ -55,11 +67,13 @@ export async function GET(request: NextRequest) {
         const lastName = operaName.split(',')[0].trim();
         
         const suggestions = await queryMany(`
-          SELECT id, full_name, email, nationality
-          FROM guests
-          WHERE full_name ILIKE $1 
-             OR last_name ILIKE $2
-             OR $3 ILIKE '%' || last_name || '%'
+          SELECT g.id, g.full_name, g.email, g.nationality,
+            (SELECT COUNT(*) FROM reservations WHERE guest_id = g.id) as res_count,
+            (SELECT COUNT(*) FROM transfers WHERE guest_id = g.id) as trans_count
+          FROM guests g
+          WHERE g.full_name ILIKE $1 
+             OR g.last_name ILIKE $2
+             OR $3 ILIKE '%' || g.last_name || '%'
           LIMIT 3
         `, [`%${lastName}%`, lastName, operaName]);
 
@@ -89,7 +103,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { action, primaryId, secondaryId, reservationId } = await request.json();
+    const { action, primaryId, secondaryId, reservationId, guestId } = await request.json();
+
+    if (action === 'delete') {
+      if (!guestId) return NextResponse.json({ error: 'Guest ID required' }, { status: 400 });
+      await query('DELETE FROM guests WHERE id = $1', [guestId]);
+      return NextResponse.json({ success: true, message: 'Guest deleted successfully' });
+    }
 
     if (action === 'merge') {
       if (!primaryId || !secondaryId) return NextResponse.json({ error: 'Both IDs required' }, { status: 400 });
