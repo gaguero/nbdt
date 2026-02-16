@@ -6,7 +6,7 @@ import { TrashIcon, ServerIcon, ExclamationTriangleIcon } from '@heroicons/react
 
 const APPSHEET_TABLES = [
   { value: 'vendors', label: 'Vendors' },
-  { value: 'transfers', label: 'Transfers' },
+  // Transfers have their own dedicated import wizard at /staff/transfer-wizard
   { value: 'special_requests', label: 'Special Requests' },
   { value: 'other_hotel_bookings', label: 'Other Hotel Bookings' },
   { value: 'romantic_dinners', label: 'Romantic Dinners' },
@@ -256,6 +256,20 @@ export default function SettingsPage() {
           className="inline-flex px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
         >
           Open Import Wizard
+        </Link>
+      </section>
+
+      {/* Import Transfers */}
+      <section className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Import Transfers</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Transfer CSV imports are processed through the Transfer Import Wizard for date validation, guest matching, and row-by-row review.
+        </p>
+        <Link
+          href="/staff/transfer-wizard"
+          className="inline-flex px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          Open Transfer Wizard
         </Link>
       </section>
 
