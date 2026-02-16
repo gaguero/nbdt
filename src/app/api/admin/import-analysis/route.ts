@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       headers.forEach((h, idx) => { row[h] = (vals[idx] ?? '').trim(); });
 
       const legacyId = row.id_huesped || '';
-      let fullName = row.nombre_completo || '';
+      const fullName = row.nombre_completo || '';
       const email = row.email || '';
       let firstName = row.nombre || '';
       let lastName = row.apellido || '';
