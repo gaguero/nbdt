@@ -264,6 +264,7 @@ export default function GuestNormalizationPage() {
                 </>
               )}
             </button>
+            </div>
           </div>
         )}
 
