@@ -40,46 +40,67 @@ export default function GuestNormalizationPage() {
     fetchData();
   }, [activeTab]);
 
-  const handleMerge = async (primaryId: string, secondaryId: string) => {
-    if (!confirm(ls('Are you sure you want to merge these guests? This cannot be undone.', '¿Está seguro de que desea fusionar estos huéspedes? Esto no se puede deshacer.'))) return;
-    
-    try {
-      const res = await fetch('/api/admin/guest-normalization', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'merge', primaryId, secondaryId })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setMessage({ type: 'success', text: data.message });
-        fetchData();
-      } else {
-        setMessage({ type: 'error', text: data.error });
-      }
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
-    }
+  const [selectedActions, setSelectedActions] = useState<Record<string, 'merge' | 'delete' | null>>({});
+  const [processing, setProcessing] = useState(false);
+  const [currentProcessingId, setCurrentProcessingId] = useState<string | null>(null);
+
+  const ls = (en: string, es: string) => locale === 'es' ? es : en;
+
+  const toggleAction = (guestId: string, action: 'merge' | 'delete') => {
+    setSelectedActions(prev => ({
+      ...prev,
+      [guestId]: prev[guestId] === action ? null : action
+    }));
   };
 
-  const handleDelete = async (guestId: string) => {
-    if (!confirm(ls('Are you sure you want to delete this guest profile? This action is permanent and only possible if the guest has NO linked records.', '¿Está seguro de que desea eliminar este perfil de huésped? Esta acción es permanente y solo es posible si el huésped NO tiene registros vinculados.'))) return;
-    
-    try {
-      const res = await fetch('/api/admin/guest-normalization', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', guestId })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setMessage({ type: 'success', text: data.message });
-        fetchData();
-      } else {
-        setMessage({ type: 'error', text: data.error });
+  const handleProcessSelection = async () => {
+    const actionsToRun = Object.entries(selectedActions).filter(([_, action]) => action !== null);
+    if (actionsToRun.length === 0) return;
+
+    if (!confirm(ls(`Are you sure you want to process ${actionsToRun.length} actions?`, `¿Está seguro de que desea procesar ${actionsToRun.length} acciones?`))) return;
+
+    setProcessing(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const [guestId, action] of actionsToRun) {
+      setCurrentProcessingId(guestId);
+      try {
+        // Find the primary guest ID for this cluster if merging
+        let primaryId = null;
+        if (action === 'merge') {
+          const cluster = items.find(c => c.members.some((m: any) => m.id === guestId));
+          primaryId = cluster?.members[0]?.id;
+        }
+
+        const res = await fetch('/api/admin/guest-normalization', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action, 
+            guestId: action === 'delete' ? guestId : undefined,
+            primaryId,
+            secondaryId: action === 'merge' ? guestId : undefined
+          })
+        });
+        
+        if (res.ok) successCount++;
+        else failCount++;
+      } catch (err) {
+        failCount++;
       }
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
+      // Small delay for animation feel
+      await new Promise(r => setTimeout(r, 400));
     }
+
+    setProcessing(false);
+    setCurrentProcessingId(null);
+    setSelectedActions({});
+    setMessage({ 
+      type: successCount > 0 ? 'success' : 'error', 
+      text: ls(`Processed: ${successCount} successful, ${failCount} failed.`, `Procesado: ${successCount} exitosos, ${failCount} fallidos.`) 
+    });
+    fetchData();
   };
 
   const handleLink = async (reservationId: string, guestId: string) => {
@@ -159,7 +180,34 @@ export default function GuestNormalizationPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm relative">
+        {/* Floating Action Bar */}
+        {Object.values(selectedActions).some(v => v !== null) && (
+          <div className="sticky top-0 z-20 bg-blue-600 p-4 flex items-center justify-between shadow-lg animate-in slide-in-from-top duration-300">
+            <div className="text-white">
+              <p className="font-black text-sm uppercase tracking-widest">{ls('Ready to Process', 'Listo para Procesar')}</p>
+              <p className="text-xs opacity-90">{Object.values(selectedActions).filter(v => v !== null).length} {ls('actions selected', 'acciones seleccionadas')}</p>
+            </div>
+            <button
+              onClick={handleProcessSelection}
+              disabled={processing}
+              className="px-6 py-2 bg-white text-blue-600 rounded-lg font-black text-sm hover:bg-blue-50 disabled:opacity-50 flex items-center gap-2"
+            >
+              {processing ? (
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                  {ls('Processing...', 'Procesando...')}
+                </>
+              ) : (
+                <>
+                  <CheckCircleIcon className="h-5 w-5" />
+                  {ls('Execute All Changes', 'Ejecutar Cambios')}
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="p-12 text-center text-gray-500">
             <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
@@ -183,47 +231,73 @@ export default function GuestNormalizationPage() {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {cluster.members.map((member: any, idx: number) => (
-                      <div key={member.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3 flex flex-col">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase">{idx === 0 ? ls('Primary Candidate', 'Candidato Principal') : ls('Duplicate', 'Duplicado')}</p>
-                            <p className="font-black text-gray-900">{member.full_name}</p>
-                            <p className="text-[10px] text-gray-400">ID: {member.id.slice(0,8)}... • {new Date(member.created_at).toLocaleDateString()}</p>
-                          </div>
-                          <button 
-                            onClick={() => handleDelete(member.id)}
-                            className="text-red-400 hover:text-red-600 p-1"
-                            title={ls('Delete Guest', 'Eliminar Huésped')}
-                          >
-                            <ExclamationTriangleIcon className="h-5 w-5" />
-                          </button>
-                        </div>
+                    {cluster.members.map((member: any, idx: number) => {
+                      const isProcessing = currentProcessingId === member.id;
+                      const selected = selectedActions[member.id];
 
-                        {/* Record Counts */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <CountBadge count={member.res_count} label={ls('Resv', 'Resv')} color="blue" />
-                          <CountBadge count={member.trans_count} label={ls('Trans', 'Trasl')} color="purple" />
-                          <CountBadge count={member.tour_count} label={ls('Tours', 'Tours')} color="yellow" />
-                          <CountBadge count={member.req_count} label={ls('Reqs', 'Sol')} color="orange" />
-                        </div>
-
-                        <div className="pt-2 mt-auto">
-                          {idx === 0 ? (
-                            <div className="text-center py-2 px-4 bg-green-50 text-green-700 rounded-lg text-xs font-bold border border-green-100">
-                              {ls('Target for Merges', 'Objetivo de Fusión')}
+                      return (
+                        <div 
+                          key={member.id} 
+                          className={`bg-white p-4 rounded-xl border-2 transition-all duration-300 flex flex-col gap-3 relative overflow-hidden ${
+                            isProcessing ? 'scale-95 opacity-50' : 
+                            selected === 'merge' ? 'border-blue-500 bg-blue-50/30' :
+                            selected === 'delete' ? 'border-red-500 bg-red-50/30' :
+                            'border-gray-200'
+                          }`}
+                        >
+                          {isProcessing && (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                              <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
                             </div>
-                          ) : (
-                            <button
-                              onClick={() => handleMerge(cluster.members[0].id, member.id)}
-                              className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 shadow-sm"
-                            >
-                              {ls('Merge Into Primary', 'Fusionar en Principal')}
-                            </button>
                           )}
+
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase">{idx === 0 ? ls('Primary Candidate', 'Candidato Principal') : ls('Secondary Profile', 'Perfil Secundario')}</p>
+                              <p className="font-black text-gray-900">{member.full_name}</p>
+                              <p className="text-[10px] text-gray-400">ID: {member.id.slice(0,8)}... • {new Date(member.created_at).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <CountBadge count={member.res_count} label={ls('Resv', 'Resv')} color="blue" />
+                            <CountBadge count={member.trans_count} label={ls('Trans', 'Trasl')} color="purple" />
+                            <CountBadge count={member.tour_count} label={ls('Tours', 'Tours')} color="yellow" />
+                            <CountBadge count={member.req_count} label={ls('Reqs', 'Sol')} color="orange" />
+                          </div>
+
+                          {/* Action Selectors */}
+                          <div className="pt-2 mt-auto border-t border-gray-100 flex gap-2">
+                            {idx === 0 ? (
+                              <div className="w-full text-center py-2 text-[10px] font-black text-green-600 uppercase tracking-widest bg-green-50 rounded border border-green-100">
+                                {ls('Master Profile', 'Perfil Maestro')}
+                              </div>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => toggleAction(member.id, 'merge')}
+                                  disabled={processing}
+                                  className={`flex-1 py-2 rounded text-[10px] font-black uppercase transition-colors border ${
+                                    selected === 'merge' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'
+                                  }`}
+                                >
+                                  {ls('Merge', 'Fusionar')}
+                                </button>
+                                <button
+                                  onClick={() => toggleAction(member.id, 'delete')}
+                                  disabled={processing}
+                                  className={`flex-1 py-2 rounded text-[10px] font-black uppercase transition-colors border ${
+                                    selected === 'delete' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-red-600 border-red-200 hover:bg-red-50'
+                                  }`}
+                                >
+                                  {ls('Delete', 'Eliminar')}
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))

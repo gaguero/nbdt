@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
             (SELECT COUNT(*) FROM other_hotel_bookings WHERE guest_id = g.id) as hotel_count,
             (SELECT COUNT(*) FROM conversations WHERE guest_id = g.id) as conv_count
           FROM guests g
-          WHERE full_name = $1 AND (email = $2 OR (email IS NULL AND $2 IS NULL))
+          WHERE full_name = $1 AND (email = $2::text OR (email IS NULL AND $2::text IS NULL))
           ORDER BY created_at ASC
         `, [cluster.full_name, cluster.email]);
         return { name: cluster.full_name, email: cluster.email, members };
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
 
     if (action === 'delete') {
       if (!guestId) return NextResponse.json({ error: 'Guest ID required' }, { status: 400 });
-      await query('DELETE FROM guests WHERE id = $1', [guestId]);
+      await query('DELETE FROM guests WHERE id = $1::uuid', [guestId]);
       return NextResponse.json({ success: true, message: 'Guest deleted successfully' });
     }
 
@@ -116,19 +116,19 @@ export async function POST(request: NextRequest) {
 
       await transaction(async (client) => {
         // 1. Move all reservations
-        await client.query('UPDATE reservations SET guest_id = $1 WHERE guest_id = $2', [primaryId, secondaryId]);
+        await client.query('UPDATE reservations SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         // 2. Move all transfers
-        await client.query('UPDATE transfers SET guest_id = $1 WHERE guest_id = $2', [primaryId, secondaryId]);
+        await client.query('UPDATE transfers SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         // 3. Move all tour bookings
-        await client.query('UPDATE tour_bookings SET guest_id = $1 WHERE guest_id = $2', [primaryId, secondaryId]);
+        await client.query('UPDATE tour_bookings SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         // 4. Move all special requests
-        await client.query('UPDATE special_requests SET guest_id = $1 WHERE guest_id = $2', [primaryId, secondaryId]);
+        await client.query('UPDATE special_requests SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         // 5. Move all romantic dinners
-        await client.query('UPDATE romantic_dinners SET guest_id = $1 WHERE guest_id = $2', [primaryId, secondaryId]);
+        await client.query('UPDATE romantic_dinners SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         // 6. Move all messages
-        await client.query('UPDATE conversations SET guest_id = $1 WHERE guest_id = $2', [primaryId, secondaryId]);
+        await client.query('UPDATE conversations SET guest_id = $1::uuid WHERE guest_id = $2::uuid', [primaryId, secondaryId]);
         // 7. Delete secondary guest
-        await client.query('DELETE FROM guests WHERE id = $2', [primaryId, secondaryId]);
+        await client.query('DELETE FROM guests WHERE id = $1::uuid', [secondaryId]);
       });
 
       return NextResponse.json({ success: true, message: 'Guests merged successfully' });
