@@ -43,6 +43,7 @@ export default function GuestNormalizationPage() {
   const [selectedActions, setSelectedActions] = useState<Record<string, 'merge' | 'delete' | null>>({});
   const [processing, setProcessing] = useState(false);
   const [currentProcessingId, setCurrentProcessingId] = useState<string | null>(null);
+  const [activeDetail, setActiveDetail] = useState<any | null>(null);
 
   const toggleAction = (guestId: string, action: 'merge' | 'delete') => {
     setSelectedActions(prev => ({
@@ -150,7 +151,42 @@ export default function GuestNormalizationPage() {
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Record Detail Modal */}
+      {activeDetail && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+            <div className={`p-4 flex items-center justify-between border-b ${
+              activeDetail.type === 'reservation' ? 'bg-blue-600' :
+              activeDetail.type === 'transfer' ? 'bg-purple-600' :
+              activeDetail.type === 'tour' ? 'bg-yellow-600' : 'bg-orange-600'
+            } text-white`}>
+              <h3 className="font-black uppercase tracking-widest text-sm">{activeDetail.type} {ls('Detail', 'Detalle')}</h3>
+              <button onClick={() => setActiveDetail(null)} className="p-1 hover:bg-white/20 rounded-full">
+                <CheckCircleIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                {Object.entries(activeDetail.full_detail).map(([key, value]: [string, any]) => (
+                  <div key={key} className="space-y-1">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{key}</p>
+                    <p className="text-sm font-bold text-gray-900 leading-tight">{String(value || '—')}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 border-t flex justify-end">
+              <button 
+                onClick={() => setActiveDetail(null)}
+                className="px-6 py-2 bg-gray-900 text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-gray-800 transition-colors"
+              >
+                {ls('Close', 'Cerrar')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex border-b border-gray-200">
         <button
           onClick={() => setActiveTab('duplicates')}
@@ -257,12 +293,69 @@ export default function GuestNormalizationPage() {
                             </div>
                           </div>
 
-                                                  <div className="grid grid-cols-2 gap-2">
-                                                    <CountBadge items={member.res_list} label={ls('Resv', 'Resv')} color="blue" />
-                                                    <CountBadge items={member.trans_list} label={ls('Trans', 'Trasl')} color="purple" />
-                                                    <CountBadge items={member.tour_list} label={ls('Tours', 'Tours')} color="yellow" />
-                                                    <CountBadge items={member.req_list} label={ls('Reqs', 'Sol')} color="orange" />
-                                                  </div>
+                                                                                                  <div className="grid grid-cols-2 gap-2">
+
+                                                                                                    <CountBadge 
+
+                                                                                                      items={member.res_list} 
+
+                                                                                                      label={ls('Resv', 'Resv')} 
+
+                                                                                                      color="blue" 
+
+                                                                                                      onItemClick={(it) => setActiveDetail(it)}
+
+                                                                                                      ls={ls}
+
+                                                                                                    />
+
+                                                                                                    <CountBadge 
+
+                                                                                                      items={member.trans_list} 
+
+                                                                                                      label={ls('Trans', 'Trasl')} 
+
+                                                                                                      color="purple" 
+
+                                                                                                      onItemClick={(it) => setActiveDetail(it)}
+
+                                                                                                      ls={ls}
+
+                                                                                                    />
+
+                                                                                                    <CountBadge 
+
+                                                                                                      items={member.tour_list} 
+
+                                                                                                      label={ls('Tours', 'Tours')} 
+
+                                                                                                      color="yellow" 
+
+                                                                                                      onItemClick={(it) => setActiveDetail(it)}
+
+                                                                                                      ls={ls}
+
+                                                                                                    />
+
+                                                                                                    <CountBadge 
+
+                                                                                                      items={member.req_list} 
+
+                                                                                                      label={ls('Reqs', 'Sol')} 
+
+                                                                                                      color="orange" 
+
+                                                                                                      onItemClick={(it) => setActiveDetail(it)}
+
+                                                                                                      ls={ls}
+
+                                                                                                    />
+
+                                                                                                  </div>
+
+                                                                          
+
+                                                  
                                                     {/* Action Selectors */}
                           <div className="pt-2 mt-auto border-t border-gray-100 flex gap-2">
                             {idx === 0 ? (
@@ -334,8 +427,8 @@ export default function GuestNormalizationPage() {
                               <div className="flex-1">
                                 <p className="text-xs font-bold text-blue-700">{s.full_name}</p>
                                 <div className="flex gap-1 mt-1">
-                                  <span className="text-[8px] bg-blue-100 px-1 rounded">Res: {s.res_count || 0}</span>
-                                  <span className="text-[8px] bg-purple-100 px-1 rounded">Tra: {s.trans_count || 0}</span>
+                                  <CountBadge items={new Array(s.res_count || 0).fill({})} label="Res" color="blue" onItemClick={() => {}} ls={ls} />
+                                  <CountBadge items={new Array(s.trans_count || 0).fill({})} label="Tra" color="purple" onItemClick={() => {}} ls={ls} />
                                 </div>
                               </div>
                               <button
@@ -389,7 +482,7 @@ export default function GuestNormalizationPage() {
   );
 }
 
-function CountBadge({ items, label, color }: { items: any[], label: string, color: string }) {
+function CountBadge({ items, label, color, onItemClick, ls }: { items: any[], label: string, color: string, onItemClick: (it: any) => void, ls: any }) {
   const count = items?.length || 0;
   const colors: any = {
     blue: 'bg-blue-50 text-blue-700 border-blue-100',
@@ -403,18 +496,29 @@ function CountBadge({ items, label, color }: { items: any[], label: string, colo
       <span>{label}</span>
       <span className="bg-white/50 px-1.5 rounded-full">{count}</span>
 
-      {/* Tooltip */}
+      {/* Persistent Popover */}
       {count > 0 && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-30 w-48 bg-gray-900 text-white p-2 rounded shadow-xl text-[9px] font-normal pointer-events-none">
-          <div className="space-y-1">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-[50] w-56 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden pointer-events-auto">
+          <div className="bg-gray-50 px-3 py-2 border-b border-gray-100 flex items-center justify-between">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label} {ls('Records', 'Registros')}</span>
+            <span className="text-[10px] font-bold text-gray-400">{count}</span>
+          </div>
+          <div className="max-h-48 overflow-y-auto divide-y divide-gray-50">
             {items.map((it: any, i: number) => (
-              <div key={it.id || i} className="border-b border-gray-700 last:border-0 pb-1 last:pb-0">
-                {it.info}
-              </div>
+              <button
+                key={it.id || i}
+                onClick={() => onItemClick(it)}
+                className="w-full text-left px-3 py-2.5 hover:bg-blue-50 transition-colors group/item"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] font-bold text-gray-700 leading-tight group-hover/item:text-blue-700">{it.info}</p>
+                  <LinkIcon className="h-3 w-3 text-gray-300 group-hover/item:text-blue-400 shrink-0" />
+                </div>
+              </button>
             ))}
           </div>
           {/* Arrow */}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-900"></div>
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white"></div>
         </div>
       )}
     </div>

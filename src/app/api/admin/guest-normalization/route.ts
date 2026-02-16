@@ -32,11 +32,65 @@ export async function GET(request: NextRequest) {
       const duplicates = await Promise.all(clusters.map(async (cluster) => {
         const members = await queryMany(`
           SELECT g.*,
-            (SELECT json_agg(json_build_object('id', id, 'info', 'Room ' || COALESCE(room, '?') || ' (' || arrival || ')')) FROM reservations WHERE guest_id = g.id) as res_list,
-            (SELECT json_agg(json_build_object('id', id, 'info', date || ' ' || COALESCE(origin, '?') || ' -> ' || COALESCE(destination, '?'))) FROM transfers WHERE guest_id = g.id) as trans_list,
-            (SELECT json_agg(json_build_object('id', id, 'info', COALESCE(activity_date::text, 'No Date') || ': ' || num_guests || ' pax')) FROM tour_bookings WHERE guest_id = g.id) as tour_list,
-            (SELECT json_agg(json_build_object('id', id, 'info', date || ': ' || request)) FROM special_requests WHERE guest_id = g.id) as req_list,
-            (SELECT json_agg(json_build_object('id', id, 'info', date || ': ' || COALESCE(location, 'Restaurant'))) FROM romantic_dinners WHERE guest_id = g.id) as dinner_list
+            (SELECT json_agg(json_build_object(
+              'id', r.id, 
+              'type', 'reservation',
+              'info', 'Room ' || COALESCE(r.room, '?') || ' (' || r.arrival || ')',
+              'full_detail', json_build_object(
+                'Status', r.status,
+                'Arrival', r.arrival,
+                'Departure', r.departure,
+                'Nights', r.nights,
+                'Persons', r.persons,
+                'Category', r.room_category,
+                'Rate Code', r.rate_code,
+                'Opera ID', r.opera_resv_id
+              )
+            )) FROM reservations r WHERE r.guest_id = g.id) as res_list,
+            
+            (SELECT json_agg(json_build_object(
+              'id', t.id,
+              'type', 'transfer',
+              'info', t.date || ' ' || COALESCE(t.origin, '?') || ' -> ' || COALESCE(t.destination, '?'),
+              'full_detail', json_build_object(
+                'Date', t.date,
+                'Time', t.time,
+                'Origin', t.origin,
+                'Destination', t.destination,
+                'Passengers', t.num_passengers,
+                'Flight', t.flight_number,
+                'Status', t.guest_status,
+                'Notes', t.notes
+              )
+            )) FROM transfers t WHERE t.guest_id = g.id) as trans_list,
+            
+            (SELECT json_agg(json_build_object(
+              'id', tb.id,
+              'type', 'tour',
+              'info', COALESCE(tb.created_at::date::text, 'No Date') || ': ' || tp.name_en || ' (' || tb.num_guests || ' pax)',
+              'full_detail', json_build_object(
+                'Product', tp.name_en,
+                'Mode', tb.booking_mode,
+                'Guests', tb.num_guests,
+                'Total Price', tb.total_price,
+                'Status', tb.guest_status,
+                'Notes', tb.notes,
+                'Requests', tb.special_requests
+              )
+            )) FROM tour_bookings tb LEFT JOIN tour_products tp ON tb.product_id = tp.id WHERE tb.guest_id = g.id) as tour_list,
+            
+            (SELECT json_agg(json_build_object(
+              'id', sr.id,
+              'type', 'request',
+              'info', sr.date || ': ' || sr.request,
+              'full_detail', json_build_object(
+                'Date', sr.date,
+                'Department', sr.department,
+                'Status', sr.status,
+                'Request', sr.request,
+                'Notes', sr.notes
+              )
+            )) FROM special_requests sr WHERE sr.guest_id = g.id) as req_list
           FROM guests g
           WHERE full_name = $1 AND (email = $2::text OR (email IS NULL AND $2::text IS NULL))
           ORDER BY created_at ASC
