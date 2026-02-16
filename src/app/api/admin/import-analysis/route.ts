@@ -126,15 +126,15 @@ export async function POST(request: NextRequest) {
       headers.forEach((h, idx) => { row[h] = (vals[idx] ?? '').trim(); });
 
       const legacyId = row.id_huesped || '';
-      const fullName = row.nombre_completo || '';
+      let fullName = row.nombre_completo || '';
       const email = row.email || '';
       let firstName = row.nombre || '';
       let lastName = row.apellido || '';
       let companion = row.acompaante || '';
       const vip = parseInt(row.vip) || 0;
 
-      // Fix A: Strip companion from name before DB lookup
-      const primaryName = fullName.includes(' y ') ? fullName.split(' y ')[0].trim() : fullName;
+      // Fix A: Strip companion from name before DB lookup (using nombre_completo first)
+      let primaryName = fullName.includes(' y ') ? fullName.split(' y ')[0].trim() : fullName;
 
       // Fix B: Derive firstName/lastName if empty
       if (!firstName && !lastName && primaryName) {
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Fix G: Fallback to apellido for derivation if firstName still empty
-      // This handles rows where the name was entered in the wrong column (apellido only)
+      // Handles rows where the name was entered in the apellido column only
       if (!firstName && lastName) {
         const parts = lastName.trim().split(/\s+/);
         if (parts.length > 1) {
@@ -159,6 +159,14 @@ export async function POST(request: NextRequest) {
           firstName = lastName;
           lastName = '';
         }
+      }
+
+      // Fix I: Reconstruct fullName and primaryName from firstName+lastName
+      // when nombre_completo was empty but nombre+apellido had values.
+      // This fixes both display (UI shows real name) and DB lookup.
+      if (!fullName && firstName) {
+        fullName = `${firstName} ${lastName}`.trim();
+        primaryName = fullName;
       }
 
       if (fullName.includes(' y ')) {
