@@ -2,66 +2,105 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
+import Link from 'next/link';
+import { 
+  ArrowRightEndOnRectangleIcon, 
+  ArrowLeftStartOnRectangleIcon, 
+  UserGroupIcon, 
+  ChatBubbleLeftRightIcon,
+  TruckIcon,
+  MapIcon
+} from '@heroicons/react/24/outline';
 
 interface KPIData {
   arrivals: number;
   departures: number;
-  activeGuests: number;
-  pendingRequests: number;
-  todayTransfers: number;
-  todayTours: number;
-  openMessages: number;
+  inHouse: number;
+  transfers: number;
+  tours: number;
+  requests: number;
+  conversations: number;
 }
 
-export function KPIBar() {
+export function KPIBar({ date }: { date: string }) {
   const locale = useLocale();
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
   const [kpis, setKpis] = useState<KPIData | null>(null);
-  const today = new Date().toISOString().split('T')[0];
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/reservations?filter=arriving_today'),
-      fetch('/api/reservations?filter=departing_today'),
-      fetch('/api/reservations?filter=checked_in'),
-      fetch(`/api/transfers?date_from=${today}&date_to=${today}`),
-      fetch(`/api/tour-bookings?date_from=${today}&date_to=${today}`),
-      fetch('/api/special-requests?filter=today&status=pending&count=true'),
-      fetch('/api/conversations?status=open'),
-    ]).then(async (responses) => {
-      const [arr, dep, active, trans, tours, reqs, convs] = await Promise.all(
-        responses.map(r => r.json())
-      );
-
-      setKpis({
-        arrivals: arr.reservations?.length ?? 0,
-        departures: dep.reservations?.length ?? 0,
-        activeGuests: active.reservations?.length ?? 0,
-        pendingRequests: reqs.count ?? 0,
-        todayTransfers: trans.transfers?.length ?? 0,
-        todayTours: tours.tour_bookings?.length ?? 0,
-        openMessages: convs.conversations?.length ?? 0,
+    setLoading(true);
+    fetch(`/api/admin/dashboard-stats?date=${date}`)
+      .then(r => r.json())
+      .then(data => {
+        setKpis(data);
+        setLoading(false);
       });
-    });
-  }, [today]);
+  }, [date]);
 
   const tiles = [
-    { label: ls('Arrivals Today', 'Llegadas Hoy'), value: kpis?.arrivals ?? 0, color: 'bg-green-50 border-green-200 text-green-800' },
-    { label: ls('Departures Today', 'Salidas Hoy'), value: kpis?.departures ?? 0, color: 'bg-orange-50 border-orange-200 text-orange-800' },
-    { label: ls('Active Guests', 'Huéspedes Activos'), value: kpis?.activeGuests ?? 0, color: 'bg-blue-50 border-blue-200 text-blue-800' },
-    { label: ls('Pending Requests', 'Solicitudes Pendientes'), value: kpis?.pendingRequests ?? 0, color: 'bg-red-50 border-red-200 text-red-800' },
-    { label: ls("Today's Transfers", 'Traslados Hoy'), value: kpis?.todayTransfers ?? 0, color: 'bg-purple-50 border-purple-200 text-purple-800' },
-    { label: ls("Today's Tours", 'Tours Hoy'), value: kpis?.todayTours ?? 0, color: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
+    { 
+      label: ls('Arrivals', 'Llegadas'), 
+      value: kpis?.arrivals ?? 0, 
+      color: 'bg-green-50 border-green-100 text-green-700 hover:bg-green-100',
+      icon: ArrowRightEndOnRectangleIcon,
+      href: `/${locale}/staff/reservations?filter=arrivals&date=${date}`
+    },
+    { 
+      label: ls('Departures', 'Salidas'), 
+      value: kpis?.departures ?? 0, 
+      color: 'bg-orange-50 border-orange-100 text-orange-700 hover:bg-orange-100',
+      icon: ArrowLeftStartOnRectangleIcon,
+      href: `/${locale}/staff/reservations?filter=departures&date=${date}`
+    },
+    { 
+      label: ls('In House', 'En Casa'), 
+      value: kpis?.inHouse ?? 0, 
+      color: 'bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100',
+      icon: UserGroupIcon,
+      href: `/${locale}/staff/reservations?filter=checked_in`
+    },
+    { 
+      label: ls('Transfers', 'Traslados'), 
+      value: kpis?.transfers ?? 0, 
+      color: 'bg-purple-50 border-purple-100 text-purple-700 hover:bg-purple-100',
+      icon: TruckIcon,
+      href: `/${locale}/staff/transfers?date=${date}`
+    },
+    { 
+      label: ls('Tours', 'Tours'), 
+      value: kpis?.tours ?? 0, 
+      color: 'bg-yellow-50 border-yellow-100 text-yellow-700 hover:bg-yellow-100',
+      icon: MapIcon,
+      href: `/${locale}/staff/tour-bookings?date=${date}`
+    },
+    { 
+      label: ls('Messages', 'Mensajes'), 
+      value: kpis?.conversations ?? 0, 
+      color: 'bg-indigo-50 border-indigo-100 text-indigo-700 hover:bg-indigo-100',
+      icon: ChatBubbleLeftRightIcon,
+      href: `/${locale}/staff/messages`
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-      {tiles.map((tile, i) => (
-        <div key={i} className={`border rounded-lg p-3 ${tile.color}`}>
-          <div className="text-2xl font-bold">{tile.value}</div>
-          <div className="text-xs mt-1 font-medium">{tile.label}</div>
-        </div>
-      ))}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {tiles.map((tile, i) => {
+        const Icon = tile.icon;
+        return (
+          <Link 
+            key={i} 
+            href={tile.href}
+            className={`flex flex-col border rounded-xl p-4 transition-all duration-200 shadow-sm ${tile.color} ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <Icon className="h-5 w-5 opacity-80" />
+              <div className="text-2xl font-black">{tile.value}</div>
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-wider opacity-80">{tile.label}</div>
+          </Link>
+        );
+      })}
     </div>
   );
 }

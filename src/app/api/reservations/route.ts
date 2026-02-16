@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     const filter = searchParams.get('filter');
+    const date = searchParams.get('date');
 
     let whereClause = 'WHERE 1=1';
     const params: any[] = [];
@@ -23,17 +24,35 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      whereClause += ` AND (g.full_name ILIKE $${paramIdx} OR r.room ILIKE $${paramIdx})`;
+      whereClause += ` AND (g.full_name ILIKE $${paramIdx} OR r.room ILIKE $${paramIdx} OR r.opera_guest_name ILIKE $${paramIdx})`;
       params.push(`%${search}%`);
       paramIdx++;
     }
 
-    if (filter === 'arriving_today') {
-      whereClause += ` AND r.arrival = CURRENT_DATE`;
-    } else if (filter === 'departing_today') {
-      whereClause += ` AND r.departure = CURRENT_DATE`;
+    if (filter === 'arriving_today' || filter === 'arrivals') {
+      const targetDate = date || 'CURRENT_DATE';
+      if (date) {
+        whereClause += ` AND r.arrival = $${paramIdx++}`;
+        params.push(date);
+      } else {
+        whereClause += ` AND r.arrival = CURRENT_DATE`;
+      }
+    } else if (filter === 'departing_today' || filter === 'departures') {
+      if (date) {
+        whereClause += ` AND r.departure = $${paramIdx++}`;
+        params.push(date);
+      } else {
+        whereClause += ` AND r.departure = CURRENT_DATE`;
+      }
     } else if (filter === 'checked_in') {
-      whereClause += ` AND r.status = 'CHECKED IN'`;
+      // If date provided, find who was in house on THAT date
+      if (date) {
+        whereClause += ` AND r.arrival <= $${paramIdx} AND r.departure > $${paramIdx}`;
+        params.push(date);
+        paramIdx++;
+      } else {
+        whereClause += ` AND r.status = 'CHECKED IN'`;
+      }
     }
 
     const reservations = await queryMany(
