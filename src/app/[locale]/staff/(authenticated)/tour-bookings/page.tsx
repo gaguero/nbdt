@@ -246,11 +246,6 @@ export default function TourBookingsPage() {
                 {ls('Original name (CSV)', 'Nombre original (CSV)')}: {editingBooking.legacy_activity_name}
               </div>
             )}
-            {editingBooking.legacy_vendor_name && (
-              <div className="text-xs text-gray-400 italic">
-                {ls('Legacy vendor', 'Proveedor legado')}: {editingBooking.legacy_vendor_name}
-              </div>
-            )}
 
             <form onSubmit={handleEditSave} className="grid grid-cols-2 gap-4">
               <div>
@@ -321,9 +316,6 @@ export default function TourBookingsPage() {
                       <div className="text-xs text-gray-400 italic">CSV: {b.legacy_activity_name}</div>
                     )}
                     {b.vendor_name && <div className="text-xs text-gray-500 mt-0.5">{b.vendor_name}</div>}
-                    {b.legacy_vendor_name && b.legacy_vendor_name !== b.vendor_name && (
-                      <div className="text-xs text-gray-400 italic">legacy: {b.legacy_vendor_name}</div>
-                    )}
                   </td>
                   <td className="px-4 py-3">{b.guest_name ?? '—'}</td>
                   <td className="px-4 py-3 text-xs">{b.schedule_date ? new Date(b.schedule_date).toLocaleDateString() : '—'}<br />{b.start_time?.slice(0, 5) ?? ''}</td>
