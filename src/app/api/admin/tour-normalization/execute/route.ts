@@ -198,8 +198,8 @@ export async function POST(request: NextRequest) {
       );
       const legacyId = getField(row, 'id', 'row_id', 'id_actividad', '_rownum', 'row_number');
       const dateVal = getField(row, 'date', 'fecha', 'fecha_actividad');
-      const date = parseDate(dateVal);
-      if (!date) { result.skipped++; continue; }
+      const activityDate = parseDate(dateVal);
+      if (!activityDate) { result.skipped++; continue; }
 
       const productId = csvNameToProductId[csvName];
       if (!productId) { result.skipped++; continue; }
@@ -258,11 +258,13 @@ export async function POST(request: NextRequest) {
                SET guest_id=$1, product_id=$2, num_guests=$3, booking_mode=$4,
                    total_price=$5, guest_status=$6, vendor_status=$7,
                    special_requests=$8, billed_date=$9, paid_date=$10,
-                   start_time=$11, legacy_vendor_id=$12, legacy_activity_name=$13
-               WHERE id=$14`,
+                   activity_date=$11, start_time=$12,
+                   legacy_vendor_id=$13, legacy_activity_name=$14
+               WHERE id=$15`,
               [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
                vendorStatus, specialRequests, billedDate, paidDate,
-               startTime, legacyVendorId, legacyActivityName, existing.rows[0].id]
+               activityDate, startTime, legacyVendorId, legacyActivityName,
+               existing.rows[0].id]
             );
             result.updated++;
           } else {
@@ -270,11 +272,13 @@ export async function POST(request: NextRequest) {
               `INSERT INTO tour_bookings
                (guest_id, product_id, num_guests, booking_mode, total_price,
                 guest_status, vendor_status, special_requests, billed_date, paid_date,
-                start_time, legacy_vendor_id, legacy_activity_name, legacy_appsheet_id)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+                activity_date, start_time, legacy_vendor_id, legacy_activity_name,
+                legacy_appsheet_id)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
               [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
                vendorStatus, specialRequests, billedDate, paidDate,
-               startTime, legacyVendorId, legacyActivityName, legacyId || null]
+               activityDate, startTime, legacyVendorId, legacyActivityName,
+               legacyId || null]
             );
             result.created++;
           }
