@@ -75,6 +75,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     // Admin
     { name: ls('Vendors', 'Vendedores'), href: `/${locale}/staff/vendors`, icon: UserGroupIcon, group: ls('Admin', 'Admin') },
     { name: ls('Tour Products', 'Productos de Tours'), href: `/${locale}/staff/tour-products`, icon: MapIcon, group: ls('Admin', 'Admin') },
+    { name: ls('Guest Normalization', 'Normalización de Huéspedes'), href: `/${locale}/staff/guest-normalization`, icon: UserGroupIcon, group: ls('Admin', 'Admin') },
     { name: ls('Settings', 'Configuración'), href: `/${locale}/staff/settings`, icon: Cog6ToothIcon, group: ls('Admin', 'Admin') },
   ];
 
