@@ -5,9 +5,13 @@ import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
 import { MapIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { TourBookingModal } from '../tour-bookings/TourBookingModal';
 
 interface TourBooking {
   id: string;
+  product_id: string;
+  schedule_id?: string;
+  activity_date?: string;
   start_time: string;
   name_en: string;
   name_es: string;
@@ -16,6 +20,9 @@ interface TourBooking {
   guest_name: string;
   num_guests: number;
   guest_status: string;
+  vendor_status: string;
+  total_price?: string;
+  special_requests?: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -32,8 +39,10 @@ export function TodayTours({ date, limit = 10 }: { date: string, limit?: number 
   const { openGuest } = useGuestDrawer();
   const [tours, setTours] = useState<TourBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState<TourBooking | null>(null);
+  const [isModalOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
+  const fetchTours = () => {
     setLoading(true);
     fetch(`/api/tour-bookings?date_from=${date}&date_to=${date}`)
       .then(r => r.json())
@@ -41,7 +50,16 @@ export function TodayTours({ date, limit = 10 }: { date: string, limit?: number 
         setTours((d.tour_bookings ?? []).slice(0, limit));
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchTours();
   }, [date, limit]);
+
+  const handleEdit = (b: TourBooking) => {
+    setSelectedBooking(b);
+    setIsOpen(true);
+  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm flex flex-col h-full">
@@ -79,13 +97,18 @@ export function TodayTours({ date, limit = 10 }: { date: string, limit?: number 
             </thead>
             <tbody className="divide-y divide-gray-50">
               {tours.map(b => (
-                <tr key={b.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={b.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">{b.start_time?.slice(0, 5) || '—'}</td>
                   <td className="px-6 py-4">
-                    <div className="font-bold text-gray-800">{locale === 'es' ? (b.name_es ?? b.name_en) : (b.name_en ?? b.name_es)}</div>
-                    {b.legacy_activity_name && (b.legacy_activity_name !== b.name_en && b.legacy_activity_name !== b.name_es) && (
-                      <div className="text-[10px] text-gray-400 italic leading-tight mt-0.5">CSV: {b.legacy_activity_name}</div>
-                    )}
+                    <button 
+                      onClick={() => handleEdit(b)}
+                      className="text-left hover:bg-gray-100 p-1 -ml-1 rounded transition-colors block w-full"
+                    >
+                      <div className="font-bold text-gray-800">{locale === 'es' ? (b.name_es ?? b.name_en) : (b.name_en ?? b.name_es)}</div>
+                      {b.legacy_activity_name && (b.legacy_activity_name !== b.name_en && b.legacy_activity_name !== b.name_es) && (
+                        <div className="text-[10px] text-gray-400 italic leading-tight mt-0.5">CSV: {b.legacy_activity_name}</div>
+                      )}
+                    </button>
                   </td>
                   <td className="px-6 py-4">
                     <button
@@ -107,6 +130,13 @@ export function TodayTours({ date, limit = 10 }: { date: string, limit?: number 
           </table>
         )}
       </div>
+
+      <TourBookingModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsOpen(false)}
+        booking={selectedBooking}
+        onSuccess={fetchTours}
+      />
     </div>
   );
 }

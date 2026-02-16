@@ -1,142 +1,68 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useLocale } from 'next-intl';
-
-interface Transfer {
-  id: string;
-  date: string;
-  time: string;
-  guest_id: string;
-  vendor_id: string;
-  guest_name: string;
-  vendor_name: string;
-  num_passengers: number;
-  origin: string;
-  destination: string;
-  transfer_type: string;
-  guest_status: string;
-  vendor_status: string;
-  status: string;
-  notes: string;
-  flight_number: string;
-  billed_date: string | null;
-  paid_date: string | null;
-}
-
-const FILTERS = ['today', 'upcoming', 'past', 'all'];
-const GUEST_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled', 'no_show'];
-const VENDOR_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled', 'no_show'];
+import { useSearchParams } from 'next/navigation';
+import { 
+  MagnifyingGlassIcon, 
+  FunnelIcon, 
+  PlusIcon,
+  CalendarIcon,
+  TruckIcon,
+  UserIcon,
+  ArrowsRightLeftIcon
+} from '@heroicons/react/24/outline';
+import { TransferModal } from './TransferModal';
+import { Button } from '@/components/ui/Button';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  confirmed: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
-  no_show: 'bg-gray-100 text-gray-600',
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  confirmed: 'bg-blue-100 text-blue-800 border-blue-200',
+  completed: 'bg-green-100 text-green-800 border-green-200',
+  cancelled: 'bg-red-100 text-red-800 border-red-200',
+  no_show: 'bg-gray-100 text-gray-500 border-gray-200',
 };
 
-export default function TransfersPage() {
+function TransfersContent() {
   const locale = useLocale();
+  const searchParams = useSearchParams();
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
+  const initialDate = searchParams.get('date') || '';
 
-  const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [transfers, setTransfers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('today');
+  const [filter, setFilter] = useState(initialDate ? '' : 'today');
   const [search, setSearch] = useState('');
-  const [guests, setGuests] = useState<any[]>([]);
-  const [vendors, setVendors] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<any>({
-    date: new Date().toISOString().split('T')[0],
-    time: '',
-    guest_id: '',
-    vendor_id: '',
-    num_passengers: 1,
-    origin: '',
-    destination: '',
-    transfer_type: 'arrival',
-    flight_number: '',
-    notes: '',
-  });
-  const [saving, setSaving] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
-  const today = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(initialDate);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTransfer, setEditingTransfer] = useState<any | null>(null);
 
   const fetchTransfers = () => {
     setLoading(true);
-    fetch(`/api/transfers?filter=${filter === 'all' ? '' : filter}`)
+    const params = new URLSearchParams();
+    if (filter) params.set('filter', filter);
+    if (selectedDate) {
+      params.set('date_from', selectedDate);
+      params.set('date_to', selectedDate);
+    }
+    
+    fetch(`/api/transfers?${params}`)
       .then(r => r.json())
       .then(d => setTransfers(d.transfers ?? []))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    fetchTransfers();
-  }, [filter]);
+  useEffect(() => { fetchTransfers(); }, [filter, selectedDate]);
 
-  useEffect(() => {
-    fetch('/api/guests?profileType=all').then(r => r.json()).then(d => setGuests(d.guests ?? []));
-    fetch('/api/vendors').then(r => r.json()).then(d => setVendors(d.vendors ?? []));
-  }, []);
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const method = editingId ? 'PUT' : 'POST';
-      const body = editingId ? { ...form, id: editingId } : form;
-      const res = await fetch('/api/transfers', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (res.ok) {
-        setShowForm(false);
-        setEditingId(null);
-        setForm({ date: new Date().toISOString().split('T')[0], time: '', guest_id: '', vendor_id: '', num_passengers: 1, origin: '', destination: '', transfer_type: 'arrival', flight_number: '', notes: '' });
-        fetchTransfers();
-      }
-    } finally {
-      setSaving(false);
-    }
+  const handleOpenCreate = () => {
+    setEditingTransfer(null);
+    setIsModalOpen(true);
   };
 
-  const handleStatusUpdate = async (id: string, field: 'guest_status' | 'vendor_status', value: string) => {
-    setUpdatingStatus(id + field);
-    await fetch('/api/transfers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, [field]: value }) });
-    setUpdatingStatus(null);
-    fetchTransfers();
-  };
-
-  const handleMarkBilled = async (id: string) => {
-    await fetch('/api/transfers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, billed_date: today }) });
-    fetchTransfers();
-  };
-
-  const handleMarkPaid = async (id: string) => {
-    await fetch('/api/transfers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, paid_date: today }) });
-    fetchTransfers();
-  };
-
-  const handleCancel = async (t: Transfer) => {
-    if (!confirm(ls(`Cancel transfer for ${t.guest_name ?? 'this guest'}?`, `¿Cancelar traslado de ${t.guest_name ?? 'este huésped'}?`))) return;
-    await fetch(`/api/transfers?id=${t.id}`, { method: 'DELETE' });
-    fetchTransfers();
-  };
-
-  const handleEdit = (t: Transfer) => {
-    setForm({
-      date: t.date?.split('T')[0] ?? '',
-      time: t.time ?? '',
-      guest_id: t.guest_id ?? '',
-      vendor_id: t.vendor_id ?? '',
-      num_passengers: t.num_passengers,
-      origin: t.origin ?? '',
-      destination: t.destination ?? '',
-      transfer_type: t.transfer_type ?? 'arrival',
-      flight_number: t.flight_number ?? '',
-      notes: t.notes ?? '',
-    });
-    setEditingId(t.id);
-    setShowForm(true);
+  const handleOpenEdit = (t: any) => {
+    setEditingTransfer(t);
+    setIsModalOpen(true);
   };
 
   const searchLower = search.toLowerCase();
@@ -144,205 +70,163 @@ export default function TransfersPage() {
     ? transfers.filter(t =>
         (t.guest_name?.toLowerCase().includes(searchLower)) ||
         (t.origin?.toLowerCase().includes(searchLower)) ||
-        (t.destination?.toLowerCase().includes(searchLower))
+        (t.destination?.toLowerCase().includes(searchLower)) ||
+        (t.vendor_name?.toLowerCase().includes(searchLower))
       )
     : transfers;
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">{ls('Transfers', 'Traslados')}</h1>
-        <button
-          onClick={() => { setShowForm(true); setEditingId(null); setForm({ date: new Date().toISOString().split('T')[0], time: '', guest_id: '', vendor_id: '', num_passengers: 1, origin: '', destination: '', transfer_type: 'arrival', flight_number: '', notes: '' }); }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-        >
-          + {ls('New Transfer', 'Nuevo Traslado')}
-        </button>
-      </div>
-
-      {/* Filter tabs + Search */}
-      <div className="flex flex-wrap gap-2 items-center">
-        {FILTERS.map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${filter === f ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-          >
-            {f === 'all' ? ls('All', 'Todos') : f === 'today' ? ls('Today', 'Hoy') : f === 'upcoming' ? ls('Upcoming', 'Próximos') : ls('Past', 'Pasados')}
-          </button>
-        ))}
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={ls('Search guest, origin, destination...', 'Buscar huésped, origen, destino...')}
-          className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px] max-w-sm"
-        />
-      </div>
-
-      {/* Add/Edit Form */}
-      {showForm && (
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <h2 className="font-semibold text-gray-800 mb-4">{editingId ? ls('Edit Transfer', 'Editar Traslado') : ls('New Transfer', 'Nuevo Traslado')}</h2>
-          <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Date', 'Fecha')} *</label>
-              <input type="date" required value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Time', 'Hora')}</label>
-              <input type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Type', 'Tipo')}</label>
-              <select value={form.transfer_type} onChange={e => setForm({ ...form, transfer_type: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm">
-                <option value="arrival">{ls('Arrival', 'Llegada')}</option>
-                <option value="departure">{ls('Departure', 'Salida')}</option>
-                <option value="inter_hotel">{ls('Inter-hotel', 'Entre hoteles')}</option>
-                <option value="activity">{ls('Activity', 'Actividad')}</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Guest', 'Huésped')}</label>
-              <select value={form.guest_id} onChange={e => setForm({ ...form, guest_id: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm">
-                <option value="">{ls('Select guest...', 'Seleccionar huésped...')}</option>
-                {guests.map(g => <option key={g.id} value={g.id}>{g.full_name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Vendor', 'Proveedor')}</label>
-              <select value={form.vendor_id} onChange={e => setForm({ ...form, vendor_id: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm">
-                <option value="">{ls('Select vendor...', 'Seleccionar proveedor...')}</option>
-                {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Passengers', 'Pasajeros')}</label>
-              <input type="number" min={1} value={form.num_passengers} onChange={e => setForm({ ...form, num_passengers: parseInt(e.target.value) })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Origin', 'Origen')} *</label>
-              <input type="text" required value={form.origin} onChange={e => setForm({ ...form, origin: e.target.value })} placeholder="e.g. Bocas Airport" className="w-full border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Destination', 'Destino')} *</label>
-              <input type="text" required value={form.destination} onChange={e => setForm({ ...form, destination: e.target.value })} placeholder="e.g. Nayara BDT" className="w-full border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Flight #', 'Vuelo #')}</label>
-              <input type="text" value={form.flight_number} onChange={e => setForm({ ...form, flight_number: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div className="md:col-span-2 lg:col-span-3">
-              <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Notes', 'Notas')}</label>
-              <textarea rows={2} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div className="md:col-span-2 lg:col-span-3 flex gap-3">
-              <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">
-                {saving ? ls('Saving...', 'Guardando...') : ls('Save', 'Guardar')}
-              </button>
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
-                {ls('Cancel', 'Cancelar')}
-              </button>
-            </div>
-          </form>
+    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase">{ls('Transfers', 'Traslados')}</h1>
+          <p className="text-sm text-gray-500 font-medium">{ls('Coordinate guest arrivals and departures.', 'Coordine llegadas y salidas.')}</p>
         </div>
-      )}
+        <Button onClick={handleOpenCreate} className="shadow-sm">
+          <PlusIcon className="h-5 w-5 mr-2" />
+          {ls('New Transfer', 'Nuevo Traslado')}
+        </Button>
+      </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-4 items-center justify-between bg-gray-50/50">
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="relative">
+              <MagnifyingGlassIcon className="h-4 w-4 absolute left-3 top-2.5 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={ls('Search...', 'Buscar...')}
+                className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none w-64 shadow-sm transition-all"
+              />
+            </div>
+            
+            <div className="flex bg-white border border-gray-300 rounded-lg p-1 shadow-sm">
+              {['all', 'upcoming', 'today', 'past'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => { setFilter(f); setSelectedDate(''); }}
+                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${filter === f && !selectedDate ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                >
+                  {ls(f.charAt(0).toUpperCase() + f.slice(1), f === 'all' ? 'Todos' : f === 'today' ? 'Hoy' : f === 'upcoming' ? 'Próximos' : 'Pasados')}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative flex items-center bg-white border border-gray-300 rounded-lg px-3 py-1 shadow-sm">
+              <CalendarIcon className="h-4 w-4 text-gray-400 mr-2" />
+              <input 
+                type="date" 
+                value={selectedDate}
+                onChange={(e) => { setSelectedDate(e.target.value); setFilter(''); }}
+                className="text-xs font-black text-gray-700 bg-transparent border-none focus:ring-0 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
+            <FunnelIcon className="h-4 w-4" />
+            {displayed.length} {ls('Records', 'Registros')}
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
-              <tr className="text-left text-gray-500">
-                <th className="px-4 py-3">{ls('Date/Time', 'Fecha/Hora')}</th>
-                <th className="px-4 py-3">{ls('Guest', 'Huésped')}</th>
-                <th className="px-4 py-3">{ls('Route', 'Ruta')}</th>
-                <th className="px-4 py-3">{ls('Vendor', 'Proveedor')}</th>
-                <th className="px-4 py-3">{ls('Pax', 'Pax')}</th>
-                <th className="px-4 py-3">{ls('Guest Status', 'Estado Hués.')}</th>
-                <th className="px-4 py-3">{ls('Vendor Status', 'Estado Prov.')}</th>
-                <th className="px-4 py-3">{ls('Billed', 'Facturado')}</th>
-                <th className="px-4 py-3">{ls('Paid', 'Pagado')}</th>
-                <th className="px-4 py-3"></th>
+            <thead>
+              <tr className="text-left text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
+                <th className="px-6 py-4">{ls('Route', 'Ruta')}</th>
+                <th className="px-6 py-4">{ls('Guest', 'Huésped')}</th>
+                <th className="px-6 py-4">{ls('Date & Time', 'Fecha y Hora')}</th>
+                <th className="px-6 py-4">{ls('Vendor', 'Proveedor')}</th>
+                <th className="px-6 py-4">{ls('Status', 'Estado')}</th>
+                <th className="px-6 py-4 text-right">{ls('Actions', 'Acciones')}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={10} className="text-center py-8 text-gray-400">{ls('Loading...', 'Cargando...')}</td></tr>
+                <tr><td colSpan={6} className="text-center py-20">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-gray-400 font-medium animate-pulse">{ls('Loading transfers...', 'Cargando...')}</p>
+                </td></tr>
               ) : displayed.length === 0 ? (
-                <tr><td colSpan={10} className="text-center py-8 text-gray-400">{ls('No transfers found', 'Sin traslados')}</td></tr>
-              ) : displayed.map((t) => (
-                <tr key={t.id} className={`border-b hover:bg-gray-50 ${t.status === 'cancelled' || t.guest_status === 'cancelled' ? 'opacity-50' : ''}`}>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="font-medium">{t.date ? new Date(t.date).toLocaleDateString() : '—'}</div>
-                    <div className="text-xs text-gray-500">{t.time ? t.time.slice(0, 5) : '—'}</div>
-                  </td>
-                  <td className="px-4 py-3">{t.guest_name || <span className="text-gray-400">—</span>}</td>
-                  <td className="px-4 py-3">
-                    <div className="text-xs">{t.origin || '—'}</div>
-                    <div className="text-xs text-gray-500">→ {t.destination || '—'}</div>
-                  </td>
-                  <td className="px-4 py-3 text-xs">{t.vendor_name || <span className="text-gray-400">—</span>}</td>
-                  <td className="px-4 py-3 text-center">{t.num_passengers}</td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={t.guest_status}
-                      disabled={updatingStatus === t.id + 'guest_status'}
-                      onChange={e => handleStatusUpdate(t.id, 'guest_status', e.target.value)}
-                      className={`text-xs rounded-full px-2 py-1 border-0 font-medium cursor-pointer ${STATUS_COLORS[t.guest_status] ?? 'bg-gray-100'}`}
-                    >
-                      {GUEST_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={t.vendor_status}
-                      disabled={updatingStatus === t.id + 'vendor_status'}
-                      onChange={e => handleStatusUpdate(t.id, 'vendor_status', e.target.value)}
-                      className={`text-xs rounded-full px-2 py-1 border-0 font-medium cursor-pointer ${STATUS_COLORS[t.vendor_status] ?? 'bg-gray-100'}`}
-                    >
-                      {VENDOR_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    {t.billed_date ? (
-                      <span className="text-green-700">{new Date(t.billed_date).toLocaleDateString()}</span>
-                    ) : (
-                      <button onClick={() => handleMarkBilled(t.id)} className="text-blue-600 hover:underline text-xs">
-                        {ls('Mark billed', 'Marcar facturado')}
-                      </button>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    {t.paid_date ? (
-                      <span className="text-green-700">{new Date(t.paid_date).toLocaleDateString()}</span>
-                    ) : (
-                      <button onClick={() => handleMarkPaid(t.id)} className="text-blue-600 hover:underline text-xs">
-                        {ls('Mark paid', 'Marcar pagado')}
-                      </button>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2 items-center">
-                      <button onClick={() => handleEdit(t)} className="text-xs text-blue-600 hover:underline">
-                        {ls('Edit', 'Editar')}
-                      </button>
-                      {t.status !== 'cancelled' && t.guest_status !== 'cancelled' && (
-                        <button onClick={() => handleCancel(t)} className="text-xs text-red-500 hover:underline">
-                          {ls('Cancel', 'Cancelar')}
-                        </button>
-                      )}
+                <tr><td colSpan={6} className="text-center py-20 text-gray-400 italic">
+                  <TruckIcon className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                  {ls('No transfers found', 'No se encontraron traslados')}
+                </td></tr>
+              ) : displayed.map(t => (
+                <tr key={t.id} className={`hover:bg-gray-50/80 transition-colors group ${t.guest_status === 'cancelled' ? 'opacity-50' : ''}`}>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                        <ArrowsRightLeftIcon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="font-black text-gray-900 leading-tight flex items-center gap-1.5">
+                          {t.origin} <span className="text-gray-300">→</span> {t.destination}
+                        </div>
+                        <div className="text-[10px] font-bold text-gray-400 uppercase mt-0.5 tracking-tighter">
+                          {t.transfer_type} • {t.num_passengers} Pax {t.flight_number && `• Flt ${t.flight_number}`}
+                        </div>
+                      </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                        <UserIcon className="h-4 w-4" />
+                      </div>
+                      <span className="font-bold text-gray-700">{t.guest_name ?? '—'}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-gray-900">{t.date ? new Date(t.date).toLocaleDateString() : '—'}</div>
+                    <div className="text-xs font-medium text-gray-400 uppercase">{t.time?.slice(0, 5) ?? '--:--'}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600">
+                      {t.vendor_name || '—'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1">
+                      <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-tight border ${STATUS_COLORS[t.guest_status] ?? 'bg-gray-100'}`}>
+                        Guest: {t.guest_status}
+                      </span>
+                      <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-tight border ${STATUS_COLORS[t.vendor_status] ?? 'bg-gray-100'}`}>
+                        Vendor: {t.vendor_status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button 
+                      onClick={() => handleOpenEdit(t)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-bold text-xs uppercase"
+                    >
+                      {ls('Edit', 'Editar')}
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <div className="px-4 py-2 border-t bg-gray-50 text-xs text-gray-500">
-          {displayed.length} {ls('transfers', 'traslados')}
-        </div>
       </div>
+
+      <TransferModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        transfer={editingTransfer}
+        onSuccess={fetchTransfers}
+      />
     </div>
+  );
+}
+
+export default function TransfersPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center animate-pulse text-gray-400">Loading UI...</div>}>
+      <TransfersContent />
+    </Suspense>
   );
 }

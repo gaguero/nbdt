@@ -22,7 +22,7 @@ interface KPIData {
   conversations: number;
 }
 
-export function KPIBar({ date }: { date: string }) {
+export function KPIBar({ date, onStatsLoad }: { date: string, onStatsLoad?: (stats: KPIData) => void }) {
   const locale = useLocale();
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
   const [kpis, setKpis] = useState<KPIData | null>(null);
@@ -35,8 +35,9 @@ export function KPIBar({ date }: { date: string }) {
       .then(data => {
         setKpis(data);
         setLoading(false);
+        if (onStatsLoad) onStatsLoad(data);
       });
-  }, [date]);
+  }, [date, onStatsLoad]);
 
   const tiles = [
     { 

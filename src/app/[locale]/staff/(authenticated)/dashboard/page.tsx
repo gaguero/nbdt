@@ -21,6 +21,7 @@ import {
 export default function DashboardPage() {
   const locale = useLocale();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [kpis, setKpis] = useState<any>(null);
 
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
 
@@ -39,11 +40,7 @@ export default function DashboardPage() {
 
   const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
-  const quickActions = [
-    { label: ls('New Reservation', 'Nueva Reserva'), href: `/${locale}/staff/reservations`, icon: PlusIcon },
-    { label: ls('Add Guest', 'Nuevo Huésped'), href: `/${locale}/staff/guests`, icon: UserPlusIcon },
-    { label: ls('New Request', 'Nueva Solicitud'), href: `/${locale}/staff/special-requests`, icon: DocumentPlusIcon },
-  ];
+  const hasRequests = kpis && kpis.requests > 0;
 
   return (
     <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
@@ -60,20 +57,6 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Quick Actions */}
-          <div className="hidden md:flex items-center gap-2 mr-4 border-r border-gray-200 pr-4">
-            {quickActions.map((action, i) => (
-              <Link 
-                key={i} 
-                href={action.href}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-              >
-                <action.icon className="h-3.5 w-3.5 text-blue-600" />
-                {action.label}
-              </Link>
-            ))}
-          </div>
-
           {/* Date Selector */}
           <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
             <div className="flex items-center border-r border-gray-100 pr-1 mr-1">
@@ -118,22 +101,22 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Summary Tiles */}
-      <KPIBar date={selectedDate} />
+      <KPIBar date={selectedDate} onStatsLoad={setKpis} />
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* Main Column */}
-        <div className="xl:col-span-8 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 ${hasRequests ? 'xl:grid-cols-12' : 'xl:grid-cols-2'} gap-6`}>
+        {/* Main Column / Left Half */}
+        <div className={`${hasRequests ? 'xl:col-span-8' : ''} space-y-6`}>
+          <div className={`grid grid-cols-1 ${hasRequests ? 'lg:grid-cols-2' : ''} gap-6`}>
             <TodayTransfers date={selectedDate} limit={10} />
             <TodayTours date={selectedDate} limit={10} />
           </div>
           <InHouseGuests date={selectedDate} limit={20} />
         </div>
 
-        {/* Sidebar Column */}
-        <div className="xl:col-span-4 space-y-6">
+        {/* Sidebar Column / Right Half */}
+        <div className={`${hasRequests ? 'xl:col-span-4' : ''} space-y-6`}>
           <ConversationsWidget limit={8} />
-          <PendingRequestsWidget limit={8} />
+          {hasRequests && <PendingRequestsWidget limit={8} />}
         </div>
       </div>
     </div>

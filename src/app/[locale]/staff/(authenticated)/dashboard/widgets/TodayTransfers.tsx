@@ -5,16 +5,23 @@ import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
 import { TruckIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { TransferModal } from '../transfers/TransferModal';
 
 interface Transfer {
   id: string;
+  date: string;
   time: string;
   guest_id: string;
   guest_name: string;
   origin: string;
   destination: string;
+  vendor_id: string;
   vendor_name: string;
   guest_status: string;
+  transfer_type: string;
+  num_passengers: number;
+  flight_number?: string;
+  notes?: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -31,8 +38,10 @@ export function TodayTransfers({ date, limit = 10 }: { date: string, limit?: num
   const { openGuest } = useGuestDrawer();
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
+  const [isModalOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
+  const fetchTransfers = () => {
     setLoading(true);
     fetch(`/api/transfers?date_from=${date}&date_to=${date}`)
       .then(r => r.json())
@@ -40,7 +49,16 @@ export function TodayTransfers({ date, limit = 10 }: { date: string, limit?: num
         setTransfers((d.transfers ?? []).slice(0, limit));
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchTransfers();
   }, [date, limit]);
+
+  const handleEdit = (t: Transfer) => {
+    setSelectedTransfer(t);
+    setIsOpen(true);
+  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm flex flex-col h-full">
@@ -77,7 +95,7 @@ export function TodayTransfers({ date, limit = 10 }: { date: string, limit?: num
             </thead>
             <tbody className="divide-y divide-gray-50">
               {transfers.map(t => (
-                <tr key={t.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={t.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">{t.time?.slice(0, 5) || '—'}</td>
                   <td className="px-6 py-4">
                     <button
@@ -89,8 +107,13 @@ export function TodayTransfers({ date, limit = 10 }: { date: string, limit?: num
                     <div className="text-[10px] text-gray-400 font-medium">{t.vendor_name}</div>
                   </td>
                   <td className="px-6 py-4 text-xs">
-                    <div className="font-bold text-gray-700">{t.origin || '—'}</div>
-                    <div className="text-gray-400">→ {t.destination || '—'}</div>
+                    <button 
+                      onClick={() => handleEdit(t)}
+                      className="text-left hover:bg-gray-100 p-1 -ml-1 rounded transition-colors block w-full"
+                    >
+                      <div className="font-bold text-gray-700">{t.origin || '—'}</div>
+                      <div className="text-gray-400">→ {t.destination || '—'}</div>
+                    </button>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tight ${STATUS_COLORS[t.guest_status] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -103,6 +126,13 @@ export function TodayTransfers({ date, limit = 10 }: { date: string, limit?: num
           </table>
         )}
       </div>
+
+      <TransferModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsOpen(false)}
+        transfer={selectedTransfer}
+        onSuccess={fetchTransfers}
+      />
     </div>
   );
 }
