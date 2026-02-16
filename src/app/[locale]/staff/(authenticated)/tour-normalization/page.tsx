@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 
-interface UniqueNameEntry { name: string; count: number; }
+interface UniqueNameEntry { name: string; count: number; newCount: number; existingCount: number; }
 interface TourProduct { id: string; name_en: string; name_es: string; vendor_name: string; }
 interface Vendor { id: string; name: string; type: string; }
 
@@ -10,6 +10,8 @@ interface ParsedGroup {
   groupId: number;
   csvNames: string[];
   rowCount: number;
+  newCount: number;
+  existingCount: number;
   suggestedAction: 'create' | 'map' | 'skip';
   suggestedProductId?: string;
   suggestedNameEn?: string;
@@ -46,6 +48,8 @@ export default function TourNormalizationPage() {
   const [products, setProducts] = useState<TourProduct[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [totalRows, setTotalRows] = useState(0);
+  const [totalNew, setTotalNew] = useState(0);
+  const [totalExisting, setTotalExisting] = useState(0);
 
   // Paste step
   const [pastedResponse, setPastedResponse] = useState('');
@@ -87,6 +91,8 @@ export default function TourNormalizationPage() {
       setProducts(data.products);
       setVendors(data.vendors);
       setTotalRows(data.totalRows);
+      setTotalNew(data.totalNew ?? data.totalRows);
+      setTotalExisting(data.totalExisting ?? 0);
       setStep('paste');
     } catch (err: any) {
       setParseError(err.message);
@@ -124,14 +130,21 @@ export default function TourNormalizationPage() {
     const allCsvNames = new Set(uniqueNames.map(n => n.name));
     const coveredNames = new Set<string>();
 
+    // Build a per-name lookup for new/existing counts from the parse result
+    const nameDetails = new Map(uniqueNames.map(n => [n.name, n]));
+
     const parsed: ParsedGroup[] = rawGroups
       .map((g, i) => {
         const validNames = (g.csvNames ?? []).filter(n => allCsvNames.has(n));
         validNames.forEach(n => coveredNames.add(n));
+        const rowCount    = validNames.reduce((s, n) => s + (nameCountMap[n] ?? 0), 0);
+        const existingCount = validNames.reduce((s, n) => s + (nameDetails.get(n)?.existingCount ?? 0), 0);
         return {
           groupId: g.groupId ?? i + 1,
           csvNames: validNames,
-          rowCount: validNames.reduce((s, n) => s + (nameCountMap[n] ?? 0), 0),
+          rowCount,
+          newCount: rowCount - existingCount,
+          existingCount,
           suggestedAction: (['create', 'map', 'skip'].includes(g.action)
             ? g.action : 'skip') as 'create' | 'map' | 'skip',
           suggestedProductId: g.productId,
@@ -144,10 +157,14 @@ export default function TourNormalizationPage() {
     // Any CSV names the AI didn't cover → add as a skip group
     const uncovered = [...allCsvNames].filter(n => !coveredNames.has(n));
     if (uncovered.length > 0) {
+      const rowCount = uncovered.reduce((s, n) => s + (nameCountMap[n] ?? 0), 0);
+      const existingCount = uncovered.reduce((s, n) => s + (nameDetails.get(n)?.existingCount ?? 0), 0);
       parsed.push({
         groupId: parsed.length + 1,
         csvNames: uncovered,
-        rowCount: uncovered.reduce((s, n) => s + (nameCountMap[n] ?? 0), 0),
+        rowCount,
+        newCount: rowCount - existingCount,
+        existingCount,
         suggestedAction: 'skip',
       });
     }
@@ -215,6 +232,8 @@ export default function TourNormalizationPage() {
     setNameCountMap({});
     setProducts([]);
     setVendors([]);
+    setTotalNew(0);
+    setTotalExisting(0);
     setPastedResponse('');
     setGroups([]);
     setDecisions({});
@@ -230,6 +249,10 @@ export default function TourNormalizationPage() {
   const skipCount    = groups.filter(g => decisions[g.groupId]?.action === 'skip').length;
   const importableRows = groups.reduce((s, g) =>
     decisions[g.groupId]?.action !== 'skip' ? s + g.rowCount : s, 0);
+  const importableNew = groups.reduce((s, g) =>
+    decisions[g.groupId]?.action !== 'skip' ? s + g.newCount : s, 0);
+  const importableExisting = groups.reduce((s, g) =>
+    decisions[g.groupId]?.action !== 'skip' ? s + g.existingCount : s, 0);
 
   const stepLabels = [
     { key: 'upload',  label: 'Upload CSV' },
@@ -306,8 +329,12 @@ export default function TourNormalizationPage() {
       {/* ── Step 2: Copy prompt + paste AI response ── */}
       {step === 'paste' && (
         <div className="space-y-5">
-          <div className="bg-blue-50 rounded-xl border border-blue-200 px-4 py-3 text-sm text-blue-700">
-            Found <strong>{uniqueNames.length}</strong> unique tour names across <strong>{totalRows}</strong> booking rows.
+          <div className="bg-blue-50 rounded-xl border border-blue-200 px-4 py-3 text-sm text-blue-700 flex flex-wrap gap-4">
+            <span>Found <strong>{uniqueNames.length}</strong> unique tour names across <strong>{totalRows}</strong> booking rows.</span>
+            <span className="text-green-700"><strong>{totalNew}</strong> new rows to import</span>
+            {totalExisting > 0 && (
+              <span className="text-orange-600"><strong>{totalExisting}</strong> already in the database (will be updated)</span>
+            )}
           </div>
 
           {/* Prompt box */}
@@ -415,7 +442,15 @@ export default function TourNormalizationPage() {
                           </span>
                         ))}
                       </div>
-                      <p className="text-xs text-gray-400">{g.rowCount} booking{g.rowCount !== 1 ? 's' : ''}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <span>{g.rowCount} booking{g.rowCount !== 1 ? 's' : ''}</span>
+                        {g.existingCount > 0 && (
+                          <>
+                            <span className="text-green-600 font-medium">{g.newCount} new</span>
+                            <span className="text-orange-500">{g.existingCount} already imported</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     {/* Action buttons */}
                     <div className="flex gap-1.5 flex-shrink-0">
@@ -510,9 +545,13 @@ export default function TourNormalizationPage() {
 
           {/* Footer */}
           <div className="flex justify-between items-center pt-2">
-            <p className="text-sm text-gray-500">
-              {importableRows} rows will be imported &middot; {createCount} new products &middot; {skipCount} groups skipped
-            </p>
+            <div className="text-sm text-gray-500 space-y-0.5">
+              <p>
+                <span className="text-green-600 font-medium">{importableNew} new</span>
+                {importableExisting > 0 && <> + <span className="text-orange-500 font-medium">{importableExisting} updates</span></>}
+                {' '}rows &middot; {createCount} new products &middot; {skipCount} groups skipped
+              </p>
+            </div>
             <div className="flex gap-3">
               <button onClick={() => setStep('paste')} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
                 ← Back
@@ -522,7 +561,10 @@ export default function TourNormalizationPage() {
                 disabled={importableRows === 0}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
               >
-                Import {importableRows} Rows →
+                {importableExisting > 0
+                  ? `Import ${importableNew} new + ${importableExisting} updates →`
+                  : `Import ${importableRows} Rows →`
+                }
               </button>
             </div>
           </div>

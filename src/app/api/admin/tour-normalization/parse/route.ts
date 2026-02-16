@@ -60,18 +60,43 @@ export async function POST(request: NextRequest) {
     const rows = parseCSV(csvText);
     if (rows.length === 0) return NextResponse.json({ error: 'CSV is empty' }, { status: 400 });
 
-    // Extract unique tour names with booking counts
+    // Extract unique tour names with booking counts, and track legacy IDs per name
     const nameCount: Record<string, number> = {};
+    const nameLegacyIds: Record<string, string[]> = {};
     for (const row of rows) {
       const name = getField(row,
         'nombre_de_la_actividad', 'product', 'product_name',
         'actividad', 'tour', 'activity', 'nombre_actividad'
       );
-      if (name) nameCount[name] = (nameCount[name] || 0) + 1;
+      const legacyId = getField(row, 'id', 'row_id', 'id_actividad', '_rownum', 'row_number');
+      if (name) {
+        nameCount[name] = (nameCount[name] || 0) + 1;
+        if (legacyId) {
+          if (!nameLegacyIds[name]) nameLegacyIds[name] = [];
+          nameLegacyIds[name].push(legacyId);
+        }
+      }
     }
 
+    // Check which legacy IDs already exist in tour_bookings
+    const allLegacyIds = Object.values(nameLegacyIds).flat();
+    let existingIdSet = new Set<string>();
+    if (allLegacyIds.length > 0) {
+      const existingRes = await query(
+        `SELECT legacy_appsheet_id FROM tour_bookings
+         WHERE legacy_appsheet_id = ANY($1)`,
+        [allLegacyIds]
+      );
+      existingIdSet = new Set(existingRes.rows.map((r: { legacy_appsheet_id: string }) => r.legacy_appsheet_id));
+    }
+
+    // Build per-name new vs existing counts
     const uniqueNames = Object.entries(nameCount)
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]) => {
+        const ids = nameLegacyIds[name] ?? [];
+        const existingCount = ids.filter(id => existingIdSet.has(id)).length;
+        return { name, count, newCount: count - existingCount, existingCount };
+      })
       .sort((a, b) => b.count - a.count);
 
     // Fetch existing tour products
@@ -88,9 +113,14 @@ export async function POST(request: NextRequest) {
       SELECT id, name, type FROM vendors WHERE is_active = true ORDER BY name
     `);
 
-    // Build AI prompt
+    // Build AI prompt — show new vs existing counts so AI knows which ones really need mapping
     const namesList = uniqueNames
-      .map(n => `"${n.name}" (${n.count} booking${n.count !== 1 ? 's' : ''})`)
+      .map(n => {
+        const detail = n.existingCount > 0
+          ? `${n.newCount} new + ${n.existingCount} already imported`
+          : `${n.count} booking${n.count !== 1 ? 's' : ''}`;
+        return `"${n.name}" (${detail})`;
+      })
       .join('\n');
 
     const productsList = productsRes.rows.length > 0
@@ -143,6 +173,9 @@ OUTPUT FORMAT (return exactly this structure):
   }
 ]`;
 
+    const totalExisting = uniqueNames.reduce((s, n) => s + n.existingCount, 0);
+    const totalNew = rows.length - totalExisting;
+
     return NextResponse.json({
       uniqueNames,
       nameCountMap: nameCount,
@@ -150,6 +183,8 @@ OUTPUT FORMAT (return exactly this structure):
       vendors: vendorsRes.rows,
       prompt,
       totalRows: rows.length,
+      totalNew,
+      totalExisting,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
