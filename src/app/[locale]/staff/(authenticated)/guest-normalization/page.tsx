@@ -44,8 +44,6 @@ export default function GuestNormalizationPage() {
   const [processing, setProcessing] = useState(false);
   const [currentProcessingId, setCurrentProcessingId] = useState<string | null>(null);
 
-  const ls = (en: string, es: string) => locale === 'es' ? es : en;
-
   const toggleAction = (guestId: string, action: 'merge' | 'delete') => {
     setSelectedActions(prev => ({
       ...prev,
