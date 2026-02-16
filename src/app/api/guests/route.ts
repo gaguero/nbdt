@@ -59,16 +59,62 @@ export async function POST(request: NextRequest) {
     verifyToken(token);
 
     const body = await request.json();
-    const { first_name, last_name, email, phone, notes } = body;
+    const { first_name, last_name, email, phone, nationality, notes } = body;
     const full_name = `${first_name || ''} ${last_name || ''}`.trim();
 
     const guest = await queryOne(
-      `INSERT INTO guests (first_name, last_name, full_name, email, phone, notes)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [first_name, last_name, full_name, email, phone, notes]
+      `INSERT INTO guests (first_name, last_name, full_name, email, phone, nationality, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [first_name, last_name, full_name, email, phone, nationality || null, notes]
     );
 
     return NextResponse.json({ guest }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const body = await request.json();
+    const { first_name, last_name, email, phone, nationality, notes } = body;
+    const full_name = `${first_name || ''} ${last_name || ''}`.trim();
+
+    const guest = await queryOne(
+      `UPDATE guests SET first_name = $1, last_name = $2, full_name = $3, email = $4, phone = $5, nationality = $6, notes = $7
+       WHERE id = $8 RETURNING *`,
+      [first_name, last_name, full_name, email, phone, nationality || null, notes, id]
+    );
+    if (!guest) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    return NextResponse.json({ guest });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const guest = await queryOne(`DELETE FROM guests WHERE id = $1 RETURNING id`, [id]);
+    if (!guest) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    return NextResponse.json({ ok: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

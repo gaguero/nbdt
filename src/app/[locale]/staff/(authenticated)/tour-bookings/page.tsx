@@ -14,10 +14,12 @@ const STATUS_COLORS: Record<string, string> = {
 export default function TourBookingsPage() {
   const locale = useLocale();
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
+  const today = new Date().toISOString().split('T')[0];
 
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('upcoming');
+  const [search, setSearch] = useState('');
   const [guests, setGuests] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -33,11 +35,15 @@ export default function TourBookingsPage() {
     notes: '',
   });
 
+  const [editingBooking, setEditingBooking] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
+  const [editSaving, setEditSaving] = useState(false);
+
   const fetchBookings = () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (filter === 'today') { const today = new Date().toISOString().split('T')[0]; params.set('date_from', today); params.set('date_to', today); }
-    else if (filter === 'upcoming') { params.set('date_from', new Date().toISOString().split('T')[0]); }
+    if (filter === 'today') { params.set('date_from', today); params.set('date_to', today); }
+    else if (filter === 'upcoming') { params.set('date_from', today); }
     fetch(`/api/tour-bookings?${params}`)
       .then(r => r.json())
       .then(d => setBookings(d.tour_bookings ?? []))
@@ -82,12 +88,69 @@ export default function TourBookingsPage() {
     fetchBookings();
   };
 
+  const handleMarkBilled = async (id: string) => {
+    await fetch('/api/tour-bookings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, billed_date: today }) });
+    fetchBookings();
+  };
+
+  const handleMarkPaid = async (id: string) => {
+    await fetch('/api/tour-bookings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, paid_date: today }) });
+    fetchBookings();
+  };
+
+  const handleCancel = async (b: any) => {
+    const name = b.name_en ?? b.name_es ?? 'this booking';
+    if (!confirm(ls(`Cancel booking for ${name}?`, `¿Cancelar reserva de ${name}?`))) return;
+    await fetch(`/api/tour-bookings?id=${b.id}`, { method: 'DELETE' });
+    fetchBookings();
+  };
+
+  const handleOpenEdit = (b: any) => {
+    setEditingBooking(b);
+    setEditForm({
+      guest_status: b.guest_status ?? 'pending',
+      vendor_status: b.vendor_status ?? 'pending',
+      num_guests: b.num_guests ?? 1,
+      total_price: b.total_price ?? '',
+      special_requests: b.special_requests ?? '',
+    });
+  };
+
+  const handleEditSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBooking) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch('/api/tour-bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingBooking.id, ...editForm }),
+      });
+      if (res.ok) {
+        setEditingBooking(null);
+        fetchBookings();
+      }
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const formatSchedule = (s: any) => {
     const d = new Date(s.date).toLocaleDateString();
     const t = s.start_time?.slice(0, 5) ?? '';
     const cap = `(${s.capacity_remaining}/${s.capacity_total} ${ls('spots', 'lugares')})`;
     return `${d} at ${t} ${cap}`;
   };
+
+  const searchLower = search.toLowerCase();
+  const displayed = search
+    ? bookings.filter(b =>
+        (b.guest_name?.toLowerCase().includes(searchLower)) ||
+        (b.name_en?.toLowerCase().includes(searchLower)) ||
+        (b.name_es?.toLowerCase().includes(searchLower)) ||
+        (b.legacy_activity_name?.toLowerCase().includes(searchLower))
+      )
+    : bookings;
 
   return (
     <div className="p-6 space-y-4">
@@ -98,17 +161,24 @@ export default function TourBookingsPage() {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2">
+      {/* Filters + Search */}
+      <div className="flex flex-wrap gap-2 items-center">
         {['today', 'upcoming', 'all'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${filter === f ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
             {f === 'today' ? ls('Today', 'Hoy') : f === 'upcoming' ? ls('Upcoming', 'Próximos') : ls('All', 'Todos')}
           </button>
         ))}
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={ls('Search guest or tour...', 'Buscar huésped o tour...')}
+          className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px] max-w-sm"
+        />
       </div>
 
-      {/* Form */}
+      {/* Create Form */}
       {showForm && (
         <div className="bg-white rounded-lg border border-gray-200 p-5">
           <h2 className="font-semibold text-gray-800 mb-4">{ls('New Tour Booking', 'Nueva Reserva de Tour')}</h2>
@@ -163,6 +233,63 @@ export default function TourBookingsPage() {
         </div>
       )}
 
+      {/* Edit Modal */}
+      {editingBooking && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
+            <h2 className="font-semibold text-gray-800 text-lg">
+              {ls('Edit Booking', 'Editar Reserva')}: {locale === 'es' ? (editingBooking.name_es ?? editingBooking.name_en) : (editingBooking.name_en ?? editingBooking.name_es)}
+            </h2>
+
+            {editingBooking.legacy_activity_name && (
+              <div className="text-xs text-gray-400 italic">
+                {ls('Original name (CSV)', 'Nombre original (CSV)')}: {editingBooking.legacy_activity_name}
+              </div>
+            )}
+            {editingBooking.legacy_vendor_name && (
+              <div className="text-xs text-gray-400 italic">
+                {ls('Legacy vendor', 'Proveedor legado')}: {editingBooking.legacy_vendor_name}
+              </div>
+            )}
+
+            <form onSubmit={handleEditSave} className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Guest Status', 'Estado Huésped')}</label>
+                <select value={editForm.guest_status} onChange={e => setEditForm({ ...editForm, guest_status: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm">
+                  {['pending','confirmed','completed','cancelled','no_show'].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Vendor Status', 'Estado Proveedor')}</label>
+                <select value={editForm.vendor_status} onChange={e => setEditForm({ ...editForm, vendor_status: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm">
+                  {['pending','confirmed','completed','cancelled','no_show'].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('# Guests', '# Huéspedes')}</label>
+                <input type="number" min={1} value={editForm.num_guests} onChange={e => setEditForm({ ...editForm, num_guests: parseInt(e.target.value) })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Total Price', 'Precio Total')}</label>
+                <input type="number" step="0.01" value={editForm.total_price} onChange={e => setEditForm({ ...editForm, total_price: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Special Requests', 'Solicitudes Especiales')}</label>
+                <textarea rows={2} value={editForm.special_requests} onChange={e => setEditForm({ ...editForm, special_requests: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="col-span-2 flex gap-3">
+                <button type="submit" disabled={editSaving} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">
+                  {editSaving ? ls('Saving...', 'Guardando...') : ls('Save', 'Guardar')}
+                </button>
+                <button type="button" onClick={() => setEditingBooking(null)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+                  {ls('Cancel', 'Cancelar')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
@@ -176,16 +303,28 @@ export default function TourBookingsPage() {
                 <th className="px-4 py-3">{ls('Guests', 'Hués.')}</th>
                 <th className="px-4 py-3">{ls('Guest Status', 'Estado Hués.')}</th>
                 <th className="px-4 py-3">{ls('Vendor Status', 'Estado Prov.')}</th>
+                <th className="px-4 py-3">{ls('Billed', 'Facturado')}</th>
+                <th className="px-4 py-3">{ls('Paid', 'Pagado')}</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="text-center py-8 text-gray-400">{ls('Loading...', 'Cargando...')}</td></tr>
-              ) : bookings.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-8 text-gray-400">{ls('No bookings found', 'Sin reservas')}</td></tr>
-              ) : bookings.map(b => (
-                <tr key={b.id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{locale === 'es' ? (b.name_es ?? b.name_en) : (b.name_en ?? b.name_es)}</td>
+                <tr><td colSpan={10} className="text-center py-8 text-gray-400">{ls('Loading...', 'Cargando...')}</td></tr>
+              ) : displayed.length === 0 ? (
+                <tr><td colSpan={10} className="text-center py-8 text-gray-400">{ls('No bookings found', 'Sin reservas')}</td></tr>
+              ) : displayed.map(b => (
+                <tr key={b.id} className={`border-b hover:bg-gray-50 ${b.guest_status === 'cancelled' ? 'opacity-50' : ''}`}>
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{locale === 'es' ? (b.name_es ?? b.name_en) : (b.name_en ?? b.name_es)}</div>
+                    {b.legacy_activity_name && (b.legacy_activity_name !== b.name_en && b.legacy_activity_name !== b.name_es) && (
+                      <div className="text-xs text-gray-400 italic">CSV: {b.legacy_activity_name}</div>
+                    )}
+                    {b.vendor_name && <div className="text-xs text-gray-500 mt-0.5">{b.vendor_name}</div>}
+                    {b.legacy_vendor_name && b.legacy_vendor_name !== b.vendor_name && (
+                      <div className="text-xs text-gray-400 italic">legacy: {b.legacy_vendor_name}</div>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{b.guest_name ?? '—'}</td>
                   <td className="px-4 py-3 text-xs">{b.schedule_date ? new Date(b.schedule_date).toLocaleDateString() : '—'}<br />{b.start_time?.slice(0, 5) ?? ''}</td>
                   <td className="px-4 py-3">
@@ -206,10 +345,43 @@ export default function TourBookingsPage() {
                       {['pending','confirmed','completed','cancelled','no_show'].map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </td>
+                  <td className="px-4 py-3 text-xs">
+                    {b.billed_date ? (
+                      <span className="text-green-700">{new Date(b.billed_date).toLocaleDateString()}</span>
+                    ) : (
+                      <button onClick={() => handleMarkBilled(b.id)} className="text-blue-600 hover:underline">
+                        {ls('Mark billed', 'Facturar')}
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {b.paid_date ? (
+                      <span className="text-green-700">{new Date(b.paid_date).toLocaleDateString()}</span>
+                    ) : (
+                      <button onClick={() => handleMarkPaid(b.id)} className="text-blue-600 hover:underline">
+                        {ls('Mark paid', 'Marcar pagado')}
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-2 items-center">
+                      <button onClick={() => handleOpenEdit(b)} className="text-xs text-blue-600 hover:underline">
+                        {ls('Edit', 'Editar')}
+                      </button>
+                      {b.guest_status !== 'cancelled' && (
+                        <button onClick={() => handleCancel(b)} className="text-xs text-red-500 hover:underline">
+                          {ls('Cancel', 'Cancelar')}
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="px-4 py-2 border-t bg-gray-50 text-xs text-gray-500">
+          {displayed.length} {ls('bookings', 'reservas')}
         </div>
       </div>
     </div>

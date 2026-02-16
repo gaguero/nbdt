@@ -10,6 +10,7 @@ interface Guest {
   full_name: string;
   email: string;
   phone: string;
+  nationality: string;
   notes: string;
 }
 
@@ -31,6 +32,14 @@ export default function GuestsPage() {
   const [selected, setSelected] = useState<GuestDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
+  const [showCreate, setShowCreate] = useState(false);
+  const [createForm, setCreateForm] = useState({ first_name: '', last_name: '', email: '', phone: '', nationality: '', notes: '' });
+  const [createSaving, setCreateSaving] = useState(false);
+
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
+  const [editSaving, setEditSaving] = useState(false);
+
   const fetchGuests = (q?: string) => {
     setLoading(true);
     const params = q ? `?search=${encodeURIComponent(q)}` : '';
@@ -42,6 +51,7 @@ export default function GuestsPage() {
 
   const fetchDetail = (id: string) => {
     setLoadingDetail(true);
+    setEditing(false);
     fetch(`/api/guests?id=${id}`)
       .then(r => r.json())
       .then(d => setSelected(d))
@@ -55,6 +65,60 @@ export default function GuestsPage() {
     fetchGuests(search);
   };
 
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateSaving(true);
+    try {
+      const res = await fetch('/api/guests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createForm),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setGuests(prev => [data.guest, ...prev]);
+        setShowCreate(false);
+        setCreateForm({ first_name: '', last_name: '', email: '', phone: '', nationality: '', notes: '' });
+      }
+    } finally {
+      setCreateSaving(false);
+    }
+  };
+
+  const handleStartEdit = () => {
+    if (!selected) return;
+    setEditForm({
+      first_name: selected.guest.first_name ?? '',
+      last_name: selected.guest.last_name ?? '',
+      email: selected.guest.email ?? '',
+      phone: selected.guest.phone ?? '',
+      nationality: selected.guest.nationality ?? '',
+      notes: selected.guest.notes ?? '',
+    });
+    setEditing(true);
+  };
+
+  const handleEditSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selected) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/guests?id=${selected.guest.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelected({ ...selected, guest: data.guest });
+        setGuests(prev => prev.map(g => g.id === data.guest.id ? data.guest : g));
+        setEditing(false);
+      }
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const STATUS_COLORS: Record<string, string> = {
     'CHECKED IN': 'bg-green-100 text-green-700',
     'RESERVED': 'bg-blue-100 text-blue-700',
@@ -66,7 +130,56 @@ export default function GuestsPage() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-gray-900">{ls('Guests', 'Huéspedes')}</h1>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+        >
+          + {ls('New Guest', 'Nuevo Huésped')}
+        </button>
       </div>
+
+      {/* Create Modal */}
+      {showCreate && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h2 className="font-semibold text-gray-800 text-lg">{ls('New Guest', 'Nuevo Huésped')}</h2>
+            <form onSubmit={handleCreate} className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('First Name', 'Nombre')} *</label>
+                <input required type="text" value={createForm.first_name} onChange={e => setCreateForm({ ...createForm, first_name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Last Name', 'Apellido')}</label>
+                <input type="text" value={createForm.last_name} onChange={e => setCreateForm({ ...createForm, last_name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Email', 'Correo')}</label>
+                <input type="email" value={createForm.email} onChange={e => setCreateForm({ ...createForm, email: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Phone', 'Teléfono')}</label>
+                <input type="text" value={createForm.phone} onChange={e => setCreateForm({ ...createForm, phone: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Nationality', 'Nacionalidad')}</label>
+                <input type="text" value={createForm.nationality} onChange={e => setCreateForm({ ...createForm, nationality: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Notes', 'Notas')}</label>
+                <textarea rows={2} value={createForm.notes} onChange={e => setCreateForm({ ...createForm, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="col-span-2 flex gap-3">
+                <button type="submit" disabled={createSaving} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">
+                  {createSaving ? ls('Saving...', 'Guardando...') : ls('Create', 'Crear')}
+                </button>
+                <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+                  {ls('Cancel', 'Cancelar')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSearch} className="flex gap-2">
         <input
@@ -120,13 +233,82 @@ export default function GuestsPage() {
             <div className="space-y-4">
               {/* Profile header */}
               <div className="bg-white rounded-lg border border-gray-200 p-5">
-                <h2 className="text-xl font-bold text-gray-900">{selected.guest.full_name}</h2>
-                <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-600">
-                  {selected.guest.email && <div><span className="text-gray-400">{ls('Email', 'Correo')}: </span>{selected.guest.email}</div>}
-                  {selected.guest.phone && <div><span className="text-gray-400">{ls('Phone', 'Tel')}: </span>{selected.guest.phone}</div>}
-                </div>
-                {selected.guest.notes && (
-                  <div className="mt-2 text-sm text-gray-600 bg-yellow-50 rounded-lg px-3 py-2">{selected.guest.notes}</div>
+                {editing ? (
+                  <form onSubmit={handleEditSave} className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('First Name', 'Nombre')}</label>
+                        <input type="text" value={editForm.first_name} onChange={e => setEditForm({ ...editForm, first_name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Last Name', 'Apellido')}</label>
+                        <input type="text" value={editForm.last_name} onChange={e => setEditForm({ ...editForm, last_name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Email', 'Correo')}</label>
+                        <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Phone', 'Teléfono')}</label>
+                        <input type="text" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Nationality', 'Nacionalidad')}</label>
+                        <input type="text" value={editForm.nationality} onChange={e => setEditForm({ ...editForm, nationality: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Notes', 'Notas')}</label>
+                        <textarea rows={2} value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="submit" disabled={editSaving} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 disabled:opacity-50">
+                        {editSaving ? ls('Saving...', 'Guardando...') : ls('Save', 'Guardar')}
+                      </button>
+                      <button type="button" onClick={() => setEditing(false)} className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs hover:bg-gray-200">
+                        {ls('Cancel', 'Cancelar')}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between">
+                      <h2 className="text-xl font-bold text-gray-900">{selected.guest.full_name}</h2>
+                      <button onClick={handleStartEdit} className="text-xs text-blue-600 hover:underline px-2 py-1">
+                        {ls('Edit', 'Editar')}
+                      </button>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-600">
+                      {selected.guest.email && <div><span className="text-gray-400">{ls('Email', 'Correo')}: </span>{selected.guest.email}</div>}
+                      {selected.guest.phone && <div><span className="text-gray-400">{ls('Phone', 'Tel')}: </span>{selected.guest.phone}</div>}
+                      {selected.guest.nationality && <div><span className="text-gray-400">{ls('Nationality', 'Nac.')}: </span>{selected.guest.nationality}</div>}
+                    </div>
+                    {selected.guest.notes && (
+                      <div className="mt-2 text-sm text-gray-600 bg-yellow-50 rounded-lg px-3 py-2">{selected.guest.notes}</div>
+                    )}
+
+                    {/* Quick-create buttons */}
+                    <div className="mt-3 pt-3 border-t flex flex-wrap gap-2">
+                      <a
+                        href={`/${locale}/staff/transfers?guest_id=${selected.guest.id}`}
+                        className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs hover:bg-purple-100 font-medium"
+                      >
+                        + {ls('Add Transfer', 'Agregar Traslado')}
+                      </a>
+                      <a
+                        href={`/${locale}/staff/tour-bookings?guest_id=${selected.guest.id}`}
+                        className="px-3 py-1.5 bg-teal-50 text-teal-700 rounded-lg text-xs hover:bg-teal-100 font-medium"
+                      >
+                        + {ls('Add Tour', 'Agregar Tour')}
+                      </a>
+                      <a
+                        href={`/${locale}/staff/special-requests?guest_id=${selected.guest.id}`}
+                        className="px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg text-xs hover:bg-orange-100 font-medium"
+                      >
+                        + {ls('Add Special Request', 'Agregar Solicitud')}
+                      </a>
+                    </div>
+                  </>
                 )}
               </div>
 

@@ -7,6 +7,8 @@ interface Transfer {
   id: string;
   date: string;
   time: string;
+  guest_id: string;
+  vendor_id: string;
   guest_name: string;
   vendor_name: string;
   num_passengers: number;
@@ -15,8 +17,11 @@ interface Transfer {
   transfer_type: string;
   guest_status: string;
   vendor_status: string;
+  status: string;
   notes: string;
   flight_number: string;
+  billed_date: string | null;
+  paid_date: string | null;
 }
 
 const FILTERS = ['today', 'upcoming', 'past', 'all'];
@@ -38,6 +43,7 @@ export default function TransfersPage() {
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('today');
+  const [search, setSearch] = useState('');
   const [guests, setGuests] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -56,6 +62,7 @@ export default function TransfersPage() {
   });
   const [saving, setSaving] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const today = new Date().toISOString().split('T')[0];
 
   const fetchTransfers = () => {
     setLoading(true);
@@ -99,12 +106,28 @@ export default function TransfersPage() {
     fetchTransfers();
   };
 
+  const handleMarkBilled = async (id: string) => {
+    await fetch('/api/transfers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, billed_date: today }) });
+    fetchTransfers();
+  };
+
+  const handleMarkPaid = async (id: string) => {
+    await fetch('/api/transfers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, paid_date: today }) });
+    fetchTransfers();
+  };
+
+  const handleCancel = async (t: Transfer) => {
+    if (!confirm(ls(`Cancel transfer for ${t.guest_name ?? 'this guest'}?`, `¿Cancelar traslado de ${t.guest_name ?? 'este huésped'}?`))) return;
+    await fetch(`/api/transfers?id=${t.id}`, { method: 'DELETE' });
+    fetchTransfers();
+  };
+
   const handleEdit = (t: Transfer) => {
     setForm({
       date: t.date?.split('T')[0] ?? '',
       time: t.time ?? '',
-      guest_id: '',
-      vendor_id: '',
+      guest_id: t.guest_id ?? '',
+      vendor_id: t.vendor_id ?? '',
       num_passengers: t.num_passengers,
       origin: t.origin ?? '',
       destination: t.destination ?? '',
@@ -116,20 +139,29 @@ export default function TransfersPage() {
     setShowForm(true);
   };
 
+  const searchLower = search.toLowerCase();
+  const displayed = search
+    ? transfers.filter(t =>
+        (t.guest_name?.toLowerCase().includes(searchLower)) ||
+        (t.origin?.toLowerCase().includes(searchLower)) ||
+        (t.destination?.toLowerCase().includes(searchLower))
+      )
+    : transfers;
+
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-gray-900">{ls('Transfers', 'Traslados')}</h1>
         <button
-          onClick={() => { setShowForm(true); setEditingId(null); }}
+          onClick={() => { setShowForm(true); setEditingId(null); setForm({ date: new Date().toISOString().split('T')[0], time: '', guest_id: '', vendor_id: '', num_passengers: 1, origin: '', destination: '', transfer_type: 'arrival', flight_number: '', notes: '' }); }}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
         >
           + {ls('New Transfer', 'Nuevo Traslado')}
         </button>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 flex-wrap">
+      {/* Filter tabs + Search */}
+      <div className="flex flex-wrap gap-2 items-center">
         {FILTERS.map(f => (
           <button
             key={f}
@@ -139,6 +171,13 @@ export default function TransfersPage() {
             {f === 'all' ? ls('All', 'Todos') : f === 'today' ? ls('Today', 'Hoy') : f === 'upcoming' ? ls('Upcoming', 'Próximos') : ls('Past', 'Pasados')}
           </button>
         ))}
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={ls('Search guest, origin, destination...', 'Buscar huésped, origen, destino...')}
+          className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px] max-w-sm"
+        />
       </div>
 
       {/* Add/Edit Form */}
@@ -222,16 +261,18 @@ export default function TransfersPage() {
                 <th className="px-4 py-3">{ls('Pax', 'Pax')}</th>
                 <th className="px-4 py-3">{ls('Guest Status', 'Estado Hués.')}</th>
                 <th className="px-4 py-3">{ls('Vendor Status', 'Estado Prov.')}</th>
+                <th className="px-4 py-3">{ls('Billed', 'Facturado')}</th>
+                <th className="px-4 py-3">{ls('Paid', 'Pagado')}</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="text-center py-8 text-gray-400">{ls('Loading...', 'Cargando...')}</td></tr>
-              ) : transfers.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-8 text-gray-400">{ls('No transfers found', 'Sin traslados')}</td></tr>
-              ) : transfers.map((t) => (
-                <tr key={t.id} className="border-b hover:bg-gray-50">
+                <tr><td colSpan={10} className="text-center py-8 text-gray-400">{ls('Loading...', 'Cargando...')}</td></tr>
+              ) : displayed.length === 0 ? (
+                <tr><td colSpan={10} className="text-center py-8 text-gray-400">{ls('No transfers found', 'Sin traslados')}</td></tr>
+              ) : displayed.map((t) => (
+                <tr key={t.id} className={`border-b hover:bg-gray-50 ${t.status === 'cancelled' || t.guest_status === 'cancelled' ? 'opacity-50' : ''}`}>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="font-medium">{t.date ? new Date(t.date).toLocaleDateString() : '—'}</div>
                     <div className="text-xs text-gray-500">{t.time ? t.time.slice(0, 5) : '—'}</div>
@@ -263,10 +304,35 @@ export default function TransfersPage() {
                       {VENDOR_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </td>
+                  <td className="px-4 py-3 text-xs">
+                    {t.billed_date ? (
+                      <span className="text-green-700">{new Date(t.billed_date).toLocaleDateString()}</span>
+                    ) : (
+                      <button onClick={() => handleMarkBilled(t.id)} className="text-blue-600 hover:underline text-xs">
+                        {ls('Mark billed', 'Marcar facturado')}
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {t.paid_date ? (
+                      <span className="text-green-700">{new Date(t.paid_date).toLocaleDateString()}</span>
+                    ) : (
+                      <button onClick={() => handleMarkPaid(t.id)} className="text-blue-600 hover:underline text-xs">
+                        {ls('Mark paid', 'Marcar pagado')}
+                      </button>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
-                    <button onClick={() => handleEdit(t)} className="text-xs text-blue-600 hover:underline">
-                      {ls('Edit', 'Editar')}
-                    </button>
+                    <div className="flex gap-2 items-center">
+                      <button onClick={() => handleEdit(t)} className="text-xs text-blue-600 hover:underline">
+                        {ls('Edit', 'Editar')}
+                      </button>
+                      {t.status !== 'cancelled' && t.guest_status !== 'cancelled' && (
+                        <button onClick={() => handleCancel(t)} className="text-xs text-red-500 hover:underline">
+                          {ls('Cancel', 'Cancelar')}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -274,7 +340,7 @@ export default function TransfersPage() {
           </table>
         </div>
         <div className="px-4 py-2 border-t bg-gray-50 text-xs text-gray-500">
-          {transfers.length} {ls('transfers', 'traslados')}
+          {displayed.length} {ls('transfers', 'traslados')}
         </div>
       </div>
     </div>

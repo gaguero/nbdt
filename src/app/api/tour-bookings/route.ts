@@ -47,12 +47,14 @@ export async function GET(request: NextRequest) {
     const tour_bookings = await queryMany(
       `SELECT tb.*, g.full_name as guest_name, tp.name_en, tp.name_es,
               ts.date as schedule_date, ts.start_time, tp.vendor_id,
-              v.name as vendor_name
+              v.name as vendor_name,
+              lv.name AS legacy_vendor_name
        FROM tour_bookings tb
        LEFT JOIN guests g ON tb.guest_id = g.id
        LEFT JOIN tour_products tp ON tb.product_id = tp.id
        LEFT JOIN tour_schedules ts ON tb.schedule_id = ts.id
        LEFT JOIN vendors v ON tp.vendor_id = v.id
+       LEFT JOIN vendors lv ON lv.legacy_appsheet_id = tb.legacy_vendor_id
        ${whereClause}
        ORDER BY COALESCE(ts.date, tb.created_at::date) ASC, ts.start_time ASC
        LIMIT 200`,
@@ -165,6 +167,34 @@ export async function PUT(request: NextRequest) {
     );
 
     return NextResponse.json({ booking });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    verifyToken(token);
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const booking = await queryOne('SELECT schedule_id, num_guests FROM tour_bookings WHERE id = $1', [id]);
+    if (!booking) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    await queryOne(`UPDATE tour_bookings SET guest_status = 'cancelled' WHERE id = $1 RETURNING id`, [id]);
+
+    if (booking.schedule_id) {
+      await query(
+        `UPDATE tour_schedules SET capacity_remaining = capacity_remaining + $1 WHERE id = $2`,
+        [booking.num_guests || 1, booking.schedule_id]
+      );
+    }
+
+    return NextResponse.json({ ok: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
