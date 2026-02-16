@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { TrashIcon, ServerIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const APPSHEET_TABLES = [
   { value: 'guests', label: 'Guests' },
@@ -22,6 +23,32 @@ export default function SettingsPage() {
   const [csvImporting, setCsvImporting] = useState(false);
   const [csvTable, setCsvTable] = useState('guests');
   const csvFileRef = useRef<HTMLInputElement>(null);
+
+  const [dbStats, setDbStats] = useState<any[]>([]);
+  const [loadingDb, setLoadingDb] = useState(false);
+
+  const fetchDbStats = async () => {
+    setLoadingDb(true);
+    try {
+      const res = await fetch('/api/admin/db-manager');
+      const data = await res.json();
+      if (res.ok) setDbStats(data.stats || []);
+    } catch (err) { console.error(err); }
+    finally { setLoadingDb(false); }
+  };
+
+  useEffect(() => { fetchDbStats(); }, []);
+
+  const handleClearTable = async (table: string) => {
+    if (!confirm(`DANGER: Are you sure you want to PERMANENTLY DELETE ALL records from ${table}? This will also delete linked data in other tables via CASCADE.`)) return;
+    
+    try {
+      const res = await fetch(`/api/admin/db-manager?table=${table}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchDbStats();
+      }
+    } catch (err) { alert('Failed to clear table'); }
+  };
 
   async function handleOperaImport(e: React.FormEvent) {
     e.preventDefault();
@@ -216,6 +243,44 @@ export default function SettingsPage() {
             </p>
           )}
         </form>
+      </section>
+
+      {/* Database Manager (Admin Only) */}
+      <section className="bg-white rounded-xl border border-red-200 p-6 space-y-4">
+        <div className="flex items-center gap-2 text-red-600">
+          <ServerIcon className="h-6 w-6" />
+          <h2 className="text-lg font-black uppercase tracking-tight">Database Manager</h2>
+        </div>
+        <p className="text-sm text-gray-500">
+          Monitor record counts across all operational tables. Use these controls to clear data during development.
+        </p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {loadingDb ? (
+            <div className="col-span-2 text-center py-4 text-gray-400 animate-pulse">Loading stats...</div>
+          ) : dbStats.map((s) => (
+            <div key={s.table} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{s.table}</p>
+                <p className="text-lg font-black text-gray-900">{s.count.toLocaleString()}</p>
+              </div>
+              <button
+                onClick={() => handleClearTable(s.table)}
+                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title={`Clear ${s.table}`}
+              >
+                <TrashIcon className="h-5 w-5" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-3 bg-red-50 rounded-lg border border-red-100 flex items-start gap-3">
+          <ExclamationTriangleIcon className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+          <p className="text-[10px] leading-tight text-red-700 font-bold uppercase">
+            Warning: Clearing tables is irreversible. Linked records will be deleted via CASCADE constraints.
+          </p>
+        </div>
       </section>
 
       {/* Conversation Channels */}
