@@ -248,7 +248,7 @@ export default function TransferWizardPage() {
                         </td>
                         <td className="px-6 py-4">
                           <span className="font-black text-gray-900">
-                            {item.csv?.guestName || ls('Unknown Guest', 'Huésped Desconocido')}
+                            {item.guest?.fullName || item.csv?.guestName || ls('Unknown Guest', 'Huésped Desconocido')}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -316,7 +316,7 @@ export default function TransferWizardPage() {
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-black text-gray-900">
-                            {item.csv?.guestName || ls('Unknown Guest', 'Huésped Desconocido')}
+                            {item.guest?.fullName || item.csv?.guestName || ls('Unknown Guest', 'Huésped Desconocido')}
                           </span>
                         </div>
                         <p className="text-xs text-gray-600">
@@ -382,7 +382,7 @@ export default function TransferWizardPage() {
                     <div key={index} className="px-6 py-4 bg-gray-50/50 flex items-center justify-between gap-4">
                       <div className="flex-1">
                         <p className="font-bold text-gray-700">
-                          {item.csv?.guestName || ls('Unknown Guest', 'Huésped Desconocido')}
+                          {item.guest?.fullName || item.csv?.guestName || ls('Unknown Guest', 'Huésped Desconocido')}
                         </p>
                         <p className="text-xs text-gray-500 mt-0.5">
                           {item.csv?.origin || '—'}
