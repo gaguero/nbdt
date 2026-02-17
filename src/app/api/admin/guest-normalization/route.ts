@@ -125,14 +125,27 @@ export async function POST(request: NextRequest) {
           )
           WHERE id = $7::uuid
         `, [
-          secondary.id, 
-          secondary.first_name || null, 
-          secondary.last_name || null, 
-          secondary.email || null, 
-          secondary.legacy_appsheet_id || null, 
-          secondary.profile_type || null, 
+          secondary.id,
+          secondary.first_name || null,
+          secondary.last_name || null,
+          secondary.email || null,
+          secondary.legacy_appsheet_id || null,
+          secondary.profile_type || null,
           primaryId
         ]);
+
+        // 2b. Accumulate secondary's legacy_appsheet_id into primary's legacy_appsheet_ids array
+        if (secondary.legacy_appsheet_id) {
+          await client.query(`
+            UPDATE guests
+            SET legacy_appsheet_ids = array_append(
+              COALESCE(legacy_appsheet_ids, '{}'),
+              $1::text
+            )
+            WHERE id = $2::uuid
+              AND NOT ($1::text = ANY(COALESCE(legacy_appsheet_ids, '{}')))
+          `, [secondary.legacy_appsheet_id, primaryId]);
+        }
 
         // 3. Reassign FKs in all relevant tables
         const tables = [

@@ -219,7 +219,7 @@ async function findOrCreateGuest(
 
   if (legacyId) {
     const r = await client.query(
-      'SELECT id FROM guests WHERE legacy_appsheet_id = $1',
+      'SELECT id FROM guests WHERE legacy_appsheet_id = $1 OR $1 = ANY(COALESCE(legacy_appsheet_ids, \'{}\'))',
       [legacyId]
     );
     if (r.rows.length > 0) return r.rows[0].id;
@@ -467,20 +467,25 @@ async function importTransfers(rows: Record<string, string>[]): Promise<CsvImpor
           await client.query(
             `UPDATE transfers SET date=$1, time=$2, guest_id=$3, vendor_id=$4,
                num_passengers=$5, origin=$6, destination=$7, guest_status=$8,
-               vendor_status=$9, billed_date=$10, paid_date=$11, notes=$12
+               vendor_status=$9, billed_date=$10, paid_date=$11, notes=$12,
+               legacy_guest_id=COALESCE(legacy_guest_id, NULLIF($14,'')),
+               legacy_vendor_id=COALESCE(legacy_vendor_id, NULLIF($15,''))
              WHERE id=$13`,
             [date, time, guestId, vendorId, numPassengers, origin, destination,
-             guestStatus, vendorStatus, billedDate, paidDate, notes, existing.rows[0].id]
+             guestStatus, vendorStatus, billedDate, paidDate, notes, existing.rows[0].id,
+             guestLegacyId || null, vendorLegacyId || null]
           );
           result.updated++;
         } else {
           await client.query(
             `INSERT INTO transfers
                (date, time, guest_id, vendor_id, num_passengers, origin, destination,
-                guest_status, vendor_status, billed_date, paid_date, notes, legacy_appsheet_id)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+                guest_status, vendor_status, billed_date, paid_date, notes,
+                legacy_appsheet_id, legacy_guest_id, legacy_vendor_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
             [date, time, guestId, vendorId, numPassengers, origin, destination,
-             guestStatus, vendorStatus, billedDate, paidDate, notes, legacyId || null]
+             guestStatus, vendorStatus, billedDate, paidDate, notes,
+             legacyId || null, guestLegacyId || null, vendorLegacyId || null]
           );
           result.created++;
         }
@@ -697,20 +702,24 @@ async function importTourBookings(rows: Record<string, string>[]): Promise<CsvIm
           await client.query(
             `UPDATE tour_bookings SET guest_id=$1, product_id=$2, num_guests=$3,
                booking_mode=$4, total_price=$5, guest_status=$6, vendor_status=$7,
-               special_requests=$8, billed_date=$9, paid_date=$10
+               special_requests=$8, billed_date=$9, paid_date=$10,
+               legacy_guest_id=COALESCE(legacy_guest_id, NULLIF($12,''))
              WHERE id=$11`,
             [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
-             vendorStatus, specialRequests, billedDate, paidDate, existing.rows[0].id]
+             vendorStatus, specialRequests, billedDate, paidDate, existing.rows[0].id,
+             guestLegacyId || null]
           );
           result.updated++;
         } else {
           await client.query(
             `INSERT INTO tour_bookings
                (guest_id, product_id, num_guests, booking_mode, total_price,
-                guest_status, vendor_status, special_requests, billed_date, paid_date, legacy_appsheet_id)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+                guest_status, vendor_status, special_requests, billed_date, paid_date,
+                legacy_appsheet_id, legacy_guest_id)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
             [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
-             vendorStatus, specialRequests, billedDate, paidDate, legacyId || null]
+             vendorStatus, specialRequests, billedDate, paidDate,
+             legacyId || null, guestLegacyId || null]
           );
           result.created++;
         }

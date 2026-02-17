@@ -259,12 +259,13 @@ export async function POST(request: NextRequest) {
                    total_price=$5, guest_status=$6, vendor_status=$7,
                    special_requests=$8, billed_date=$9, paid_date=$10,
                    activity_date=$11, start_time=$12,
-                   legacy_vendor_id=$13, legacy_activity_name=$14
+                   legacy_vendor_id=$13, legacy_activity_name=$14,
+                   legacy_guest_id=COALESCE(legacy_guest_id, NULLIF($16,''))
                WHERE id=$15`,
               [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
                vendorStatus, specialRequests, billedDate, paidDate,
                activityDate, startTime, legacyVendorId, legacyActivityName,
-               existing.rows[0].id]
+               existing.rows[0].id, guestLegacyId || null]
             );
             result.updated++;
           } else {
@@ -273,12 +274,12 @@ export async function POST(request: NextRequest) {
                (guest_id, product_id, num_guests, booking_mode, total_price,
                 guest_status, vendor_status, special_requests, billed_date, paid_date,
                 activity_date, start_time, legacy_vendor_id, legacy_activity_name,
-                legacy_appsheet_id)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+                legacy_appsheet_id, legacy_guest_id)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
               [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
                vendorStatus, specialRequests, billedDate, paidDate,
                activityDate, startTime, legacyVendorId, legacyActivityName,
-               legacyId || null]
+               legacyId || null, guestLegacyId || null]
             );
             result.created++;
           }
