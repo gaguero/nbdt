@@ -18,7 +18,8 @@ export async function GET(request: NextRequest) {
       transfers,
       tours,
       requests,
-      conversations
+      conversations,
+      dinners
     ] = await Promise.all([
       // Arrivals
       queryOne('SELECT COUNT(*) as count FROM reservations WHERE arrival = $1 AND status != $2', [date, 'CANCELLED']),
@@ -30,15 +31,17 @@ export async function GET(request: NextRequest) {
       queryOne('SELECT COUNT(*) as count FROM transfers WHERE date = $1 AND guest_status != $2', [date, 'cancelled']),
       // Tours
       queryOne(`
-        SELECT COUNT(*) as count 
+        SELECT COUNT(*) as count
         FROM tour_bookings tb
         LEFT JOIN tour_schedules ts ON tb.schedule_id = ts.id
         WHERE COALESCE(ts.date, tb.activity_date) = $1 AND tb.guest_status != $2
       `, [date, 'cancelled']),
-      // Pending Special Requests (Today or general?) Let's do pending on that date or overall
+      // Pending Special Requests
       queryOne('SELECT COUNT(*) as count FROM special_requests WHERE status = $1', ['pending']),
       // Open Conversations
-      queryOne('SELECT COUNT(*) as count FROM conversations WHERE status != $1', ['resolved'])
+      queryOne('SELECT COUNT(*) as count FROM conversations WHERE status != $1', ['resolved']),
+      // Romantic Dinners for date
+      queryOne('SELECT COUNT(*) as count FROM romantic_dinners WHERE date = $1 AND status != $2', [date, 'cancelled']),
     ]);
 
     return NextResponse.json({
@@ -49,6 +52,7 @@ export async function GET(request: NextRequest) {
       tours: parseInt(tours.count),
       requests: parseInt(requests.count),
       conversations: parseInt(conversations.count),
+      dinners: parseInt(dinners.count),
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

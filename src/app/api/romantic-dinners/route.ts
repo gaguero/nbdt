@@ -22,9 +22,10 @@ export async function GET(request: NextRequest) {
     if (date_to) { whereClause += ` AND rd.date <= $${idx++}`; params.push(date_to); }
 
     const romantic_dinners = await queryMany(
-      `SELECT rd.*, g.full_name as guest_name
+      `SELECT rd.*, g.full_name as guest_name, v.name as vendor_name
        FROM romantic_dinners rd
        LEFT JOIN guests g ON rd.guest_id = g.id
+       LEFT JOIN vendors v ON rd.vendor_id = v.id
        ${whereClause}
        ORDER BY rd.date ASC, rd.time ASC LIMIT 200`,
       params
@@ -44,9 +45,9 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const dinner = await queryOne(
-      `INSERT INTO romantic_dinners (date, time, guest_id, reservation_id, num_guests, location, status, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-      [body.date, body.time, body.guest_id, body.reservation_id, body.num_guests || 2, body.location, body.status || 'pending', body.notes]
+      `INSERT INTO romantic_dinners (date, time, guest_id, reservation_id, num_guests, location, status, notes, vendor_id, billed_date, paid_date)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      [body.date, body.time, body.guest_id, body.reservation_id, body.num_guests || 2, body.location, body.status || 'pending', body.notes, body.vendor_id || null, body.billed_date || null, body.paid_date || null]
     );
 
     return NextResponse.json({ dinner }, { status: 201 });
@@ -69,7 +70,7 @@ export async function PUT(request: NextRequest) {
     const params: any[] = [];
     let idx = 1;
 
-    const allowedFields = ['date', 'time', 'guest_id', 'num_guests', 'location', 'status', 'notes'];
+    const allowedFields = ['date', 'time', 'guest_id', 'num_guests', 'location', 'status', 'notes', 'vendor_id', 'billed_date', 'paid_date'];
     for (const field of allowedFields) {
       if (field in fields) { setClauses.push(`${field} = $${idx++}`); params.push(fields[field]); }
     }

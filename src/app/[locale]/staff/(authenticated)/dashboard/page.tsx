@@ -5,6 +5,7 @@ import { useLocale } from 'next-intl';
 import { KPIBar } from './widgets/KPIBar';
 import { TodayTransfers } from './widgets/TodayTransfers';
 import { TodayTours } from './widgets/TodayTours';
+import { TodayDinners } from './widgets/TodayDinners';
 import { InHouseGuests } from './widgets/InHouseGuests';
 import { PendingRequestsWidget } from './widgets/PendingRequestsWidget';
 import { ConversationsWidget } from './widgets/ConversationsWidget';
@@ -106,10 +107,11 @@ export default function DashboardPage() {
       <div className={`grid grid-cols-1 ${hasRequests ? 'xl:grid-cols-12' : 'xl:grid-cols-2'} gap-6`}>
         {/* Main Column / Left Half */}
         <div className={`${hasRequests ? 'xl:col-span-8' : ''} space-y-6`}>
-          <div className={`grid grid-cols-1 ${hasRequests ? 'lg:grid-cols-2' : ''} gap-6`}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TodayTransfers date={selectedDate} limit={10} />
             <TodayTours date={selectedDate} limit={10} />
           </div>
+          <TodayDinners date={selectedDate} limit={10} />
           <InHouseGuests date={selectedDate} limit={20} />
         </div>
 

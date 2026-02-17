@@ -5,7 +5,8 @@ import { useLocale } from 'next-intl';
 import Modal from '@/components/ui/Modal';
 import { GuestSearchSelect } from '@/components/staff/GuestSearchSelect';
 import { VendorSearchSelect } from '@/components/staff/VendorSearchSelect';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
+import { MessageGuestPanel } from '@/components/staff/MessageGuestPanel';
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -226,11 +227,13 @@ export function TransferModal({ isOpen, onClose, transfer, onSuccess }: Transfer
           />
         </div>
 
+        <MessageGuestPanel guestId={form.guest_id} guestName={transfer?.guest_name} />
+
         <div className="flex justify-end gap-3 pt-4 border-t">
           <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
             {ls('Cancel', 'Cancelar')}
           </Button>
-          <Button type="submit" variant="primary" loading={loading}>
+          <Button type="submit" variant="primary" isLoading={loading}>
             {transfer ? ls('Update Transfer', 'Actualizar') : ls('Create Transfer', 'Crear Traslado')}
           </Button>
         </div>

@@ -12,7 +12,7 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline';
 import { TourBookingModal } from './TourBookingModal';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',

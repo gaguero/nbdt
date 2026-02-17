@@ -31,9 +31,11 @@ export async function GET(request: NextRequest) {
     }
 
     const special_requests = await queryMany(
-      `SELECT sr.*, g.full_name as guest_name
+      `SELECT sr.*, g.full_name as guest_name,
+              su.first_name || ' ' || su.last_name as assigned_to_name
        FROM special_requests sr
        LEFT JOIN guests g ON sr.guest_id = g.id
+       LEFT JOIN staff_users su ON sr.assigned_to = su.id
        ${whereClause}
        ORDER BY sr.date DESC, sr.time DESC LIMIT 200`,
       params
@@ -53,9 +55,9 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const result = await queryOne(
-      `INSERT INTO special_requests (date, time, guest_id, reservation_id, request, department, status, check_in, check_out, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-      [body.date, body.time, body.guest_id, body.reservation_id, body.request, body.department, body.status || 'pending', body.check_in, body.check_out, body.notes]
+      `INSERT INTO special_requests (date, time, guest_id, reservation_id, request, department, status, check_in, check_out, notes, priority, assigned_to, internal_notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      [body.date, body.time, body.guest_id, body.reservation_id, body.request, body.department, body.status || 'pending', body.check_in, body.check_out, body.notes, body.priority || 'normal', body.assigned_to || null, body.internal_notes || null]
     );
 
     return NextResponse.json({ request: result }, { status: 201 });
@@ -78,7 +80,7 @@ export async function PUT(request: NextRequest) {
     const params: any[] = [];
     let idx = 1;
 
-    const allowedFields = ['date', 'time', 'guest_id', 'request', 'department', 'status', 'check_in', 'check_out', 'notes'];
+    const allowedFields = ['date', 'time', 'guest_id', 'request', 'department', 'status', 'check_in', 'check_out', 'notes', 'priority', 'assigned_to', 'internal_notes'];
     for (const field of allowedFields) {
       if (field in fields) { setClauses.push(`${field} = $${idx++}`); params.push(fields[field]); }
     }

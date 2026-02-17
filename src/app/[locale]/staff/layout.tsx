@@ -26,6 +26,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   ShoppingCartIcon,
+  CurrencyDollarIcon,
+  PrinterIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -66,6 +68,8 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     { name: ls('Special Requests', 'Solicitudes'), href: `/${locale}/staff/special-requests`, icon: SparklesIcon, group: ls('Concierge', 'Concierge') },
     { name: ls('Hotel Bookings', 'Hoteles'), href: `/${locale}/staff/hotel-bookings`, icon: BuildingOfficeIcon, group: ls('Concierge', 'Concierge') },
     { name: ls('Romantic Dinners', 'Cenas Románticas'), href: `/${locale}/staff/romantic-dinners`, icon: HeartIcon, group: ls('Concierge', 'Concierge') },
+    { name: ls('Billing', 'Facturación'), href: `/${locale}/staff/billing`, icon: CurrencyDollarIcon, group: ls('Concierge', 'Concierge') },
+    { name: ls('Daily Sheet', 'Hoja Diaria'), href: `/${locale}/staff/daily-sheet`, icon: PrinterIcon, group: ls('Concierge', 'Concierge') },
 
     // F&B
     { name: ls('Orders', 'Órdenes'), href: `/${locale}/staff/orders`, icon: ShoppingCartIcon, group: ls('Food & Beverage', 'Alimentos') },

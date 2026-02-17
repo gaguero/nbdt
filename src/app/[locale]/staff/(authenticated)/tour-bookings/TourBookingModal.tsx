@@ -5,7 +5,8 @@ import { useLocale } from 'next-intl';
 import Modal from '@/components/ui/Modal';
 import { GuestSearchSelect } from '@/components/staff/GuestSearchSelect';
 import { ProductSearchSelect } from '@/components/staff/ProductSearchSelect';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
+import { MessageGuestPanel } from '@/components/staff/MessageGuestPanel';
 
 interface TourBookingModalProps {
   isOpen: boolean;
@@ -198,11 +199,13 @@ export function TourBookingModal({ isOpen, onClose, booking, onSuccess }: TourBo
           />
         </div>
 
+        <MessageGuestPanel guestId={form.guest_id} guestName={booking?.guest_name} />
+
         <div className="flex justify-end gap-3 pt-4 border-t">
           <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
             {ls('Cancel', 'Cancelar')}
           </Button>
-          <Button type="submit" variant="primary" loading={loading}>
+          <Button type="submit" variant="primary" isLoading={loading}>
             {booking ? ls('Update Booking', 'Actualizar') : ls('Create Booking', 'Crear Reserva')}
           </Button>
         </div>

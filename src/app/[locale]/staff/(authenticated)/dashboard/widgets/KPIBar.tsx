@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
-import { 
-  ArrowRightEndOnRectangleIcon, 
-  ArrowLeftStartOnRectangleIcon, 
-  UserGroupIcon, 
+import {
+  ArrowRightEndOnRectangleIcon,
+  ArrowLeftStartOnRectangleIcon,
+  UserGroupIcon,
   ChatBubbleLeftRightIcon,
   TruckIcon,
-  MapIcon
+  MapIcon,
+  HeartIcon
 } from '@heroicons/react/24/outline';
 
 interface KPIData {
@@ -20,6 +21,7 @@ interface KPIData {
   tours: number;
   requests: number;
   conversations: number;
+  dinners: number;
 }
 
 export function KPIBar({ date, onStatsLoad }: { date: string, onStatsLoad?: (stats: KPIData) => void }) {
@@ -75,17 +77,24 @@ export function KPIBar({ date, onStatsLoad }: { date: string, onStatsLoad?: (sta
       icon: MapIcon,
       href: `/${locale}/staff/tour-bookings?date=${date}`
     },
-    { 
-      label: ls('Messages', 'Mensajes'), 
-      value: kpis?.conversations ?? 0, 
-      color: 'bg-indigo-50 border-indigo-100 text-indigo-700 hover:bg-indigo-100',
+    {
+      label: ls('Dinners', 'Cenas'),
+      value: kpis?.dinners ?? 0,
+      color: 'bg-pink-50 border-pink-100 text-pink-700 hover:bg-pink-100',
+      icon: HeartIcon,
+      href: `/${locale}/staff/romantic-dinners`
+    },
+    {
+      label: ls('Messages', 'Mensajes'),
+      value: kpis?.conversations ?? 0,
+      color: 'bg-teal-50 border-teal-100 text-teal-700 hover:bg-teal-100',
       icon: ChatBubbleLeftRightIcon,
       href: `/${locale}/staff/messages`
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
       {tiles.map((tile, i) => {
         const Icon = tile.icon;
         return (
