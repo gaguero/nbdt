@@ -3,19 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { ChevronLeftIcon, ChevronRightIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { localDateString } from '@/lib/dates';
 
 export default function DailySheetPage() {
   const locale = useLocale();
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(localDateString());
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState(false);
 
   const handleDateChange = (days: number) => {
     const d = new Date(selectedDate + 'T12:00:00');
     d.setDate(d.getDate() + days);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    setSelectedDate(localDateString(d));
   };
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function DailySheetPage() {
               <ChevronRightIcon className="h-4 w-4" />
             </button>
             <button
-              onClick={() => { setSelectedDate(new Date().toISOString().split('T')[0]); }}
+              onClick={() => { setSelectedDate(localDateString()); }}
               className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm hover:bg-blue-100 font-medium"
             >
               {ls('Today', 'Hoy')}

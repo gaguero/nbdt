@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import Modal from '@/components/ui/Modal';
+import { localDateString } from '@/lib/dates';
 import Button from '@/components/ui/Button';
 import { GuestSearchSelect } from '@/components/staff/GuestSearchSelect';
 
@@ -30,7 +31,7 @@ export function SpecialRequestModal({ isOpen, onClose, request, onSuccess }: Spe
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
 
   const emptyForm = {
-    date: new Date().toISOString().split('T')[0],
+    date: localDateString(),
     time: '',
     guest_id: '',
     department: 'concierge',

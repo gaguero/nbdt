@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import Modal from '@/components/ui/Modal';
+import { localDateString } from '@/lib/dates';
 import Button from '@/components/ui/Button';
 import { GuestSearchSelect } from '@/components/staff/GuestSearchSelect';
 import { VendorSearchSelect } from '@/components/staff/VendorSearchSelect';
@@ -24,7 +25,7 @@ export function RomanticDinnerModal({ isOpen, onClose, dinner, onSuccess }: Roma
   const [deleting, setDeleting] = useState(false);
 
   const emptyForm = {
-    date: new Date().toISOString().split('T')[0],
+    date: localDateString(),
     time: '19:00',
     guest_id: '',
     num_guests: 2,

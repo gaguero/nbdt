@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { localDateString } from '@/lib/dates';
 
 const SERVICE_TABS = [
   { key: 'transfers', label: 'Transfers', labelEs: 'Traslados' },
@@ -67,7 +68,7 @@ export default function BillingPage() {
           ids: Array.from(selected),
           service_type: serviceType,
           field,
-          value: new Date().toISOString().split('T')[0],
+          value: localDateString(),
         }),
       });
       fetchRows();
@@ -92,12 +93,12 @@ export default function BillingPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `billing-${serviceType}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `billing-${serviceType}-${localDateString()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDateString();
 
   return (
     <div className="p-6 space-y-4">

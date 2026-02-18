@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import Modal from '@/components/ui/Modal';
+import { localDateString } from '@/lib/dates';
 import { GuestSearchSelect } from '@/components/staff/GuestSearchSelect';
 import { VendorSearchSelect } from '@/components/staff/VendorSearchSelect';
 import Button from '@/components/ui/Button';
@@ -21,7 +22,7 @@ export function TransferModal({ isOpen, onClose, transfer, onSuccess }: Transfer
   const [loading, setLoading] = useState(false);
   
   const [form, setForm] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: localDateString(),
     time: '',
     guest_id: '',
     vendor_id: '',
@@ -53,7 +54,7 @@ export function TransferModal({ isOpen, onClose, transfer, onSuccess }: Transfer
       });
     } else {
       setForm({
-        date: new Date().toISOString().split('T')[0],
+        date: localDateString(),
         time: '',
         guest_id: '',
         vendor_id: '',

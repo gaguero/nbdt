@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { localDateString } from '@/lib/dates';
 import { RomanticDinnerModal } from './RomanticDinnerModal';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -26,8 +27,8 @@ export default function RomanticDinnersPage() {
   const fetchDinners = () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (filter === 'today') { const today = new Date().toISOString().split('T')[0]; params.set('date_from', today); params.set('date_to', today); }
-    else if (filter === 'upcoming') params.set('date_from', new Date().toISOString().split('T')[0]);
+    if (filter === 'today') { const today = localDateString(); params.set('date_from', today); params.set('date_to', today); }
+    else if (filter === 'upcoming') params.set('date_from', localDateString());
     fetch(`/api/romantic-dinners?${params}`)
       .then(r => r.json())
       .then(d => setDinners(d.romantic_dinners ?? []))

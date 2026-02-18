@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useLocale } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
+import { localDateString, localDateOffset } from '@/lib/dates';
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon, 
@@ -41,12 +42,20 @@ function TransfersContent() {
   const fetchTransfers = () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (filter) params.set('filter', filter);
     if (selectedDate) {
       params.set('date_from', selectedDate);
       params.set('date_to', selectedDate);
+    } else if (filter === 'today') {
+      const today = localDateString();
+      params.set('date_from', today);
+      params.set('date_to', today);
+    } else if (filter === 'upcoming') {
+      params.set('date_from', localDateString());
+    } else if (filter === 'past') {
+      params.set('date_to', localDateOffset(-1));
     }
-    
+    // 'all' → no date params
+
     fetch(`/api/transfers?${params}`)
       .then(r => r.json())
       .then(d => setTransfers(d.transfers ?? []))

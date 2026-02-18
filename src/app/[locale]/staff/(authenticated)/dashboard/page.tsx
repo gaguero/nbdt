@@ -10,18 +10,19 @@ import { InHouseGuests } from './widgets/InHouseGuests';
 import { PendingRequestsWidget } from './widgets/PendingRequestsWidget';
 import { ConversationsWidget } from './widgets/ConversationsWidget';
 import Link from 'next/link';
-import { 
-  ChevronLeftIcon, 
-  ChevronRightIcon, 
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
   CalendarIcon,
   PlusIcon,
   UserPlusIcon,
   DocumentPlusIcon
 } from '@heroicons/react/24/outline';
+import { localDateString, localDateOffset } from '@/lib/dates';
 
 export default function DashboardPage() {
   const locale = useLocale();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(localDateString());
   const [kpis, setKpis] = useState<any>(null);
 
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
@@ -29,17 +30,16 @@ export default function DashboardPage() {
   const handleDateChange = (days: number) => {
     const date = new Date(selectedDate + 'T12:00:00');
     date.setDate(date.getDate() + days);
-    setSelectedDate(date.toISOString().split('T')[0]);
+    setSelectedDate(localDateString(date));
   };
 
   const setRelativeDate = (type: 'yesterday' | 'today' | 'tomorrow') => {
-    const date = new Date();
-    if (type === 'yesterday') date.setDate(date.getDate() - 1);
-    if (type === 'tomorrow') date.setDate(date.getDate() + 1);
-    setSelectedDate(date.toISOString().split('T')[0]);
+    if (type === 'yesterday') setSelectedDate(localDateOffset(-1));
+    else if (type === 'tomorrow') setSelectedDate(localDateOffset(1));
+    else setSelectedDate(localDateString());
   };
 
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const isToday = selectedDate === localDateString();
 
   const hasRequests = kpis && kpis.requests > 0;
 
@@ -63,7 +63,7 @@ export default function DashboardPage() {
             <div className="flex items-center border-r border-gray-100 pr-1 mr-1">
               <button 
                 onClick={() => setRelativeDate('yesterday')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${selectedDate === new Date(Date.now() - 86400000).toISOString().split('T')[0] ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-gray-50 text-gray-500'}`}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${selectedDate === localDateOffset(-1) ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-gray-50 text-gray-500'}`}
               >
                 {ls('Yesterday', 'Ayer')}
               </button>
@@ -75,7 +75,7 @@ export default function DashboardPage() {
               </button>
               <button 
                 onClick={() => setRelativeDate('tomorrow')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${selectedDate === new Date(Date.now() + 86400000).toISOString().split('T')[0] ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-gray-50 text-gray-500'}`}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${selectedDate === localDateOffset(1) ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-gray-50 text-gray-500'}`}
               >
                 {ls('Tomorrow', 'Mañana')}
               </button>

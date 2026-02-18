@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import Modal from '@/components/ui/Modal';
+import { localDateString } from '@/lib/dates';
 import Button from '@/components/ui/Button';
 import { GuestSearchSelect } from '@/components/staff/GuestSearchSelect';
 import { MessageGuestPanel } from '@/components/staff/MessageGuestPanel';
@@ -22,7 +23,7 @@ export function HotelBookingModal({ isOpen, onClose, booking, onSuccess }: Hotel
   const [hotels, setHotels] = useState<any[]>([]);
 
   const emptyForm = {
-    date: new Date().toISOString().split('T')[0],
+    date: localDateString(),
     guest_id: '',
     hotel_id: '',
     num_guests: 1,
