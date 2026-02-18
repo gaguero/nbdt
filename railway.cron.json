@@ -5,6 +5,7 @@
     "buildCommand": "echo \"no build\""
   },
   "deploy": {
-    "startCommand": "node scripts/opera-sync-cron.mjs"
+    "startCommand": "node scripts/opera-sync-cron.mjs",
+    "restartPolicyType": "NEVER"
   }
 }
