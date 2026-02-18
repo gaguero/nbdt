@@ -262,6 +262,20 @@ export function SpecialRequestModal({ isOpen, onClose, request, onSuccess }: Spe
           </div>
         </div>
       </form>
+
+      {request && (
+        <div className="mt-6 pt-6 border-t space-y-3">
+          <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">{ls('Record Details', 'Detalles del Registro')}</p>
+          <dl className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            {request.id && <div><dt className="text-gray-500">ID</dt><dd className="font-mono text-gray-800 break-all">{request.id}</dd></div>}
+            {request.reservation_id && <div><dt className="text-gray-500">Reservation ID</dt><dd className="font-mono text-gray-800 break-all">{request.reservation_id}</dd></div>}
+            {request.legacy_appsheet_id && <div><dt className="text-gray-500">Legacy AppSheet ID</dt><dd className="font-mono text-gray-700">{request.legacy_appsheet_id}</dd></div>}
+            {request.resolved_at && <div><dt className="text-gray-500">Resolved At</dt><dd className="text-gray-700 text-[10px]">{new Date(request.resolved_at).toLocaleString()}</dd></div>}
+            {request.created_at && <div><dt className="text-gray-500">Created</dt><dd className="text-gray-700 text-[10px]">{new Date(request.created_at).toLocaleString()}</dd></div>}
+            {request.updated_at && <div><dt className="text-gray-500">Updated</dt><dd className="text-gray-700 text-[10px]">{new Date(request.updated_at).toLocaleString()}</dd></div>}
+          </dl>
+        </div>
+      )}
     </Modal>
   );
 }

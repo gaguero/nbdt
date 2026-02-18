@@ -237,6 +237,20 @@ export function RomanticDinnerModal({ isOpen, onClose, dinner, onSuccess }: Roma
           </div>
         </div>
       </form>
+
+      {dinner && (
+        <div className="mt-6 pt-6 border-t space-y-3">
+          <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">{ls('Record Details', 'Detalles del Registro')}</p>
+          <dl className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            {dinner.id && <div><dt className="text-gray-500">ID</dt><dd className="font-mono text-gray-800 break-all">{dinner.id}</dd></div>}
+            {dinner.reservation_id && <div><dt className="text-gray-500">Reservation ID</dt><dd className="font-mono text-gray-800 break-all">{dinner.reservation_id}</dd></div>}
+            {dinner.legacy_appsheet_id && <div><dt className="text-gray-500">Legacy AppSheet ID</dt><dd className="font-mono text-gray-700">{dinner.legacy_appsheet_id}</dd></div>}
+            {dinner.price && <div><dt className="text-gray-500">Price</dt><dd className="text-gray-800">${parseFloat(dinner.price).toFixed(2)}</dd></div>}
+            {dinner.created_at && <div><dt className="text-gray-500">Created</dt><dd className="text-gray-700 text-[10px]">{new Date(dinner.created_at).toLocaleString()}</dd></div>}
+            {dinner.updated_at && <div><dt className="text-gray-500">Updated</dt><dd className="text-gray-700 text-[10px]">{new Date(dinner.updated_at).toLocaleString()}</dd></div>}
+          </dl>
+        </div>
+      )}
     </Modal>
   );
 }

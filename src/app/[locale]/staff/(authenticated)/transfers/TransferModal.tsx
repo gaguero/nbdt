@@ -239,6 +239,24 @@ export function TransferModal({ isOpen, onClose, transfer, onSuccess }: Transfer
           </Button>
         </div>
       </form>
+
+      {transfer && (
+        <div className="mt-6 pt-6 border-t space-y-3">
+          <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">{ls('Record Details', 'Detalles del Registro')}</p>
+          <dl className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            {transfer.id && <div><dt className="text-gray-500">ID</dt><dd className="font-mono text-gray-800 break-all">{transfer.id}</dd></div>}
+            {transfer.reservation_id && <div><dt className="text-gray-500">Reservation ID</dt><dd className="font-mono text-gray-800 break-all">{transfer.reservation_id}</dd></div>}
+            {transfer.legacy_appsheet_id && <div><dt className="text-gray-500">Legacy AppSheet ID</dt><dd className="font-mono text-gray-700">{transfer.legacy_appsheet_id}</dd></div>}
+            {transfer.legacy_guest_id && <div><dt className="text-gray-500">Legacy Guest ID</dt><dd className="font-mono text-gray-700">{transfer.legacy_guest_id}</dd></div>}
+            {transfer.legacy_vendor_id && <div><dt className="text-gray-500">Legacy Vendor ID</dt><dd className="font-mono text-gray-700">{transfer.legacy_vendor_id}</dd></div>}
+            {transfer.billed_date && <div><dt className="text-gray-500">Billed Date</dt><dd className="text-gray-800">{transfer.billed_date}</dd></div>}
+            {transfer.paid_date && <div><dt className="text-gray-500">Paid Date</dt><dd className="text-gray-800">{transfer.paid_date}</dd></div>}
+            {transfer.price && <div><dt className="text-gray-500">Price</dt><dd className="text-gray-800">${parseFloat(transfer.price).toFixed(2)}</dd></div>}
+            {transfer.created_at && <div><dt className="text-gray-500">Created</dt><dd className="text-gray-700 text-[10px]">{new Date(transfer.created_at).toLocaleString()}</dd></div>}
+            {transfer.updated_at && <div><dt className="text-gray-500">Updated</dt><dd className="text-gray-700 text-[10px]">{new Date(transfer.updated_at).toLocaleString()}</dd></div>}
+          </dl>
+        </div>
+      )}
     </Modal>
   );
 }

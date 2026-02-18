@@ -223,6 +223,22 @@ export function HotelBookingModal({ isOpen, onClose, booking, onSuccess }: Hotel
           </div>
         </div>
       </form>
+
+      {booking && (
+        <div className="mt-6 pt-6 border-t space-y-3">
+          <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">{ls('Record Details', 'Detalles del Registro')}</p>
+          <dl className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            {booking.id && <div><dt className="text-gray-500">ID</dt><dd className="font-mono text-gray-800 break-all">{booking.id}</dd></div>}
+            {booking.reservation_id && <div><dt className="text-gray-500">Reservation ID</dt><dd className="font-mono text-gray-800 break-all">{booking.reservation_id}</dd></div>}
+            {booking.legacy_appsheet_id && <div><dt className="text-gray-500">Legacy AppSheet ID</dt><dd className="font-mono text-gray-700">{booking.legacy_appsheet_id}</dd></div>}
+            {booking.billed_date && <div><dt className="text-gray-500">Billed Date</dt><dd className="text-gray-800">{booking.billed_date}</dd></div>}
+            {booking.paid_date && <div><dt className="text-gray-500">Paid Date</dt><dd className="text-gray-800">{booking.paid_date}</dd></div>}
+            {booking.price && <div><dt className="text-gray-500">Price</dt><dd className="text-gray-800">${parseFloat(booking.price).toFixed(2)}</dd></div>}
+            {booking.created_at && <div><dt className="text-gray-500">Created</dt><dd className="text-gray-700 text-[10px]">{new Date(booking.created_at).toLocaleString()}</dd></div>}
+            {booking.updated_at && <div><dt className="text-gray-500">Updated</dt><dd className="text-gray-700 text-[10px]">{new Date(booking.updated_at).toLocaleString()}</dd></div>}
+          </dl>
+        </div>
+      )}
     </Modal>
   );
 }
