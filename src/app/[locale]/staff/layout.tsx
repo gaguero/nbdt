@@ -28,6 +28,7 @@ import {
   ShoppingCartIcon,
   CurrencyDollarIcon,
   PrinterIcon,
+  CloudArrowUpIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -79,6 +80,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
 
     // Admin
     { name: ls('Vendors', 'Vendedores'), href: `/${locale}/staff/vendors`, icon: UserGroupIcon, group: ls('Admin', 'Admin') },
+    { name: ls('Vendor Import', 'Importar Vendedores'), href: `/${locale}/staff/vendor-import-wizard`, icon: CloudArrowUpIcon, group: ls('Admin', 'Admin') },
     { name: ls('Tour Products', 'Productos de Tours'), href: `/${locale}/staff/tour-products`, icon: MapIcon, group: ls('Admin', 'Admin') },
 { name: ls('Settings', 'Configuración'), href: `/${locale}/staff/settings`, icon: Cog6ToothIcon, group: ls('Admin', 'Admin') },
   ];

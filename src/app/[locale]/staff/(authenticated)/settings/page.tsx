@@ -484,24 +484,25 @@ export default function SettingsPage() {
                 </div>
               </StepCard>
 
-              {/* Step 3 — Vendors */}
+              {/* Step 3 — Vendor Import */}
               <StepCard
                 step={3}
-                title="Vendor Setup"
-                subtitle="Vendors are needed by transfers and tours — manage via the Vendors admin page"
+                title="Vendor Import"
+                subtitle="Import vendors from AppSheet CSV, preserving legacy vendor IDs"
                 tables={['vendors']}
                 getCount={getCount}
                 locked={false}
+                fileRef="Concierge - Vendedores.csv"
               >
                 <Link
-                  href={staffHref('vendors')}
+                  href={staffHref('vendor-import-wizard')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Open Vendors Page
+                  Open Vendor Import Wizard
                 </Link>
                 <p className="text-xs text-gray-400 mt-2">
-                  Vendors are auto-created during transfer and tour imports if they don&apos;t exist.
+                  After import, use the Vendors page to edit contact info or activate vendor users.
                 </p>
               </StepCard>
 
