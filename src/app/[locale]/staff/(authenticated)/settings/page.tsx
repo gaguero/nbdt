@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { TrashIcon, ServerIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ServerIcon, ExclamationTriangleIcon, ArrowPathIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 export default function SettingsPage() {
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -11,6 +11,9 @@ export default function SettingsPage() {
 
   const [dbStats, setDbStats] = useState<any[]>([]);
   const [loadingDb, setLoadingDb] = useState(false);
+  const [syncLogs, setSyncLogs] = useState<any[]>([]);
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
 
   const fetchDbStats = async () => {
     setLoadingDb(true);
@@ -22,7 +25,32 @@ export default function SettingsPage() {
     finally { setLoadingDb(false); }
   };
 
-  useEffect(() => { fetchDbStats(); }, []);
+  const fetchSyncLogs = async () => {
+    const res = await fetch('/api/admin/opera-sync');
+    if (res.ok) { const d = await res.json(); setSyncLogs(d.logs ?? []); }
+  };
+
+  useEffect(() => { fetchDbStats(); fetchSyncLogs(); }, []);
+
+  const handleManualSync = async () => {
+    setSyncing(true);
+    setSyncStatus(null);
+    try {
+      const res = await fetch('/api/admin/opera-sync', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        const s = data.summary;
+        setSyncStatus(`Sync complete — ${s.emails_found} email(s), ${s.xmls_processed} XML(s), ${s.reservations_created} created, ${s.reservations_updated} updated${s.errors.length ? `, ${s.errors.length} error(s)` : ''}.`);
+        fetchSyncLogs();
+      } else {
+        setSyncStatus(`Error: ${data.error}`);
+      }
+    } catch (err: any) {
+      setSyncStatus(`Error: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const handleClearTable = async (table: string) => {
     if (!confirm(`DANGER: Are you sure you want to PERMANENTLY DELETE ALL records from ${table}? This will also delete linked data in other tables via CASCADE.`)) return;
@@ -71,42 +99,76 @@ export default function SettingsPage() {
     <div className="p-6 max-w-3xl mx-auto space-y-8">
       <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
 
-      {/* Opera XML Import */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Opera PMS Import</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Upload the hourly Opera XML report to sync reservations and guest profiles.
-        </p>
-        <form onSubmit={handleOperaImport} className="space-y-3">
+      {/* Opera PMS — Auto Sync + Manual Upload */}
+      <section className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Opera PMS Sync</h2>
+          <p className="text-sm text-gray-500">
+            Reservations sync automatically every hour from the <code className="bg-gray-100 px-1 rounded text-xs">Opera_revs_update</code> Gmail label.
+            You can also trigger a manual sync or upload an XML file directly.
+          </p>
+        </div>
+
+        {/* Auto sync trigger */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={handleManualSync}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
+            <ArrowPathIcon className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing…' : 'Sync Now (Gmail)'}
+          </button>
+          {syncStatus && (
+            <p className={`text-sm rounded-lg px-3 py-2 ${syncStatus.startsWith('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+              {syncStatus}
+            </p>
+          )}
+        </div>
+
+        {/* Recent sync log */}
+        {syncLogs.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              XML Report File
-            </label>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Recent Sync Runs</h3>
+            <div className="space-y-1">
+              {syncLogs.slice(0, 5).map((log: any) => (
+                <div key={log.id} className="flex items-center gap-3 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+                  <CheckCircleIcon className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                  <span className="text-gray-400 font-mono">{new Date(log.synced_at).toLocaleString()}</span>
+                  <span className="capitalize text-gray-500">[{log.triggered_by}]</span>
+                  <span>{log.emails_found} email(s) · {log.xmls_processed} XML(s) · {log.reservations_created} new · {log.reservations_updated} updated</span>
+                  {log.errors?.length > 0 && <span className="text-red-500">{log.errors.length} error(s)</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Manual file upload (fallback) */}
+        <div className="border-t pt-4">
+          <p className="text-xs text-gray-400 mb-3">Or upload an XML file manually:</p>
+          <form onSubmit={handleOperaImport} className="flex items-center gap-3 flex-wrap">
             <input
               ref={fileRef}
               type="file"
               accept=".xml"
               required
-              className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
             />
-          </div>
-          <button
-            type="submit"
-            disabled={importing}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-          >
-            {importing ? 'Importing…' : 'Upload & Import'}
-          </button>
-          {importStatus && (
-            <p className={`text-sm rounded-lg px-3 py-2 ${
-              importStatus.startsWith('Error')
-                ? 'bg-red-50 text-red-700'
-                : 'bg-green-50 text-green-700'
-            }`}>
-              {importStatus}
-            </p>
-          )}
-        </form>
+            <button
+              type="submit"
+              disabled={importing}
+              className="px-4 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+            >
+              {importing ? 'Importing…' : 'Upload & Import'}
+            </button>
+            {importStatus && (
+              <p className={`text-sm rounded-lg px-3 py-2 ${importStatus.startsWith('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                {importStatus}
+              </p>
+            )}
+          </form>
+        </div>
       </section>
 
       {/* Imports & Normalization */}
