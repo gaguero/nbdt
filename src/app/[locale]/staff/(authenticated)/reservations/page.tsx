@@ -215,6 +215,7 @@ function ReservationsContent() {
                 <th className="px-6 py-4 text-center">{ls('Nights', 'Noches')}</th>
                 <th className="px-6 py-4">{ls('Category', 'Categoría')}</th>
                 <th className="px-6 py-4">{ls('Status', 'Estado')}</th>
+                <th className="px-6 py-4 w-1">{ls('Details', 'Detalles')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -258,6 +259,18 @@ function ReservationsContent() {
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={r.status} ls={ls} />
+                  </td>
+                  <td className="px-6 py-4 text-center group/detail">
+                    <details className="cursor-pointer">
+                      <summary className="text-[10px] text-blue-600 hover:text-blue-700 font-bold uppercase no-marker">▼</summary>
+                      <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg p-3 shadow-lg z-10 text-left text-xs w-64">
+                        <dl className="space-y-1.5">
+                          <div><dt className="text-gray-500 font-medium">{ls('Opera Resv ID', 'ID Opera')}</dt><dd className="font-mono text-gray-700 break-all">{r.opera_resv_id}</dd></div>
+                          <div><dt className="text-gray-500 font-medium">{ls('DB ID', 'ID BD')}</dt><dd className="font-mono text-gray-700 text-[9px] break-all">{r.id}</dd></div>
+                          {r.last_synced_at && <div><dt className="text-gray-500 font-medium">{ls('Last Synced', 'Última Sincronización')}</dt><dd className="text-gray-700 text-[9px]">{new Date(r.last_synced_at).toLocaleString()}</dd></div>}
+                        </dl>
+                      </div>
+                    </details>
                   </td>
                 </tr>
               ))}

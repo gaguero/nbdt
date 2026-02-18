@@ -363,6 +363,22 @@ export default function ProfilesPage() {
                   </>
                 )}
               </div>
+
+              {/* Record Details */}
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div className="px-4 py-2.5 bg-gray-50 border-b">
+                  <h3 className="text-sm font-semibold text-gray-700">{ls('Record Details', 'Detalles del Registro')}</h3>
+                </div>
+                <dl className="grid grid-cols-2 gap-3 px-4 py-3 text-xs">
+                  {selected.id && <div><dt className="text-gray-500 font-medium">{ls('ID', 'ID')}</dt><dd className="font-mono text-gray-700 break-all">{selected.id}</dd></div>}
+                  {selected.legacy_appsheet_id && <div><dt className="text-gray-500 font-medium">{ls('Legacy AppSheet ID', 'Legacy AppSheet ID')}</dt><dd className="font-mono text-gray-700">{selected.legacy_appsheet_id}</dd></div>}
+                  {selected.legacy_appsheet_ids && Array.isArray(selected.legacy_appsheet_ids) && selected.legacy_appsheet_ids.length > 0 && <div className="col-span-2"><dt className="text-gray-500 font-medium mb-1">{ls('Merged IDs', 'IDs Consolidados')}</dt><dd className="font-mono text-gray-700 break-all">{selected.legacy_appsheet_ids.join(', ')}</dd></div>}
+                  {selected.opera_profile_id && <div><dt className="text-gray-500 font-medium">{ls('Opera Profile ID', 'ID Perfil Opera')}</dt><dd className="font-mono text-gray-700">{selected.opera_profile_id}</dd></div>}
+                  {selected.companion_name && <div><dt className="text-gray-500 font-medium">{ls('Companion', 'Acompañante')}</dt><dd className="text-gray-700">{selected.companion_name}</dd></div>}
+                  {selected.created_at && <div><dt className="text-gray-500 font-medium">{ls('Created', 'Creado')}</dt><dd className="text-gray-700 text-[10px]">{new Date(selected.created_at).toLocaleString()}</dd></div>}
+                  {selected.updated_at && <div><dt className="text-gray-500 font-medium">{ls('Updated', 'Actualizado')}</dt><dd className="text-gray-700 text-[10px]">{new Date(selected.updated_at).toLocaleString()}</dd></div>}
+                </dl>
+              </div>
             </div>
           ) : (
             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-400 text-sm">

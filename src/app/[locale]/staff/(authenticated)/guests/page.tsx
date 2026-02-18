@@ -387,6 +387,20 @@ export default function GuestsPage() {
                   </div>
                 </Section>
               )}
+
+              {/* Record Details */}
+              <Section title={ls('Record Details', 'Detalles del Registro')}>
+                <dl className="grid grid-cols-2 gap-3 px-4 py-3 text-xs">
+                  {selected.guest.id && <div><dt className="text-gray-500 font-medium">{ls('ID', 'ID')}</dt><dd className="font-mono text-gray-700 break-all">{selected.guest.id}</dd></div>}
+                  {selected.guest.legacy_appsheet_id && <div><dt className="text-gray-500 font-medium">{ls('Legacy AppSheet ID', 'Legacy AppSheet ID')}</dt><dd className="font-mono text-gray-700">{selected.guest.legacy_appsheet_id}</dd></div>}
+                  {selected.guest.legacy_appsheet_ids && Array.isArray(selected.guest.legacy_appsheet_ids) && selected.guest.legacy_appsheet_ids.length > 0 && <div className="col-span-2"><dt className="text-gray-500 font-medium mb-1">{ls('Merged IDs', 'IDs Consolidados')}</dt><dd className="font-mono text-gray-700 break-all">{selected.guest.legacy_appsheet_ids.join(', ')}</dd></div>}
+                  {selected.guest.opera_profile_id && <div><dt className="text-gray-500 font-medium">{ls('Opera Profile ID', 'ID Perfil Opera')}</dt><dd className="font-mono text-gray-700">{selected.guest.opera_profile_id}</dd></div>}
+                  {selected.guest.companion_name && <div><dt className="text-gray-500 font-medium">{ls('Companion', 'Acompañante')}</dt><dd className="text-gray-700">{selected.guest.companion_name}</dd></div>}
+                  {selected.guest.profile_type && <div><dt className="text-gray-500 font-medium">{ls('Profile Type', 'Tipo Perfil')}</dt><dd className="text-gray-700 capitalize">{selected.guest.profile_type}</dd></div>}
+                  {selected.guest.created_at && <div><dt className="text-gray-500 font-medium">{ls('Created', 'Creado')}</dt><dd className="text-gray-700 text-[10px]">{new Date(selected.guest.created_at).toLocaleString()}</dd></div>}
+                  {selected.guest.updated_at && <div><dt className="text-gray-500 font-medium">{ls('Updated', 'Actualizado')}</dt><dd className="text-gray-700 text-[10px]">{new Date(selected.guest.updated_at).toLocaleString()}</dd></div>}
+                </dl>
+              </Section>
             </div>
           ) : (
             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-400 text-sm">
