@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
 
   const logs = await queryMany(
     `SELECT id, synced_at, emails_found, xmls_processed,
-            reservations_created, reservations_updated, errors, triggered_by
+            reservations_created, reservations_updated, errors, triggered_by,
+            created_details, updated_details
      FROM opera_sync_log
      ORDER BY synced_at DESC
      LIMIT 20`
@@ -67,6 +68,8 @@ export async function POST(request: NextRequest) {
     reservations_created: 0,
     reservations_updated: 0,
     errors: [] as string[],
+    created_details: [] as any[],
+    updated_details: [] as any[],
   };
 
   LOG('Starting Opera sync');
@@ -86,6 +89,8 @@ export async function POST(request: NextRequest) {
         summary.xmls_processed++;
         summary.reservations_created += importResult.created ?? 0;
         summary.reservations_updated += importResult.updated ?? 0;
+        summary.created_details.push(...(importResult.createdRecords ?? []));
+        summary.updated_details.push(...(importResult.updatedRecords ?? []));
         LOG(`XML ${i + 1} imported — created:${importResult.created} updated:${importResult.updated} errors:${importResult.errors?.length ?? 0}`);
         if (importResult.errors?.length) {
           summary.errors.push(...importResult.errors);
@@ -106,8 +111,8 @@ export async function POST(request: NextRequest) {
   // Write to sync log
   await query(
     `INSERT INTO opera_sync_log
-       (emails_found, xmls_processed, reservations_created, reservations_updated, errors, triggered_by)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
+       (emails_found, xmls_processed, reservations_created, reservations_updated, errors, triggered_by, created_details, updated_details)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
     [
       summary.emails_found,
       summary.xmls_processed,
@@ -115,6 +120,8 @@ export async function POST(request: NextRequest) {
       summary.reservations_updated,
       JSON.stringify(summary.errors),
       triggeredBy,
+      JSON.stringify(summary.created_details),
+      JSON.stringify(summary.updated_details),
     ]
   );
 

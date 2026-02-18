@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importOperaXml } from '@/lib/opera/xml-import';
 import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
-import { queryOne } from '@/lib/db';
+import { query, queryOne } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,6 +40,21 @@ export async function POST(request: NextRequest) {
 
     const xmlContent = await file.text();
     const result = await importOperaXml(xmlContent);
+
+    await query(
+      `INSERT INTO opera_sync_log
+         (emails_found, xmls_processed, reservations_created, reservations_updated, errors, triggered_by, created_details, updated_details)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        0, 1,
+        result.created,
+        result.updated,
+        JSON.stringify(result.errors),
+        'upload',
+        JSON.stringify(result.createdRecords),
+        JSON.stringify(result.updatedRecords),
+      ]
+    );
 
     return NextResponse.json({ message: 'Import completed', result });
   } catch (error: any) {

@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 import { query, queryOne, transaction } from '@/lib/db';
-import type { OperaGRoom, OperaImportResult, ParsedReservation } from './types';
+import type { OperaGRoom, OperaImportResult, ParsedReservation, ReservationDetail } from './types';
 
 function parseDate(dateStr: string): string | null {
   if (!dateStr) return null;
@@ -101,6 +101,8 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
     updated: 0,
     unchanged: 0,
     errors: [],
+    createdRecords: [],
+    updatedRecords: [],
   };
 
   if (gRooms.length === 0) {
@@ -171,6 +173,14 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
               ]
             );
             result.updated++;
+            result.updatedRecords.push({
+              opera_resv_id: parsed.opera_resv_id,
+              guest_name: parsed.full_name,
+              room: parsed.room,
+              arrival: parsed.arrival,
+              departure: parsed.departure,
+              status: parsed.status,
+            });
           }
         } else {
           await client.query(
@@ -191,6 +201,14 @@ export async function importOperaXml(xmlContent: string): Promise<OperaImportRes
             ]
           );
           result.created++;
+          result.createdRecords.push({
+            opera_resv_id: parsed.opera_resv_id,
+            guest_name: parsed.full_name,
+            room: parsed.room,
+            arrival: parsed.arrival,
+            departure: parsed.departure,
+            status: parsed.status,
+          });
         }
       });
     } catch (err: any) {

@@ -14,6 +14,7 @@ export default function SettingsPage() {
   const [syncLogs, setSyncLogs] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  const [expandedLog, setExpandedLog] = useState<{ id: string; section: 'created' | 'updated' | 'errors' } | null>(null);
 
   const fetchDbStats = async () => {
     setLoadingDb(true);
@@ -130,16 +131,115 @@ export default function SettingsPage() {
         {syncLogs.length > 0 && (
           <div>
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Recent Sync Runs</h3>
-            <div className="space-y-1">
-              {syncLogs.slice(0, 5).map((log: any) => (
-                <div key={log.id} className="flex items-center gap-3 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-                  <CheckCircleIcon className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-400 font-mono">{new Date(log.synced_at).toLocaleString()}</span>
-                  <span className="capitalize text-gray-500">[{log.triggered_by}]</span>
-                  <span>{log.emails_found} email(s) · {log.xmls_processed} XML(s) · {log.reservations_created} new · {log.reservations_updated} updated</span>
-                  {log.errors?.length > 0 && <span className="text-red-500">{log.errors.length} error(s)</span>}
-                </div>
-              ))}
+            <div className="space-y-2">
+              {syncLogs.slice(0, 10).map((log: any) => {
+                const createdList: any[] = Array.isArray(log.created_details) ? log.created_details : [];
+                const updatedList: any[] = Array.isArray(log.updated_details) ? log.updated_details : [];
+                const errorsList: string[] = Array.isArray(log.errors) ? log.errors : [];
+                const isExpanded = expandedLog?.id === log.id;
+                const expandedSection = isExpanded ? expandedLog?.section : null;
+
+                const toggle = (section: 'created' | 'updated' | 'errors') => {
+                  if (isExpanded && expandedSection === section) {
+                    setExpandedLog(null);
+                  } else {
+                    setExpandedLog({ id: log.id, section });
+                  }
+                };
+
+                const hasErrors = errorsList.length > 0;
+
+                return (
+                  <div key={log.id} className="rounded-lg border border-gray-100 overflow-hidden">
+                    {/* Header row */}
+                    <div className="flex items-center gap-2 text-xs bg-gray-50 px-3 py-2 flex-wrap">
+                      {hasErrors
+                        ? <ExclamationTriangleIcon className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                        : <CheckCircleIcon className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />}
+                      <span className="text-gray-400 font-mono">{new Date(log.synced_at).toLocaleString()}</span>
+                      <span className="text-gray-400 capitalize">[{log.triggered_by}]</span>
+                      {log.triggered_by !== 'upload' && (
+                        <span className="text-gray-500">{log.emails_found} email(s) · {log.xmls_processed} XML(s)</span>
+                      )}
+                      {/* Clickable new count */}
+                      {createdList.length > 0 ? (
+                        <button
+                          onClick={() => toggle('created')}
+                          className={`px-1.5 py-0.5 rounded font-semibold transition-colors ${expandedSection === 'created' ? 'bg-green-200 text-green-800' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                        >
+                          {createdList.length} new
+                        </button>
+                      ) : (
+                        <span className="text-gray-400">0 new</span>
+                      )}
+                      {/* Clickable updated count */}
+                      {updatedList.length > 0 ? (
+                        <button
+                          onClick={() => toggle('updated')}
+                          className={`px-1.5 py-0.5 rounded font-semibold transition-colors ${expandedSection === 'updated' ? 'bg-blue-200 text-blue-800' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
+                        >
+                          {updatedList.length} updated
+                        </button>
+                      ) : (
+                        <span className="text-gray-400">0 updated</span>
+                      )}
+                      {/* Clickable error count */}
+                      {errorsList.length > 0 && (
+                        <button
+                          onClick={() => toggle('errors')}
+                          className={`px-1.5 py-0.5 rounded font-semibold transition-colors ${expandedSection === 'errors' ? 'bg-red-200 text-red-800' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                        >
+                          {errorsList.length} error(s)
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Detail panel */}
+                    {isExpanded && expandedSection === 'created' && createdList.length > 0 && (
+                      <div className="border-t border-gray-100 bg-green-50 px-3 py-2">
+                        <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-1">New Reservations</p>
+                        <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                          {createdList.map((r: any) => (
+                            <div key={r.opera_resv_id} className="flex gap-3 text-xs text-green-900">
+                              <span className="font-mono text-green-600 w-16 shrink-0">{r.room || '—'}</span>
+                              <span className="flex-1">{r.guest_name}</span>
+                              <span className="text-green-600 shrink-0">{r.arrival} → {r.departure}</span>
+                              <span className="text-green-500 shrink-0">{r.status}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {isExpanded && expandedSection === 'updated' && updatedList.length > 0 && (
+                      <div className="border-t border-gray-100 bg-blue-50 px-3 py-2">
+                        <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-1">Updated Reservations</p>
+                        <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                          {updatedList.map((r: any) => (
+                            <div key={r.opera_resv_id} className="flex gap-3 text-xs text-blue-900">
+                              <span className="font-mono text-blue-600 w-16 shrink-0">{r.room || '—'}</span>
+                              <span className="flex-1">{r.guest_name}</span>
+                              <span className="text-blue-600 shrink-0">{r.arrival} → {r.departure}</span>
+                              <span className="text-blue-500 shrink-0">{r.status}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {isExpanded && expandedSection === 'errors' && errorsList.length > 0 && (
+                      <div className="border-t border-gray-100 bg-red-50 px-3 py-2">
+                        <p className="text-[10px] font-bold text-red-700 uppercase tracking-wider mb-1">Errors</p>
+                        <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                          {errorsList.map((e: string, i: number) => (
+                            <p key={i} className="text-xs text-red-700 font-mono break-all">{e}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -22,12 +22,23 @@ export interface OperaGRoom {
   SHARE_AMOUNT_PER_STAY: string;
 }
 
+export interface ReservationDetail {
+  opera_resv_id: string;
+  guest_name: string;
+  room: string;
+  arrival: string | null;
+  departure: string | null;
+  status: string;
+}
+
 export interface OperaImportResult {
   total: number;
   created: number;
   updated: number;
   unchanged: number;
   errors: string[];
+  createdRecords: ReservationDetail[];
+  updatedRecords: ReservationDetail[];
 }
 
 export interface ParsedReservation {
