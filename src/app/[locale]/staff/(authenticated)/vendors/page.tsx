@@ -166,6 +166,11 @@ export default function VendorsPage() {
               {v.email && <div className="mt-2 text-xs text-gray-500">{v.email}</div>}
               {v.phone && <div className="text-xs text-gray-500">{v.phone}</div>}
               {v.notes && <div className="mt-2 text-xs text-gray-600 bg-gray-50 rounded px-2 py-1">{v.notes}</div>}
+              <div className="mt-3 pt-3 border-t space-y-1.5 text-[10px] text-gray-500">
+                {v.id && <div><span className="font-medium text-gray-600">{ls('ID', 'ID')}: </span><span className="font-mono break-all">{v.id}</span></div>}
+                {v.created_at && <div><span className="font-medium text-gray-600">{ls('Created', 'Creado')}: </span>{new Date(v.created_at).toLocaleString()}</div>}
+                {v.updated_at && <div><span className="font-medium text-gray-600">{ls('Updated', 'Actualizado')}: </span>{new Date(v.updated_at).toLocaleString()}</div>}
+              </div>
               <div className="mt-3 flex gap-2">
                 <button onClick={() => handleEdit(v)} className="text-xs text-blue-600 hover:underline">{ls('Edit', 'Editar')}</button>
                 <button onClick={() => handleToggle(v)} className="text-xs text-gray-500 hover:underline">
