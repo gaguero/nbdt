@@ -2,13 +2,23 @@
 
 import { useRef, useState } from 'react';
 
-interface UniqueNameEntry { name: string; count: number; newCount: number; existingCount: number; }
+interface UniqueNameEntry {
+  key: string;
+  name: string;
+  vendorLegacyId: string;
+  vendorId: string | null;
+  vendorName: string | null;
+  count: number;
+  newCount: number;
+  existingCount: number;
+}
 interface TourProduct { id: string; name_en: string; name_es: string; vendor_name: string; }
 interface Vendor { id: string; name: string; type: string; }
 
 interface ParsedGroup {
   groupId: number;
-  csvNames: string[];
+  csvKeys: string[];
+  csvLabels: string[];
   rowCount: number;
   newCount: number;
   existingCount: number;
@@ -16,6 +26,7 @@ interface ParsedGroup {
   suggestedProductId?: string;
   suggestedNameEn?: string;
   suggestedNameEs?: string;
+  suggestedVendorId?: string;
 }
 
 interface GroupDecision {
@@ -119,7 +130,7 @@ export default function TourNormalizationPage() {
       return;
     }
 
-    let rawGroups: { groupId: number; csvNames: string[]; action: string; productId?: string; name_en?: string; name_es?: string }[];
+    let rawGroups: { groupId: number; csvKeys?: string[]; csvNames?: string[]; action: string; productId?: string; name_en?: string; name_es?: string }[];
     try {
       rawGroups = JSON.parse(jsonMatch[0]);
     } catch (_e) {
@@ -127,41 +138,61 @@ export default function TourNormalizationPage() {
       return;
     }
 
-    const allCsvNames = new Set(uniqueNames.map(n => n.name));
-    const coveredNames = new Set<string>();
+    const allCsvKeys = new Set(uniqueNames.map(n => n.key));
+    const coveredKeys = new Set<string>();
 
-    // Build a per-name lookup for new/existing counts from the parse result
-    const nameDetails = new Map(uniqueNames.map(n => [n.name, n]));
+    // Build a per-key lookup for new/existing counts from the parse result
+    const keyDetails = new Map(uniqueNames.map(n => [n.key, n]));
 
     const parsed: ParsedGroup[] = rawGroups
       .map((g, i) => {
-        const validNames = (g.csvNames ?? []).filter(n => allCsvNames.has(n));
-        validNames.forEach(n => coveredNames.add(n));
-        const rowCount    = validNames.reduce((s, n) => s + (nameCountMap[n] ?? 0), 0);
-        const existingCount = validNames.reduce((s, n) => s + (nameDetails.get(n)?.existingCount ?? 0), 0);
+        const sourceKeys = (g.csvKeys && g.csvKeys.length > 0 ? g.csvKeys : g.csvNames ?? []);
+        const validKeys = sourceKeys.filter(key => allCsvKeys.has(key));
+        validKeys.forEach(key => coveredKeys.add(key));
+        const rowCount = validKeys.reduce((s, key) => s + (nameCountMap[key] ?? 0), 0);
+        const existingCount = validKeys.reduce((s, key) => s + (keyDetails.get(key)?.existingCount ?? 0), 0);
+        const csvLabels = validKeys.map((key) => {
+          const d = keyDetails.get(key);
+          if (!d) return key;
+          return d.vendorLegacyId
+            ? `${d.name} [${d.vendorLegacyId}${d.vendorName ? `: ${d.vendorName}` : ''}]`
+            : `${d.name} [NO_VENDOR]`;
+        });
+        const vendorIds = Array.from(
+          new Set(validKeys.map((key) => keyDetails.get(key)?.vendorId).filter(Boolean))
+        ) as string[];
         return {
           groupId: g.groupId ?? i + 1,
-          csvNames: validNames,
+          csvKeys: validKeys,
+          csvLabels,
           rowCount,
           newCount: rowCount - existingCount,
           existingCount,
           suggestedAction: (['create', 'map', 'skip'].includes(g.action)
             ? g.action : 'skip') as 'create' | 'map' | 'skip',
           suggestedProductId: g.productId,
-          suggestedNameEn: g.name_en,
-          suggestedNameEs: g.name_es,
+          suggestedNameEn: g.name_en ?? keyDetails.get(validKeys[0] ?? '')?.name,
+          suggestedNameEs: g.name_es ?? keyDetails.get(validKeys[0] ?? '')?.name,
+          suggestedVendorId: vendorIds.length === 1 ? vendorIds[0] : '',
         };
       })
-      .filter(g => g.csvNames.length > 0);
+      .filter(g => g.csvKeys.length > 0);
 
     // Any CSV names the AI didn't cover → add as a skip group
-    const uncovered = [...allCsvNames].filter(n => !coveredNames.has(n));
+    const uncovered = [...allCsvKeys].filter(key => !coveredKeys.has(key));
     if (uncovered.length > 0) {
-      const rowCount = uncovered.reduce((s, n) => s + (nameCountMap[n] ?? 0), 0);
-      const existingCount = uncovered.reduce((s, n) => s + (nameDetails.get(n)?.existingCount ?? 0), 0);
+      const rowCount = uncovered.reduce((s, key) => s + (nameCountMap[key] ?? 0), 0);
+      const existingCount = uncovered.reduce((s, key) => s + (keyDetails.get(key)?.existingCount ?? 0), 0);
       parsed.push({
         groupId: parsed.length + 1,
-        csvNames: uncovered,
+        csvKeys: uncovered,
+        csvLabels: uncovered.map((key) => {
+          const d = keyDetails.get(key);
+          if (!d) return key;
+          return d.vendorLegacyId
+            ? `${d.name} [${d.vendorLegacyId}${d.vendorName ? `: ${d.vendorName}` : ''}]`
+            : `${d.name} [NO_VENDOR]`;
+        }),
         rowCount,
         newCount: rowCount - existingCount,
         existingCount,
@@ -174,10 +205,10 @@ export default function TourNormalizationPage() {
     for (const g of parsed) {
       auto[g.groupId] = {
         action: g.suggestedAction,
-        productId: g.suggestedProductId,
-        name_en: g.suggestedNameEn ?? g.csvNames[0],
-        name_es: g.suggestedNameEs ?? g.csvNames[0],
-        vendor_id: '',
+        productId: g.suggestedProductId ?? '',
+        name_en: g.suggestedNameEn ?? g.csvLabels[0] ?? '',
+        name_es: g.suggestedNameEs ?? g.csvLabels[0] ?? '',
+        vendor_id: g.suggestedVendorId ?? '',
       };
     }
 
@@ -196,7 +227,7 @@ export default function TourNormalizationPage() {
       const dec = decisions[g.groupId] ?? { action: 'skip' };
       return {
         groupId: g.groupId,
-        csvNames: g.csvNames,
+        csvKeys: g.csvKeys,
         action: dec.action,
         productId: dec.productId,
         name_en: dec.name_en,
@@ -436,9 +467,9 @@ export default function TourNormalizationPage() {
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap gap-1 mb-1">
-                        {g.csvNames.map(n => (
-                          <span key={n} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-mono">
-                            {n}
+                        {g.csvLabels.map(label => (
+                          <span key={label} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-mono">
+                            {label}
                           </span>
                         ))}
                       </div>

@@ -38,6 +38,10 @@ function getField(row: Record<string, string>, ...keys: string[]): string {
   return '';
 }
 
+function buildCompositeKey(name: string, legacyVendorId: string): string {
+  return `${name}|||${legacyVendorId || 'NO_VENDOR'}`;
+}
+
 /**
  * POST /api/admin/tour-normalization/parse
  * Upload CSV → extract unique tour names → generate AI prompt.
@@ -60,26 +64,59 @@ export async function POST(request: NextRequest) {
     const rows = parseCSV(csvText);
     if (rows.length === 0) return NextResponse.json({ error: 'CSV is empty' }, { status: 400 });
 
-    // Extract unique tour names with booking counts, and track legacy IDs per name
+    // Resolve vendors by legacy ID so we can pre-link "(tour + vendor)" groups
+    const allVendorLegacyIds = Array.from(
+      new Set(
+        rows
+          .map((row) => getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor'))
+          .filter(Boolean)
+      )
+    );
+    const vendorByLegacyId = new Map<string, { id: string; name: string }>();
+    if (allVendorLegacyIds.length > 0) {
+      const vendorRes = await query(
+        `SELECT id, name, legacy_appsheet_id
+         FROM vendors
+         WHERE legacy_appsheet_id = ANY($1::text[])`,
+        [allVendorLegacyIds]
+      );
+      for (const vendor of vendorRes.rows as { id: string; name: string; legacy_appsheet_id: string }[]) {
+        vendorByLegacyId.set(vendor.legacy_appsheet_id, { id: vendor.id, name: vendor.name });
+      }
+    }
+
+    // Extract unique (tour_name + legacy_vendor_id) keys with booking counts
     const nameCount: Record<string, number> = {};
-    const nameLegacyIds: Record<string, string[]> = {};
+    const keyLegacyIds: Record<string, string[]> = {};
+    const keyMeta: Record<string, { name: string; vendorLegacyId: string; vendorId: string | null; vendorName: string | null }> = {};
     for (const row of rows) {
       const name = getField(row,
         'nombre_de_la_actividad', 'product', 'product_name',
         'actividad', 'tour', 'activity', 'nombre_actividad'
       );
       const legacyId = getField(row, 'id', 'row_id', 'id_actividad', '_rownum', 'row_number');
+      const vendorLegacyId = getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor');
       if (name) {
-        nameCount[name] = (nameCount[name] || 0) + 1;
+        const key = buildCompositeKey(name, vendorLegacyId);
+        nameCount[key] = (nameCount[key] || 0) + 1;
         if (legacyId) {
-          if (!nameLegacyIds[name]) nameLegacyIds[name] = [];
-          nameLegacyIds[name].push(legacyId);
+          if (!keyLegacyIds[key]) keyLegacyIds[key] = [];
+          keyLegacyIds[key].push(legacyId);
+        }
+        if (!keyMeta[key]) {
+          const vendorMatch = vendorLegacyId ? vendorByLegacyId.get(vendorLegacyId) : undefined;
+          keyMeta[key] = {
+            name,
+            vendorLegacyId,
+            vendorId: vendorMatch?.id ?? null,
+            vendorName: vendorMatch?.name ?? null,
+          };
         }
       }
     }
 
     // Check which legacy IDs already exist in tour_bookings
-    const allLegacyIds = Object.values(nameLegacyIds).flat();
+    const allLegacyIds = Object.values(keyLegacyIds).flat();
     let existingIdSet = new Set<string>();
     if (allLegacyIds.length > 0) {
       const existingRes = await query(
@@ -92,10 +129,20 @@ export async function POST(request: NextRequest) {
 
     // Build per-name new vs existing counts
     const uniqueNames = Object.entries(nameCount)
-      .map(([name, count]) => {
-        const ids = nameLegacyIds[name] ?? [];
+      .map(([key, count]) => {
+        const ids = keyLegacyIds[key] ?? [];
         const existingCount = ids.filter(id => existingIdSet.has(id)).length;
-        return { name, count, newCount: count - existingCount, existingCount };
+        const meta = keyMeta[key];
+        return {
+          key,
+          name: meta?.name ?? key,
+          vendorLegacyId: meta?.vendorLegacyId ?? '',
+          vendorId: meta?.vendorId ?? null,
+          vendorName: meta?.vendorName ?? null,
+          count,
+          newCount: count - existingCount,
+          existingCount,
+        };
       })
       .sort((a, b) => b.count - a.count);
 
@@ -119,7 +166,10 @@ export async function POST(request: NextRequest) {
         const detail = n.existingCount > 0
           ? `${n.newCount} new + ${n.existingCount} already imported`
           : `${n.count} booking${n.count !== 1 ? 's' : ''}`;
-        return `"${n.name}" (${detail})`;
+        const vendorInfo = n.vendorLegacyId
+          ? `vendorLegacyId="${n.vendorLegacyId}"${n.vendorName ? `, vendorName="${n.vendorName}"` : ''}`
+          : 'vendorLegacyId="NO_VENDOR"';
+        return `KEY="${n.key}" | tour="${n.name}" | ${vendorInfo} | ${detail}`;
       })
       .join('\n');
 
@@ -133,6 +183,11 @@ export async function POST(request: NextRequest) {
 Below are tour activity names extracted from a historical CSV import, with their booking counts.
 Your job is to group name variants that refer to the same real tour, then map each group to an
 existing product or propose a new one.
+
+IMPORTANT:
+- Treat each KEY as unique by tour name + vendor legacy ID.
+- The same tour name may appear for different vendors; those should usually remain separate groups.
+- Preserve vendor context when deciding map/create.
 
 EXISTING TOUR PRODUCTS (already in the system):
 ${productsList}
@@ -148,27 +203,27 @@ INSTRUCTIONS:
    - "create" → it is a new tour not yet in the system (provide name_en and name_es)
    - "skip"   → the entry is invalid / test data (e.g. "cancelado", "n/a", blank)
 3. Suggest clear, professional names for new tours (English and Spanish).
-4. Every CSV name must appear in exactly one group.
+4. Every CSV KEY must appear in exactly one group.
 5. Return ONLY a valid JSON array — no markdown, no explanation outside the JSON.
 
 OUTPUT FORMAT (return exactly this structure):
 [
   {
     "groupId": 1,
-    "csvNames": ["Snorkeling", "Snorkel trip", "Snorkeling Tour"],
+    "csvKeys": ["Snorkeling|||vnd019", "Snorkel trip|||vnd019"],
     "action": "create",
     "name_en": "Snorkeling Tour",
     "name_es": "Tour de Snorkel"
   },
   {
     "groupId": 2,
-    "csvNames": ["Sunset Cruise"],
+    "csvKeys": ["Sunset Cruise|||vnd010"],
     "action": "map",
     "productId": "paste-existing-product-uuid-here"
   },
   {
     "groupId": 3,
-    "csvNames": ["cancelado", "test"],
+    "csvKeys": ["cancelado|||NO_VENDOR"],
     "action": "skip"
   }
 ]`;

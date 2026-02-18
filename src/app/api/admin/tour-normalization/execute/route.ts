@@ -8,66 +8,77 @@ function parseCSVLine(line: string): string[] {
   let inQuotes = false;
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
-    if (char === '"' && inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-    else if (char === '"') { inQuotes = !inQuotes; }
-    else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-    else { current += char; }
+    if (char === '"' && inQuotes && line[i + 1] === '"') {
+      current += '"';
+      i++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      values.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
   }
   values.push(current.trim());
   return values;
 }
 
 function parseCSV(text: string): Record<string, string>[] {
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
-  const headers = parseCSVLine(lines[0]).map(h =>
-    h.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+  const headers = parseCSVLine(lines[0]).map((header) =>
+    header.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
   );
-  return lines.slice(1).map(line => {
+  return lines.slice(1).map((line) => {
     const vals = parseCSVLine(line);
     const row: Record<string, string> = {};
-    headers.forEach((h, i) => { row[h] = (vals[i] ?? '').trim(); });
+    headers.forEach((header, index) => {
+      row[header] = (vals[index] ?? '').trim();
+    });
     return row;
   });
 }
 
 function getField(row: Record<string, string>, ...keys: string[]): string {
-  for (const k of keys) {
-    if (row[k] !== undefined && row[k] !== '') return row[k];
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== '') return row[key];
   }
   return '';
 }
 
-/**
- * Parse a time string from the legacy "Hora" column (e.g. "9:30:00", "19:30:00")
- * into a PostgreSQL TIME-compatible string "HH:MM:SS".
- */
+function buildCompositeKey(name: string, legacyVendorId: string): string {
+  return `${name}|||${legacyVendorId || 'NO_VENDOR'}`;
+}
+
 function parseTime(val: string): string | null {
   if (!val) return null;
   const m = val.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
   if (!m) return null;
-  const h = parseInt(m[1]);
-  const min = parseInt(m[2]);
-  if (h > 23 || min > 59) return null;
-  const sec = m[3] ?? '00';
-  return `${h.toString().padStart(2, '0')}:${m[2]}:${sec}`;
+  const hour = parseInt(m[1]);
+  const minute = parseInt(m[2]);
+  if (hour > 23 || minute > 59) return null;
+  const second = m[3] ?? '00';
+  return `${hour.toString().padStart(2, '0')}:${m[2]}:${second}`;
 }
 
 function parseDate(val: string): string | null {
   if (!val) return null;
-  val = val.trim();
-  const ymd = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const trimmed = val.trim();
+
+  const ymd = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (ymd) {
-    const [, y, m, d] = ymd;
-    const year = parseInt(y);
+    const [, year, m, d] = ymd;
+    const yearNum = parseInt(year);
     const mNum = parseInt(m);
     const dNum = parseInt(d);
-    if (year < 1900 || year > 2100) return null;
-    if (mNum > 12 && dNum <= 12) return `${y}-${d.padStart(2,'0')}-${m.padStart(2,'0')}`;
-    if (mNum >= 1 && mNum <= 12 && dNum >= 1 && dNum <= 31) return val;
+    if (yearNum < 1900 || yearNum > 2100) return null;
+    if (mNum > 12 && dNum <= 12) return `${year}-${d.padStart(2, '0')}-${m.padStart(2, '0')}`;
+    if (mNum >= 1 && mNum <= 12 && dNum >= 1 && dNum <= 31) return trimmed;
     return null;
   }
-  const mdy = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+
+  const mdy = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (mdy) {
     const [, mStr, dStr, yStr] = mdy;
     let year = parseInt(yStr);
@@ -78,37 +89,57 @@ function parseDate(val: string): string | null {
     }
     if (year > 2100) return null;
     if (parseInt(mStr) < 1 || parseInt(mStr) > 12 || parseInt(dStr) < 1 || parseInt(dStr) > 31) return null;
-    return `${year}-${mStr.padStart(2,'0')}-${dStr.padStart(2,'0')}`;
+    return `${year}-${mStr.padStart(2, '0')}-${dStr.padStart(2, '0')}`;
   }
-  const full = val.match(/^[A-Za-z]+,\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})$/);
+
+  const full = trimmed.match(/^[A-Za-z]+,\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})$/);
   if (full) {
     const monthMap: Record<string, number> = {
-      'january':1,'february':2,'march':3,'april':4,'may':5,'june':6,
-      'july':7,'august':8,'september':9,'october':10,'november':11,'december':12
+      january: 1,
+      february: 2,
+      march: 3,
+      april: 4,
+      may: 5,
+      june: 6,
+      july: 7,
+      august: 8,
+      september: 9,
+      october: 10,
+      november: 11,
+      december: 12,
     };
     const month = monthMap[full[1].toLowerCase()];
     if (!month) return null;
     const year = parseInt(full[3]);
     if (year < 1900 || year > 2100) return null;
-    return `${year}-${month.toString().padStart(2,'0')}-${full[2].padStart(2,'0')}`;
+    return `${year}-${month.toString().padStart(2, '0')}-${full[2].padStart(2, '0')}`;
   }
+
   return null;
 }
 
 function normalizeStatus(val: string): string {
   const map: Record<string, string> = {
-    'pendiente': 'pending', 'pending': 'pending',
-    'confirmado': 'confirmed', 'confirmed': 'confirmed', 'confirmada': 'confirmed',
-    'realizado': 'completed', 'completado': 'completed', 'completed': 'completed',
-    'cancelado': 'cancelled', 'cancelled': 'cancelled',
-    'no_show': 'no_show', 'no show': 'no_show',
+    pendiente: 'pending',
+    pending: 'pending',
+    confirmado: 'confirmed',
+    confirmed: 'confirmed',
+    confirmada: 'confirmed',
+    realizado: 'completed',
+    completado: 'completed',
+    completed: 'completed',
+    cancelado: 'cancelled',
+    cancelled: 'cancelled',
+    no_show: 'no_show',
+    'no show': 'no_show',
   };
   return map[val.toLowerCase().trim()] || 'pending';
 }
 
 interface GroupDecision {
   groupId: number;
-  csvNames: string[];
+  csvKeys?: string[];
+  csvNames?: string[];
   action: 'create' | 'map' | 'skip';
   productId?: string;
   name_en?: string;
@@ -116,16 +147,6 @@ interface GroupDecision {
   vendor_id?: string;
 }
 
-/**
- * POST /api/admin/tour-normalization/execute
- * Accepts: multipart/form-data with:
- *   - file: the original CSV
- *   - groups: JSON array of GroupDecision
- *
- * Step 1: create new tour_products for 'create' groups (with vendor_id)
- * Step 2: save tour_name_mappings for future reference
- * Step 3: import all tour_bookings
- */
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
@@ -144,42 +165,72 @@ export async function POST(request: NextRequest) {
 
     const groups: GroupDecision[] = JSON.parse(groupsJson);
 
-    // Step 1: build csvName → productId map
-    const csvNameToProductId: Record<string, string> = {};
+    // Build composite key (tour + legacy vendor id) -> product id map
+    const csvKeyToProductId: Record<string, string> = {};
+
+    // Preload vendors by legacy id, used to auto-link vendor on create groups
+    const allGroupKeys = groups.flatMap((group) => group.csvKeys ?? group.csvNames ?? []);
+    const allLegacyVendorIds = Array.from(
+      new Set(
+        allGroupKeys
+          .map((key) => (key.includes('|||') ? key.split('|||')[1] : ''))
+          .filter((id) => id && id !== 'NO_VENDOR')
+      )
+    );
+    const vendorIdByLegacyId = new Map<string, string>();
+    if (allLegacyVendorIds.length > 0) {
+      const vendorsRes = await query(
+        `SELECT id, legacy_appsheet_id FROM vendors WHERE legacy_appsheet_id = ANY($1::text[])`,
+        [allLegacyVendorIds]
+      );
+      for (const vendor of vendorsRes.rows as { id: string; legacy_appsheet_id: string }[]) {
+        vendorIdByLegacyId.set(vendor.legacy_appsheet_id, vendor.id);
+      }
+    }
 
     for (const group of groups) {
-      if (group.action === 'skip' || !group.csvNames?.length) continue;
+      const csvKeys = group.csvKeys ?? group.csvNames ?? [];
+      if (group.action === 'skip' || csvKeys.length === 0) continue;
 
       let productId: string | null = null;
 
       if (group.action === 'create' && group.name_en) {
-        const res = await query(
+        const fallbackLegacyVendorId = csvKeys
+          .map((key) => (key.includes('|||') ? key.split('|||')[1] : ''))
+          .find((id) => id && id !== 'NO_VENDOR');
+        const prelinkedVendorId =
+          group.vendor_id ||
+          (fallbackLegacyVendorId ? vendorIdByLegacyId.get(fallbackLegacyVendorId) : null) ||
+          null;
+
+        const productRes = await query(
           `INSERT INTO tour_products (name_en, name_es, vendor_id)
            VALUES ($1, $2, $3) RETURNING id`,
-          [group.name_en, group.name_es || group.name_en, group.vendor_id || null]
+          [group.name_en, group.name_es || group.name_en, prelinkedVendorId]
         );
-        productId = res.rows[0].id;
+        productId = productRes.rows[0].id;
       } else if (group.action === 'map' && group.productId) {
         productId = group.productId;
       }
 
       if (!productId) continue;
 
-      for (const csvName of group.csvNames) {
-        csvNameToProductId[csvName] = productId;
+      for (const csvKey of csvKeys) {
+        csvKeyToProductId[csvKey] = productId;
+        const csvName = csvKey.includes('|||') ? csvKey.split('|||')[0] : csvKey;
         try {
           await query(
             `INSERT INTO tour_name_mappings (original_name, confirmed_product_id)
-             VALUES ($1, $2) ON CONFLICT (original_name) DO UPDATE SET confirmed_product_id = $2`,
+             VALUES ($1, $2)
+             ON CONFLICT (original_name) DO UPDATE SET confirmed_product_id = $2`,
             [csvName, productId]
           );
         } catch {
-          // non-fatal if tour_name_mappings doesn't exist yet
+          // non-fatal if mapping table is not present yet
         }
       }
     }
 
-    // Step 2: import bookings
     const csvText = await file.text();
     const rows = parseCSV(csvText);
 
@@ -192,67 +243,75 @@ export async function POST(request: NextRequest) {
     };
 
     for (const row of rows) {
-      const csvName = getField(row,
-        'nombre_de_la_actividad', 'product', 'product_name',
-        'actividad', 'tour', 'activity', 'nombre_actividad'
+      const csvName = getField(
+        row,
+        'nombre_de_la_actividad',
+        'product',
+        'product_name',
+        'actividad',
+        'tour',
+        'activity',
+        'nombre_actividad'
       );
+      const legacyVendorId = getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor');
+      const compositeKey = buildCompositeKey(csvName, legacyVendorId);
+
       const legacyId = getField(row, 'id', 'row_id', 'id_actividad', '_rownum', 'row_number');
       const dateVal = getField(row, 'date', 'fecha', 'fecha_actividad');
       const activityDate = parseDate(dateVal);
-      if (!activityDate) { result.skipped++; continue; }
+      if (!activityDate) {
+        result.skipped++;
+        continue;
+      }
 
-      const productId = csvNameToProductId[csvName];
-      if (!productId) { result.skipped++; continue; }
+      const productId = csvKeyToProductId[compositeKey];
+      if (!productId) {
+        result.skipped++;
+        continue;
+      }
 
       const guestName = getField(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
       const guestLegacyId = getField(row, 'guest_id', 'id_huesped');
-      // CSV: "Numero de participantes" → normalized key is "numero_de_participantes"
-      const numGuests = parseInt(getField(row, 'numero_de_participantes', 'num_guests', 'huespedes', 'pax', 'cantidad_huespedes') || '1') || 1;
+      const numGuests =
+        parseInt(getField(row, 'numero_de_participantes', 'num_guests', 'huespedes', 'pax', 'cantidad_huespedes') || '1') || 1;
       const bookingMode = getField(row, 'booking_mode', 'modo', 'type', 'tipo_reserva') || 'shared';
       const totalPrice = parseFloat(getField(row, 'total_price', 'precio', 'price', 'precio_total') || '0') || null;
       const guestStatus = normalizeStatus(getField(row, 'estado_huesped', 'guest_status', 'estado'));
-      // CSV: "Estado vendodor" (typo in legacy) → normalized key is "estado_vendodor"
       const vendorStatus = normalizeStatus(getField(row, 'estado_vendodor', 'vendor_status', 'estado_proveedor'));
       const specialRequests = getField(row, 'special_requests', 'solicitudes', 'notes', 'notas') || null;
-      // CSV: "Fecha facturado" / "Fecha pagado" — note the exact normalized column names
       const billedDate = parseDate(getField(row, 'fecha_facturado', 'billed_date', 'fecha_cobro', 'fecha_factura'));
       const paidDate = parseDate(getField(row, 'fecha_pagado', 'paid_date', 'fecha_pago'));
-      // New: time and legacy fields
       const startTime = parseTime(getField(row, 'hora', 'start_time', 'time'));
-      // CSV: "ID Vendedor" → normalized key is "id_vendedor" — store as legacy reference
-      const legacyVendorId = getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor') || null;
-      // CSV: "Nombre de la actividad" — store raw original name before product normalization
       const legacyActivityName = csvName || null;
 
       try {
         await transaction(async (client) => {
-          // Find or create guest
           let guestId: string | null = null;
           if (guestLegacyId) {
-            const r = await client.query('SELECT id FROM guests WHERE legacy_appsheet_id = $1', [guestLegacyId]);
-            if (r.rows.length > 0) guestId = r.rows[0].id;
+            const guestByLegacy = await client.query('SELECT id FROM guests WHERE legacy_appsheet_id = $1', [guestLegacyId]);
+            if (guestByLegacy.rows.length > 0) guestId = guestByLegacy.rows[0].id;
           }
           if (!guestId && guestName) {
-            const r = await client.query('SELECT id FROM guests WHERE full_name = $1 LIMIT 1', [guestName]);
-            if (r.rows.length > 0) {
-              guestId = r.rows[0].id;
+            const guestByName = await client.query('SELECT id FROM guests WHERE full_name = $1 LIMIT 1', [guestName]);
+            if (guestByName.rows.length > 0) {
+              guestId = guestByName.rows[0].id;
             } else {
               const parts = guestName.trim().split(/\s+/);
               const firstName = parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0];
               const lastName = parts.length > 1 ? parts[parts.length - 1] : '';
-              const r2 = await client.query(
+              const insertedGuest = await client.query(
                 `INSERT INTO guests (first_name, last_name, legacy_appsheet_id) VALUES ($1, $2, $3) RETURNING id`,
                 [firstName, lastName, guestLegacyId || null]
               );
-              guestId = r2.rows[0].id;
+              guestId = insertedGuest.rows[0].id;
             }
           }
 
-          const existing = legacyId
+          const existingBooking = legacyId
             ? await client.query('SELECT id FROM tour_bookings WHERE legacy_appsheet_id = $1', [legacyId])
             : { rows: [] };
 
-          if (existing.rows.length > 0) {
+          if (existingBooking.rows.length > 0) {
             await client.query(
               `UPDATE tour_bookings
                SET guest_id=$1, product_id=$2, num_guests=$3, booking_mode=$4,
@@ -262,10 +321,24 @@ export async function POST(request: NextRequest) {
                    legacy_vendor_id=$13, legacy_activity_name=$14,
                    legacy_guest_id=COALESCE(legacy_guest_id, NULLIF($16,''))
                WHERE id=$15`,
-              [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
-               vendorStatus, specialRequests, billedDate, paidDate,
-               activityDate, startTime, legacyVendorId, legacyActivityName,
-               existing.rows[0].id, guestLegacyId || null]
+              [
+                guestId,
+                productId,
+                numGuests,
+                bookingMode,
+                totalPrice,
+                guestStatus,
+                vendorStatus,
+                specialRequests,
+                billedDate,
+                paidDate,
+                activityDate,
+                startTime,
+                legacyVendorId || null,
+                legacyActivityName,
+                existingBooking.rows[0].id,
+                guestLegacyId || null,
+              ]
             );
             result.updated++;
           } else {
@@ -276,10 +349,24 @@ export async function POST(request: NextRequest) {
                 activity_date, start_time, legacy_vendor_id, legacy_activity_name,
                 legacy_appsheet_id, legacy_guest_id)
                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
-              [guestId, productId, numGuests, bookingMode, totalPrice, guestStatus,
-               vendorStatus, specialRequests, billedDate, paidDate,
-               activityDate, startTime, legacyVendorId, legacyActivityName,
-               legacyId || null, guestLegacyId || null]
+              [
+                guestId,
+                productId,
+                numGuests,
+                bookingMode,
+                totalPrice,
+                guestStatus,
+                vendorStatus,
+                specialRequests,
+                billedDate,
+                paidDate,
+                activityDate,
+                startTime,
+                legacyVendorId || null,
+                legacyActivityName,
+                legacyId || null,
+                guestLegacyId || null,
+              ]
             );
             result.created++;
           }
