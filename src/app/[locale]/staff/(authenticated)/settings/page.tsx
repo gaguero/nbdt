@@ -132,7 +132,7 @@ export default function SettingsPage() {
           <div>
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Recent Sync Runs</h3>
             <div className="space-y-2">
-              {syncLogs.slice(0, 10).map((log: any) => {
+              {syncLogs.map((log: any) => {
                 const createdList: any[] = Array.isArray(log.created_details) ? log.created_details : [];
                 const updatedList: any[] = Array.isArray(log.updated_details) ? log.updated_details : [];
                 const errorsList: string[] = Array.isArray(log.errors) ? log.errors : [];
