@@ -59,6 +59,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const LOG = (msg: string) => console.log(`[opera-sync ${new Date().toISOString()}] [${triggeredBy}] ${msg}`);
+
   const summary = {
     emails_found: 0,
     xmls_processed: 0,
@@ -67,27 +69,39 @@ export async function POST(request: NextRequest) {
     errors: [] as string[],
   };
 
+  LOG('Starting Opera sync');
+
   try {
+    LOG('Fetching XML attachments from Gmail...');
     const gmailResult = await fetchOperaXmlAttachments();
     summary.emails_found = gmailResult.messagesFound;
     summary.errors.push(...gmailResult.errors);
+    LOG(`Gmail fetch complete — ${gmailResult.messagesFound} email(s), ${gmailResult.xmlsProcessed.length} XML(s), ${gmailResult.errors.length} error(s)`);
 
-    for (const xml of gmailResult.xmlsProcessed) {
+    for (let i = 0; i < gmailResult.xmlsProcessed.length; i++) {
+      const xml = gmailResult.xmlsProcessed[i];
+      LOG(`Importing XML ${i + 1}/${gmailResult.xmlsProcessed.length} (${xml.length} chars)...`);
       try {
         const importResult = await importOperaXml(xml);
         summary.xmls_processed++;
         summary.reservations_created += importResult.created ?? 0;
         summary.reservations_updated += importResult.updated ?? 0;
+        LOG(`XML ${i + 1} imported — created:${importResult.created} updated:${importResult.updated} errors:${importResult.errors?.length ?? 0}`);
         if (importResult.errors?.length) {
           summary.errors.push(...importResult.errors);
+          LOG(`XML ${i + 1} import errors: ${importResult.errors.slice(0, 5).join(' | ')}`);
         }
       } catch (err: any) {
+        LOG(`XML ${i + 1} import failed: ${err.message}`);
         summary.errors.push(`XML import failed: ${err.message}`);
       }
     }
   } catch (err: any) {
+    LOG(`Gmail fetch failed: ${err.message}`);
     summary.errors.push(`Gmail fetch failed: ${err.message}`);
   }
+
+  LOG(`Sync complete — emails:${summary.emails_found} xmls:${summary.xmls_processed} created:${summary.reservations_created} updated:${summary.reservations_updated} errors:${summary.errors.length}`);
 
   // Write to sync log
   await query(
