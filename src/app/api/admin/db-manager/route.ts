@@ -3,8 +3,9 @@ import { query } from '@/lib/db';
 import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
 
 const TABLES = [
-  'guests', 'reservations', 'transfers', 'tour_bookings', 'special_requests', 
-  'romantic_dinners', 'other_hotel_bookings', 'conversations', 'messages', 'orders', 'order_items'
+  'guests', 'reservations', 'transfers', 'tour_bookings', 'special_requests',
+  'romantic_dinners', 'other_hotel_bookings', 'conversations', 'messages', 'orders', 'order_items',
+  'vendors', 'tour_products', 'tour_schedules'
 ];
 
 export async function GET(request: NextRequest) {

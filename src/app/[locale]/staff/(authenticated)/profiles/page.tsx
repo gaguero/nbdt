@@ -13,6 +13,12 @@ interface Profile {
   nationality: string;
   notes: string;
   profile_type: string;
+  legacy_appsheet_id?: string;
+  legacy_appsheet_ids?: string[];
+  opera_profile_id?: string;
+  companion_name?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export default function ProfilesPage() {

@@ -260,9 +260,9 @@ function ReservationsContent() {
                   <td className="px-6 py-4">
                     <StatusBadge status={r.status} ls={ls} />
                   </td>
-                  <td className="px-6 py-4 text-center group/detail">
+                  <td className="px-6 py-4 text-center relative">
                     <details className="cursor-pointer">
-                      <summary className="text-[10px] text-blue-600 hover:text-blue-700 font-bold uppercase no-marker">▼</summary>
+                      <summary className="text-[10px] text-blue-600 hover:text-blue-700 font-bold uppercase list-none">▼</summary>
                       <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg p-3 shadow-lg z-10 text-left text-xs w-64">
                         <dl className="space-y-1.5">
                           <div><dt className="text-gray-500 font-medium">{ls('Opera Resv ID', 'ID Opera')}</dt><dd className="font-mono text-gray-700 break-all">{r.opera_resv_id}</dd></div>

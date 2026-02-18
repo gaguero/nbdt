@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
-import { query, queryOne, transaction } from '@/lib/db';
-import type { OperaGRoom, OperaImportResult, ParsedReservation, ReservationDetail } from './types';
+import { transaction } from '@/lib/db';
+import type { OperaGRoom, OperaImportResult, ParsedReservation } from './types';
 
 function parseDate(dateStr: string): string | null {
   if (!dateStr) return null;
