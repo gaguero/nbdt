@@ -8,8 +8,8 @@
  *   CRON_SECRET — matches CRON_SECRET on the main app service
  */
 
-const appUrl = process.env.APP_URL;
-const cronSecret = process.env.CRON_SECRET;
+const appUrl = process.env.APP_URL?.trim();
+const cronSecret = process.env.CRON_SECRET?.trim();
 
 if (!appUrl || !cronSecret) {
   console.error('Missing APP_URL or CRON_SECRET env vars');
