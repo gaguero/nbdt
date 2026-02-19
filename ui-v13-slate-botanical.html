@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nayara Bocas del Toro — Staff Dashboard V13 Slate Botanical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #131820;
+    --surface: #1A2130;
+    --elevated: #212A3C;
+    --gold: #AA8E67;
+    --gold-faint: rgba(170,142,103,0.10);
+    --gold-glow: rgba(170,142,103,0.22);
+    --teal: #A4C4C8;
+    --teal-faint: rgba(164,196,200,0.12);
+    --teal-glow: rgba(164,196,200,0.25);
+    --sand: #F5EBD7;
+    --muted: rgba(245,235,215,0.5);
+    --muted-dim: rgba(245,235,215,0.3);
+    --forest: #7C8E67;
+    --terra: #EC6C4B;
+    --sidebar-bg: #0D1117;
+    --separator: rgba(164,196,200,0.08);
+    --card-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(164,196,200,0.05);
+    --sidebar-w: 72px;
+    --spring: cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 14px; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--sand);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(164,196,200,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(164,196,200,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(164,196,200,0.2); border-radius: 4px; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 24px;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .sidebar-leaf {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 80px;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  .sidebar-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(164,196,200,0.25);
+    margin-bottom: 28px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    flex-shrink: 0;
+  }
+  .sidebar-logo:hover {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(164,196,200,0.15);
+  }
+  .sidebar-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    flex: 1;
+    gap: 2px;
+  }
+
+  .sidebar-footer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav-item {
+    width: 100%;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: rgba(255,255,255,0.38);
+    position: relative;
+    transition: color 0.2s ease;
+  }
+  .nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 24px;
+    background: var(--teal);
+    border-radius: 0 3px 3px 0;
+    transition: transform 0.3s var(--spring);
+  }
+  .nav-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(164,196,200,0.08);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .nav-item.active {
+    color: var(--teal);
+  }
+  .nav-item.active::before {
+    transform: translateY(-50%) scaleY(1);
+  }
+  .nav-item.active::after {
+    opacity: 1;
+  }
+  .nav-item:hover {
+    color: rgba(255,255,255,0.75);
+  }
+  .nav-item svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.6;
+    position: relative;
+    z-index: 1;
+  }
+
+  .nav-tooltip {
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #0A0F18;
+    color: rgba(255,255,255,0.9);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .nav-tooltip::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-right-color: #0A0F18;
+  }
+  .nav-item:hover .nav-tooltip {
+    opacity: 1;
+  }
+
+  .sidebar-divider {
+    width: 32px;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 8px 0;
+  }
+
+  /* ─── MAIN ─── */
+  .main-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    height: 72px;
+    min-height: 72px;
+    background: var(--bg);
+    border-bottom: 1px solid rgba(164,196,200,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 50;
+  }
+
+  .header-greeting {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: -0.01em;
+  }
+
+  .header-clock {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--teal);
+    text-shadow: 0 0 20px rgba(164,196,200,0.35);
+    letter-spacing: 0.05em;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .header-property {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .header-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    background: var(--gold-faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+
+  /* ─── CONTENT ─── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ─── KPI STRIP ─── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+  }
+
+  .kpi-tile {
+    background: var(--surface);
+    border: 1px solid rgba(164,196,200,0.08);
+    border-radius: 12px;
+    padding: 16px 14px 12px;
+    cursor: pointer;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    animation: fadeUp 0.5s ease both;
+    animation-delay: calc(var(--i) * 80ms);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-tile:hover {
+    border-color: rgba(164,196,200,0.25);
+    box-shadow: var(--card-shadow), 0 0 20px rgba(164,196,200,0.08);
+    transform: translateY(-2px);
+  }
+
+  .kpi-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--gold);
+    text-shadow: 0 0 24px rgba(170,142,103,0.3);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .kpi-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-dim);
+    margin-bottom: 10px;
+  }
+
+  .kpi-sparkline {
+    width: 100%;
+    height: 28px;
+    display: block;
+  }
+
+  /* ─── BENTO GRID ─── */
+  .bento-grid {
+    display: grid;
+    grid-template-columns: 38fr 37fr 25fr;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .bento-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid rgba(164,196,200,0.07);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+    animation: fadeUp 0.5s ease both;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--teal);
+    letter-spacing: -0.01em;
+  }
+
+  .card-badge {
+    background: var(--teal-faint);
+    border: 1px solid rgba(164,196,200,0.2);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  /* ─── TABLE ─── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-table th {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-dim);
+    padding: 0 0 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--separator);
+  }
+  .data-table td {
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(164,196,200,0.04);
+    vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr { transition: background 0.15s ease; cursor: pointer; }
+  .data-table tr:hover td { background: rgba(164,196,200,0.03); }
+
+  .guest-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--sand);
+    display: block;
+  }
+  .guest-villa {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    color: var(--muted-dim);
+    display: block;
+    margin-top: 1px;
+  }
+
+  .time-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gold);
+    background: rgba(170,142,103,0.1);
+    border-radius: 6px;
+    padding: 3px 7px;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .driver-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .route-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ─── STATUS PILLS ─── */
+  .status {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+    position: relative;
+  }
+  .status.confirmed {
+    color: var(--teal);
+    background: rgba(164,196,200,0.12);
+    border: 1px solid rgba(164,196,200,0.3);
+  }
+  .status.confirmed .status-dot { background: var(--teal); }
+  .status.en-route {
+    color: var(--gold);
+    background: rgba(170,142,103,0.12);
+    border: 1px solid rgba(170,142,103,0.3);
+  }
+  .status.en-route .status-dot {
+    background: var(--gold);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  .status.completed {
+    color: var(--forest);
+    background: rgba(124,142,103,0.12);
+    border: 1px solid rgba(124,142,103,0.25);
+  }
+  .status.completed .status-dot { background: var(--forest); }
+  .status.pending {
+    color: var(--terra);
+    background: rgba(236,108,75,0.12);
+    border: 1px solid rgba(236,108,75,0.25);
+    position: relative;
+  }
+  .status.pending .status-dot {
+    background: var(--terra);
+  }
+  .status.pending .status-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--terra);
+    animation: pulseRing 1.5s ease-out infinite;
+  }
+
+  /* ─── IN-HOUSE CARD ─── */
+  .inhouse-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--gold);
+    text-shadow: 0 0 24px rgba(170,142,103,0.3);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .inhouse-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted-dim);
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .inhouse-sub-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--muted-dim);
+  }
+  .inhouse-sub span {
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .occ-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .occ-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .occ-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted-dim);
+    width: 72px;
+    flex-shrink: 0;
+  }
+  .occ-track {
+    flex: 1;
+    height: 3px;
+    background: rgba(164,196,200,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .occ-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #A4C4C8, rgba(164,196,200,0.5));
+    border-radius: 2px;
+    width: 0;
+    transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.3s;
+  }
+  .occ-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--teal);
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ─── DINNERS CARD ─── */
+  .dinner-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(164,196,200,0.04);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-radius: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .dinner-item:last-child { border-bottom: none; }
+  .dinner-item:hover { background: rgba(164,196,200,0.03); }
+
+  .candle-wrap {
+    width: 28px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .candle-svg {
+    width: 18px;
+    height: 32px;
+  }
+  .candle-flame {
+    transform-origin: bottom center;
+    animation: flameDance 2.1s ease-in-out infinite;
+  }
+
+  .dinner-info { flex: 1; min-width: 0; }
+  .dinner-villa {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sand);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dinner-setup {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+    margin-top: 2px;
+  }
+  .dinner-time-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .dinner-when {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    color: var(--muted-dim);
+  }
+
+  /* ─── CONVERSATIONS ─── */
+  .convo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(164,196,200,0.04);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-radius: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .convo-item:last-child { border-bottom: none; }
+  .convo-item:hover { background: rgba(164,196,200,0.03); }
+
+  .convo-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--teal-faint);
+    border: 1px solid rgba(164,196,200,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal);
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+  }
+
+  .convo-body { flex: 1; min-width: 0; }
+  .convo-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sand);
+    display: block;
+  }
+  .convo-snippet {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    display: block;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .convo-time {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted-dim);
+    flex-shrink: 0;
+  }
+
+  /* ─── VERSION NAV ─── */
+  .version-nav {
+    background: #0D1117;
+    border-top: 1px solid rgba(164,196,200,0.08);
+    padding: 10px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+    z-index: 50;
+  }
+  .version-nav-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-dim);
+  }
+  .version-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .version-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted-dim);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .version-btn:hover { color: var(--muted); }
+  .version-btn.active {
+    color: var(--teal);
+    border-color: rgba(164,196,200,0.3);
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+  @keyframes pulseRing {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+  @keyframes flameDance {
+    0%, 100% { transform: scaleY(1) rotate(-1deg); }
+    33% { transform: scaleY(1.08) rotate(1.5deg); }
+    66% { transform: scaleY(0.95) rotate(-0.5deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ SIDEBAR ═══════════════════════════════════════ -->
+<aside class="sidebar">
+  <!-- Botanical leaf watermark -->
+  <svg class="sidebar-leaf" viewBox="0 0 60 80" fill="none" aria-hidden="true">
+    <path d="M30 78 C30 78 4 55 4 32 C4 15 15 4 30 4 C45 4 56 15 56 32 C56 55 30 78 30 78Z" stroke="rgba(164,196,200,0.4)" stroke-width="1.2" fill="none"/>
+    <path d="M30 78 L30 4" stroke="rgba(164,196,200,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+    <path d="M30 28 C24 22 12 22 8 26" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 38 C36 30 50 30 54 34" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 48 C22 40 10 42 7 48" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 58 C38 50 52 52 54 58" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+  </svg>
+
+  <div class="sidebar-logo">
+    <img src="brand_assets/nayara-logo-round.png" alt="Nayara Bocas del Toro">
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-item active" data-nav="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      <span class="nav-tooltip">Dashboard</span>
+    </div>
+    <div class="nav-item" data-nav="transfers">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+      </svg>
+      <span class="nav-tooltip">Transfers</span>
+    </div>
+    <div class="nav-item" data-nav="tours">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+        <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+        <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+      </svg>
+      <span class="nav-tooltip">Tours</span>
+    </div>
+    <div class="nav-item" data-nav="guests">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+      <span class="nav-tooltip">Guests</span>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="nav-item" data-nav="dinners">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+      </svg>
+      <span class="nav-tooltip">Romantic Dinners</span>
+    </div>
+    <div class="nav-item" data-nav="conversations">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+      <span class="nav-tooltip">Conversations</span>
+    </div>
+    <div class="nav-item" data-nav="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+      </svg>
+      <span class="nav-tooltip">Reports</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="nav-item" data-nav="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+      <span class="nav-tooltip">Settings</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════ MAIN ═══════════════════════════════════════ -->
+<div class="main-wrap">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-greeting">Good Evening, Maria</div>
+    <div class="header-clock" id="clock">00:00:00</div>
+    <div class="header-right">
+      <span class="header-property">Nayara Bocas del Toro</span>
+      <div class="header-avatar">MA</div>
+    </div>
+  </header>
+
+  <!-- SCROLLABLE CONTENT -->
+  <div class="content">
+
+    <!-- KPI STRIP -->
+    <div class="kpi-strip">
+      <!-- 34 Guests -->
+      <div class="kpi-tile" style="--i:0">
+        <div class="kpi-number" data-target="34">0</div>
+        <div class="kpi-label">Guests</div>
+        <svg class="kpi-sparkline" viewBox="0 0 80 28" fill="none">
+          <polyline points="0,22 13,18 26,20 39,14 52,16 65,10 80,8"
+            stroke="var(--gold)" stroke-width="1.5" fill="none"
+            stroke-dasharray="160" stroke-dashoffset="160"
+            style="animation: drawLine 2s ease forwards 0.4s"/>
+          <polyline points="0,22 13,18 26,20 39,14 52,16 65,10 80,8"
+            stroke="var(--gold)" stroke-width="4" fill="none" opacity="0.08"/>
+        </svg>
+      </div>
+      <!-- 18 Villas -->
+      <div class="kpi-tile" style="--i:1">
+        <div class="kpi-number" data-target="18">0</div>
+        <div class="kpi-label">Villas</div>
+        <svg class="kpi-sparkline" viewBox="0 0 80 28" fill="none">
+          <polyline points="0,20 13,16 26,18 39,12 52,14 65,10 80,12"
+            stroke="var(--gold)" stroke-width="1.5" fill="none"
+            stroke-dasharray="140" stroke-dashoffset="140"
+            style="animation: drawLine 2s ease forwards 0.5s"/>
+        </svg>
+      </div>
+      <!-- 8 Transfers -->
+      <div class="kpi-tile" style="--i:2">
+        <div class="kpi-number" data-target="8">0</div>
+        <div class="kpi-label">Transfers</div>
+        <svg class="kpi-sparkline" viewBox="0 0 80 28" fill="none">
+          <polyline points="0,24 13,20 26,22 39,16 52,18 65,12 80,10"
+            stroke="var(--gold)" stroke-width="1.5" fill="none"
+            stroke-dasharray="150" stroke-dashoffset="150"
+            style="animation: drawLine 2s ease forwards 0.6s"/>
+        </svg>
+      </div>
+      <!-- 6 Tours -->
+      <div class="kpi-tile" style="--i:3">
+        <div class="kpi-number" data-target="6">0</div>
+        <div class="kpi-label">Tours</div>
+        <svg class="kpi-sparkline" viewBox="0 0 80 28" fill="none">
+          <polyline points="0,22 13,18 26,16 39,12 52,14 65,8 80,6"
+            stroke="var(--gold)" stroke-width="1.5" fill="none"
+            stroke-dasharray="155" stroke-dashoffset="155"
+            style="animation: drawLine 2s ease forwards 0.7s"/>
+        </svg>
+      </div>
+      <!-- 3 Dinners -->
+      <div class="kpi-tile" style="--i:4">
+        <div class="kpi-number" data-target="3">0</div>
+        <div class="kpi-label">Dinners</div>
+        <svg class="kpi-sparkline" viewBox="0 0 80 28" fill="none">
+          <polyline points="0,20 13,18 26,22 39,16 52,14 65,12 80,10"
+            stroke="var(--gold)" stroke-width="1.5" fill="none"
+            stroke-dasharray="145" stroke-dashoffset="145"
+            style="animation: drawLine 2s ease forwards 0.8s"/>
+        </svg>
+      </div>
+      <!-- 12 Messages -->
+      <div class="kpi-tile" style="--i:5">
+        <div class="kpi-number" data-target="12">0</div>
+        <div class="kpi-label">Messages</div>
+        <svg class="kpi-sparkline" viewBox="0 0 80 28" fill="none">
+          <polyline points="0,18 13,14 26,16 39,10 52,12 65,8 80,6"
+            stroke="var(--gold)" stroke-width="1.5" fill="none"
+            stroke-dasharray="150" stroke-dashoffset="150"
+            style="animation: drawLine 2s ease forwards 0.9s"/>
+        </svg>
+      </div>
+      <!-- 94% Satisfaction -->
+      <div class="kpi-tile" style="--i:6">
+        <div class="kpi-number" data-target="94" data-suffix="%">0</div>
+        <div class="kpi-label">Satisfaction</div>
+        <svg class="kpi-sparkline" viewBox="0 0 80 28" fill="none">
+          <polyline points="0,16 13,14 26,12 39,10 52,8 65,6 80,4"
+            stroke="var(--gold)" stroke-width="1.5" fill="none"
+            stroke-dasharray="130" stroke-dashoffset="130"
+            style="animation: drawLine 2s ease forwards 1.0s"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- BENTO GRID -->
+    <div class="bento-grid">
+
+      <!-- COL 1: Transfers -->
+      <div class="bento-col">
+        <div class="card" style="animation-delay:0.15s; flex:1; display:flex; flex-direction:column;">
+          <div class="card-header">
+            <div class="card-title">Transfers</div>
+            <span class="card-badge">8 today</span>
+          </div>
+          <div style="overflow-x:auto; flex:1;">
+            <table class="data-table" style="min-width:480px">
+              <thead>
+                <tr>
+                  <th>Guest / Villa</th>
+                  <th>Route</th>
+                  <th>Time</th>
+                  <th>Driver</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="guest-name">The Harrington Family</span><span class="guest-villa">Villa 12</span></td>
+                  <td><span class="route-text">Marina → Resort</span></td>
+                  <td><span class="time-badge">14:30</span></td>
+                  <td><span class="driver-name">Carlos M.</span></td>
+                  <td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td>
+                </tr>
+                <tr>
+                  <td><span class="guest-name">Dr. &amp; Mrs. Chen</span><span class="guest-villa">Villa 7</span></td>
+                  <td><span class="route-text">Airport → Resort</span></td>
+                  <td><span class="time-badge">16:00</span></td>
+                  <td><span class="driver-name">Luis R.</span></td>
+                  <td><span class="status en-route"><span class="status-dot"></span>En Route</span></td>
+                </tr>
+                <tr>
+                  <td><span class="guest-name">The Morrison Group</span><span class="guest-villa">Villa 3</span></td>
+                  <td><span class="route-text">Resort → Airport</span></td>
+                  <td><span class="time-badge">11:00</span></td>
+                  <td><span class="driver-name">Ana P.</span></td>
+                  <td><span class="status completed"><span class="status-dot"></span>Completed</span></td>
+                </tr>
+                <tr>
+                  <td><span class="guest-name">Sophia &amp; James Webb</span><span class="guest-villa">Villa 15</span></td>
+                  <td><span class="route-text">Marina → Resort</span></td>
+                  <td><span class="time-badge">17:30</span></td>
+                  <td><span class="driver-name">Carlos M.</span></td>
+                  <td><span class="status pending"><span class="status-dot"></span>Pending</span></td>
+                </tr>
+                <tr>
+                  <td><span class="guest-name">The Nakamura Family</span><span class="guest-villa">Villa 9</span></td>
+                  <td><span class="route-text">Resort → Marina</span></td>
+                  <td><span class="time-badge">09:00</span></td>
+                  <td><span class="driver-name">Luis R.</span></td>
+                  <td><span class="status completed"><span class="status-dot"></span>Completed</span></td>
+                </tr>
+                <tr>
+                  <td><span class="guest-name">Isabella Rodriguez</span><span class="guest-villa">Villa 4</span></td>
+                  <td><span class="route-text">Airport → Resort</span></td>
+                  <td><span class="time-badge">18:45</span></td>
+                  <td><span class="driver-name">Ana P.</span></td>
+                  <td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td>
+                </tr>
+                <tr>
+                  <td><span class="guest-name">The O'Brien Party</span><span class="guest-villa">Villa 11</span></td>
+                  <td><span class="route-text">Marina → Resort</span></td>
+                  <td><span class="time-badge">20:00</span></td>
+                  <td><span class="driver-name">Carlos M.</span></td>
+                  <td><span class="status pending"><span class="status-dot"></span>Pending</span></td>
+                </tr>
+                <tr>
+                  <td><span class="guest-name">Mr. &amp; Mrs. Delacroix</span><span class="guest-villa">Villa 6</span></td>
+                  <td><span class="route-text">Resort → Airport</span></td>
+                  <td><span class="time-badge">07:30</span></td>
+                  <td><span class="driver-name">Luis R.</span></td>
+                  <td><span class="status completed"><span class="status-dot"></span>Completed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- COL 2: Tours + In-House -->
+      <div class="bento-col">
+        <!-- Tours -->
+        <div class="card" style="animation-delay:0.2s;">
+          <div class="card-header">
+            <div class="card-title">Tours</div>
+            <span class="card-badge">6 today</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tour</th>
+                <th>Time</th>
+                <th>Guide</th>
+                <th>Guests</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="guest-name">Dolphin Bay Snorkel</span></td>
+                <td><span class="time-badge">08:00</span></td>
+                <td><span class="driver-name">Marco V.</span></td>
+                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">6</span></td>
+                <td><span class="status en-route"><span class="status-dot"></span>En Route</span></td>
+              </tr>
+              <tr>
+                <td><span class="guest-name">Red Frog Beach Hike</span></td>
+                <td><span class="time-badge">09:30</span></td>
+                <td><span class="driver-name">Sofia A.</span></td>
+                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">4</span></td>
+                <td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td>
+              </tr>
+              <tr>
+                <td><span class="guest-name">Starfish Beach Kayak</span></td>
+                <td><span class="time-badge">11:00</span></td>
+                <td><span class="driver-name">Marco V.</span></td>
+                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">8</span></td>
+                <td><span class="status pending"><span class="status-dot"></span>Pending</span></td>
+              </tr>
+              <tr>
+                <td><span class="guest-name">Night Jungle Walk</span></td>
+                <td><span class="time-badge">19:00</span></td>
+                <td><span class="driver-name">Carlos B.</span></td>
+                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">3</span></td>
+                <td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td>
+              </tr>
+              <tr>
+                <td><span class="guest-name">Chocolate Farm Tour</span></td>
+                <td><span class="time-badge">10:00</span></td>
+                <td><span class="driver-name">Sofia A.</span></td>
+                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">5</span></td>
+                <td><span class="status completed"><span class="status-dot"></span>Completed</span></td>
+              </tr>
+              <tr>
+                <td><span class="guest-name">Catamaran Sunset</span></td>
+                <td><span class="time-badge">17:30</span></td>
+                <td><span class="driver-name">Marco V.</span></td>
+                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">12</span></td>
+                <td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- In-House Guests -->
+        <div class="card" style="animation-delay:0.25s; flex:1;">
+          <div class="card-header">
+            <div class="card-title">In-House Guests</div>
+            <span class="card-badge">Tonight</span>
+          </div>
+          <div class="inhouse-big" data-target="34" id="inhouseCount">0</div>
+          <div class="inhouse-sub">
+            <span>18 villas</span>
+            <span class="inhouse-sub-dot"></span>
+            <span style="color:var(--teal)">+6 arriving</span>
+            <span class="inhouse-sub-dot"></span>
+            <span style="color:var(--terra)">-4 departing</span>
+          </div>
+          <div class="occ-bars">
+            <div class="occ-row">
+              <span class="occ-label">Overwater</span>
+              <div class="occ-track"><div class="occ-fill" data-width="80%"></div></div>
+              <span class="occ-pct">8/10</span>
+            </div>
+            <div class="occ-row">
+              <span class="occ-label">Garden</span>
+              <div class="occ-track"><div class="occ-fill" data-width="83%"></div></div>
+              <span class="occ-pct">5/6</span>
+            </div>
+            <div class="occ-row">
+              <span class="occ-label">Beach</span>
+              <div class="occ-track"><div class="occ-fill" data-width="75%"></div></div>
+              <span class="occ-pct">3/4</span>
+            </div>
+            <div class="occ-row">
+              <span class="occ-label">Suite</span>
+              <div class="occ-track"><div class="occ-fill" data-width="100%"></div></div>
+              <span class="occ-pct">2/2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COL 3: Dinners + Conversations -->
+      <div class="bento-col">
+        <!-- Romantic Dinners -->
+        <div class="card" style="animation-delay:0.28s;">
+          <div class="card-header">
+            <div class="card-title">Romantic Dinners</div>
+            <span class="card-badge">3</span>
+          </div>
+
+          <!-- Dinner 1 -->
+          <div class="dinner-item">
+            <div class="candle-wrap">
+              <svg class="candle-svg" viewBox="0 0 18 32" fill="none">
+                <!-- flame -->
+                <g class="candle-flame" transform-origin="9 12">
+                  <ellipse cx="9" cy="10" rx="3" ry="5" fill="rgba(170,142,103,0.9)"/>
+                  <ellipse cx="9" cy="12" rx="1.5" ry="3" fill="rgba(255,200,80,0.7)"/>
+                </g>
+                <!-- wick -->
+                <line x1="9" y1="15" x2="9" y2="17" stroke="rgba(170,142,103,0.6)" stroke-width="1"/>
+                <!-- body -->
+                <rect x="5" y="17" width="8" height="12" rx="1.5" fill="rgba(245,235,215,0.15)" stroke="rgba(245,235,215,0.2)" stroke-width="0.7"/>
+                <!-- drip -->
+                <path d="M7 17 Q6.5 20 7 22" stroke="rgba(245,235,215,0.25)" stroke-width="0.8" fill="none"/>
+              </svg>
+            </div>
+            <div class="dinner-info">
+              <span class="dinner-villa">Villa 12 · Harrington</span>
+              <span class="dinner-setup">Anniversary · Overwater Terrace</span>
+            </div>
+            <div class="dinner-time-wrap">
+              <span class="dinner-when">Tonight</span>
+              <span class="time-badge">19:30</span>
+            </div>
+          </div>
+
+          <!-- Dinner 2 -->
+          <div class="dinner-item">
+            <div class="candle-wrap">
+              <svg class="candle-svg" viewBox="0 0 18 32" fill="none">
+                <g class="candle-flame" transform-origin="9 12" style="animation-delay:0.3s">
+                  <ellipse cx="9" cy="10" rx="3" ry="5" fill="rgba(170,142,103,0.9)"/>
+                  <ellipse cx="9" cy="12" rx="1.5" ry="3" fill="rgba(255,200,80,0.7)"/>
+                </g>
+                <line x1="9" y1="15" x2="9" y2="17" stroke="rgba(170,142,103,0.6)" stroke-width="1"/>
+                <rect x="5" y="17" width="8" height="12" rx="1.5" fill="rgba(245,235,215,0.15)" stroke="rgba(245,235,215,0.2)" stroke-width="0.7"/>
+                <path d="M11 17 Q11.5 21 11 23" stroke="rgba(245,235,215,0.25)" stroke-width="0.8" fill="none"/>
+              </svg>
+            </div>
+            <div class="dinner-info">
+              <span class="dinner-villa">Villa 7 · Chen</span>
+              <span class="dinner-setup">Proposal · Beach Torches</span>
+            </div>
+            <div class="dinner-time-wrap">
+              <span class="dinner-when">Tonight</span>
+              <span class="time-badge">20:00</span>
+            </div>
+          </div>
+
+          <!-- Dinner 3 -->
+          <div class="dinner-item">
+            <div class="candle-wrap">
+              <svg class="candle-svg" viewBox="0 0 18 32" fill="none">
+                <g class="candle-flame" transform-origin="9 12" style="animation-delay:0.6s">
+                  <ellipse cx="9" cy="10" rx="3" ry="5" fill="rgba(170,142,103,0.9)"/>
+                  <ellipse cx="9" cy="12" rx="1.5" ry="3" fill="rgba(255,200,80,0.7)"/>
+                </g>
+                <line x1="9" y1="15" x2="9" y2="17" stroke="rgba(170,142,103,0.6)" stroke-width="1"/>
+                <rect x="5" y="17" width="8" height="12" rx="1.5" fill="rgba(245,235,215,0.15)" stroke="rgba(245,235,215,0.2)" stroke-width="0.7"/>
+                <path d="M7 19 Q6.2 22 7 24" stroke="rgba(245,235,215,0.25)" stroke-width="0.8" fill="none"/>
+              </svg>
+            </div>
+            <div class="dinner-info">
+              <span class="dinner-villa">Villa 15 · Webb</span>
+              <span class="dinner-setup">Honeymoon · Garden Pavilion</span>
+            </div>
+            <div class="dinner-time-wrap">
+              <span class="dinner-when">Tomorrow</span>
+              <span class="time-badge">19:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conversations -->
+        <div class="card" style="animation-delay:0.32s; flex:1; display:flex; flex-direction:column;">
+          <div class="card-header">
+            <div class="card-title">Conversations</div>
+            <span class="card-badge">12 unread</span>
+          </div>
+          <div style="flex:1; overflow-y:auto;">
+
+            <div class="convo-item">
+              <div class="convo-avatar">TH</div>
+              <div class="convo-body">
+                <span class="convo-name">The Harrington Family</span>
+                <span class="convo-snippet">Could we arrange a late check-out on Sunday?</span>
+              </div>
+              <span class="convo-time">2m</span>
+            </div>
+
+            <div class="convo-item">
+              <div class="convo-avatar">DC</div>
+              <div class="convo-body">
+                <span class="convo-name">Dr. Chen</span>
+                <span class="convo-snippet">Please ensure the beach setup has extra candles</span>
+              </div>
+              <span class="convo-time">14m</span>
+            </div>
+
+            <div class="convo-item">
+              <div class="convo-avatar">NF</div>
+              <div class="convo-body">
+                <span class="convo-name">Nakamura Family</span>
+                <span class="convo-snippet">Thank you for the wonderful stay</span>
+              </div>
+              <span class="convo-time">41m</span>
+            </div>
+
+            <div class="convo-item">
+              <div class="convo-avatar">JW</div>
+              <div class="convo-body">
+                <span class="convo-name">James Webb</span>
+                <span class="convo-snippet">We would love a bottle of champagne chilled by 18:30</span>
+              </div>
+              <span class="convo-time">1h</span>
+            </div>
+
+            <div class="convo-item">
+              <div class="convo-avatar">IR</div>
+              <div class="convo-body">
+                <span class="convo-name">Isabella Rodriguez</span>
+                <span class="convo-snippet">Is there spa availability for tomorrow morning?</span>
+              </div>
+              <span class="convo-time">2h</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /bento-grid -->
+
+  </div><!-- /content -->
+
+  <!-- VERSION NAV -->
+  <div class="version-nav">
+    <span class="version-nav-label">Design Concepts</span>
+    <div class="version-nav-links">
+      <a href="ui-v13-slate-botanical.html" class="version-btn active">V13 · Slate Botanical</a>
+    </div>
+  </div>
+
+</div><!-- /main-wrap -->
+
+<script>
+  // ── LIVE CLOCK ──
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── KPI COUNTER ANIMATION ──
+  function animateCounter(el, target, suffix, duration) {
+    const start = performance.now();
+    function step(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOut cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = Math.round(eased * target);
+      el.textContent = value + (suffix || '');
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Run counters when visible
+  const kpiNumbers = document.querySelectorAll('.kpi-number[data-target]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseInt(el.dataset.target, 10);
+        const suffix = el.dataset.suffix || '';
+        animateCounter(el, target, suffix, 1200);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  kpiNumbers.forEach(el => observer.observe(el));
+
+  // In-house big number
+  const inhouseEl = document.getElementById('inhouseCount');
+  if (inhouseEl) {
+    setTimeout(() => animateCounter(inhouseEl, 34, '', 1400), 300);
+  }
+
+  // ── OCCUPANCY BARS ──
+  setTimeout(() => {
+    document.querySelectorAll('.occ-fill').forEach(bar => {
+      bar.style.width = bar.dataset.width;
+    });
+  }, 200);
+
+  // ── NAV ACTIVE STATE ──
+  document.querySelectorAll('.nav-item[data-nav]').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
