@@ -1804,7 +1804,11 @@ export default function SettingsPage() {
   function renderGuestCleanupModule() {
     return (
       <div className="space-y-4">
-        <SectionTitle title="Guest Normalization" subtitle="Merge duplicate guests and relink orphaned reservations." children={<button type="button" onClick={() => void loadGuestNormalization()} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">Refresh</button>} />
+        <SectionTitle title="Guest Normalization" subtitle="Merge duplicate guests and relink orphaned reservations.">
+          <button type="button" onClick={() => void loadGuestNormalization()} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
+            Refresh
+          </button>
+        </SectionTitle>
         {guestNormLocked ? <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">Guest normalization is locked: no guests and no reservations.</div> : null}
         {guestNormMessage ? <div className={cx('rounded-xl border px-3 py-2 text-sm', guestNormMessage.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700')}>{guestNormMessage.text}</div> : null}
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -1986,7 +1990,11 @@ export default function SettingsPage() {
     }
     return (
       <div className="space-y-4">
-        <SectionTitle title="Data Curation Configuration" subtitle="Control behavior for the entire center." children={<button type="button" onClick={() => void saveSettings()} disabled={settingsSaving} className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">{settingsSaving ? 'Saving...' : 'Save Changes'}</button>} />
+        <SectionTitle title="Data Curation Configuration" subtitle="Control behavior for the entire center.">
+          <button type="button" onClick={() => void saveSettings()} disabled={settingsSaving} className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">
+            {settingsSaving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </SectionTitle>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
             <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">Pipeline</p>
