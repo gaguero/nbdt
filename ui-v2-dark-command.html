@@ -328,7 +328,10 @@ body {
 .pill-enroute   { background: var(--neon-dim); color: var(--neon); }
 .pill-cancelled { background: var(--rose-dim); color: var(--rose); }
 
-.pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.pill-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: currentColor;
+  animation: blink 1s ease-in-out infinite;
+}
 
 .action-btn {
   font-size: 10px; font-weight: 600; color: var(--electric);
@@ -339,6 +342,11 @@ body {
 }
 
 .action-btn:hover { background: var(--electric-dim); }
+
+.action-btn:active {
+  background: rgba(56,189,248,0.3);
+  border-color: var(--electric);
+}
 
 /* ── KANBAN ── */
 .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; }
@@ -475,6 +483,27 @@ body {
   font-size: 9px; font-weight: 700;
   display: flex; align-items: center; justify-content: center; padding: 0 4px;
 }
+
+/* Ensure cursor pointer on all interactive elements */
+button, .nav-item, .action-btn, .convo-item { cursor: pointer; }
+.version-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 32px; margin-top: 32px;
+  background: #07090F; border-top: 1px solid rgba(56,189,248,0.1);
+  flex-wrap: wrap; gap: 12px;
+}
+.version-nav-label {
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: rgba(56,189,248,0.3);
+}
+.version-nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.version-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 7px 14px;
+  border-radius: 4px; border: 1px solid rgba(56,189,248,0.2);
+  color: rgba(56,189,248,0.45); text-decoration: none;
+  transition: border-color 200ms, color 200ms, background 200ms; cursor: pointer;
+}
+.version-btn:hover { border-color: #38BDF8; color: #38BDF8; background: rgba(56,189,248,0.06); }
 </style>
 </head>
 <body>
@@ -525,7 +554,7 @@ body {
         </div>
         <div class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="12"/><polyline points="12,12 17,8"/><circle cx="12" cy="12" r="2"/></svg>
-          Tours & Activities
+          Tours &amp; Activities
         </div>
         <div class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -684,7 +713,7 @@ body {
                     <td style="font-size:11px;">✈ Airport → Resort</td>
                     <td style="font-size:11px;color:var(--text-dim);">Panama Transfers</td>
                     <td><span class="pill pill-enroute"><span class="pill-dot"></span>EN ROUTE</span></td>
-                    <td><button class="action-btn">Track</button></td>
+                    <td><button class="action-btn" onclick="handleAction('Track', 'TRF-003', this)">Track</button></td>
                   </tr>
                   <tr>
                     <td class="mono" style="color:var(--text-dim);font-size:11px;">10:00</td>
@@ -711,7 +740,7 @@ body {
                     <td style="font-size:11px;">✈ Airport → Resort</td>
                     <td style="font-size:11px;color:var(--text-dim);">VIP Transport</td>
                     <td><span class="pill pill-pending">PENDING</span></td>
-                    <td><button class="action-btn">Assign</button></td>
+                    <td><button class="action-btn" onclick="handleAction('Assign', 'TRF-006', this)">Assign</button></td>
                   </tr>
                   <tr>
                     <td class="mono" style="color:var(--text-dim);font-size:11px;">16:45</td>
@@ -720,7 +749,7 @@ body {
                     <td style="font-size:11px;">Resort → ✈ Airport</td>
                     <td style="font-size:11px;color:var(--text-dim);">Bocas Express</td>
                     <td><span class="pill pill-pending">PENDING</span></td>
-                    <td><button class="action-btn">Assign</button></td>
+                    <td><button class="action-btn" onclick="handleAction('Assign', 'TRF-007', this)">Assign</button></td>
                   </tr>
                   <tr>
                     <td class="mono" style="color:var(--text-dim);font-size:11px;">18:00</td>
@@ -939,10 +968,45 @@ body {
   // Sidebar nav
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', function() {
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => {
+        i.classList.remove('active');
+        const dot = i.querySelector('.nav-item-dot');
+        if (dot) dot.style.display = 'none';
+      });
       this.classList.add('active');
+      const dot = this.querySelector('.nav-item-dot');
+      if (dot) dot.style.display = 'block';
     });
   });
+
+  // Action button feedback
+  function handleAction(action, id, btn) {
+    console.log(action + ' clicked for transfer ' + id);
+    const originalText = btn.textContent;
+    const originalColor = btn.style.color;
+    btn.textContent = action === 'Track' ? 'Tracking...' : 'Assigning...';
+    btn.style.color = 'var(--neon)';
+    btn.style.borderColor = 'var(--neon)';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = action === 'Track' ? 'Live ✓' : 'Assigned ✓';
+      btn.disabled = false;
+    }, 1500);
+  }
 </script>
+
+<!-- Version Navigator -->
+<div class="version-nav">
+  <span class="version-nav-label">Design Concepts</span>
+  <div class="version-nav-links">
+    <a href="ui-v1-tropical-luxury.html" class="version-btn">V1 · Tropical Luxury</a>
+    <a href="ui-v2-dark-command.html" class="version-btn">V2 · Dark Command</a>
+    <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand &amp; Gold</a>
+    <a href="ui-v4-teal-night.html" class="version-btn">V4 · Teal Night</a>
+    <a href="ui-v5-cream-split.html" class="version-btn">V5 · Cream Split</a>
+    <a href="ui-v6-mono-minimal.html" class="version-btn">V6 · Mono Minimal</a>
+    <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
+  </div>
+</div>
 </body>
 </html>

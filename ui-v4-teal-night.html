@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nayara Bocas del Toro — Staff Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #AA8E67;
+    --gold-light: #C4A882;
+    --forest: #7C8E67;
+    --teal: #A4C4C8;
+    --teal-dark: #6B9EA3;
+    --terracotta: #EC6C4B;
+    --aqua: #6A8ECF;
+    --bg: #0D1F22;
+    --surface: #132226;
+    --elevated: #1A2E33;
+    --sidebar-bg: #0A191C;
+    --border: rgba(164,196,200,0.1);
+    --border-hover: rgba(164,196,200,0.25);
+    --text-primary: #E8EEF0;
+    --text-muted: rgba(232,238,240,0.55);
+    --text-dim: rgba(232,238,240,0.35);
+    --teal-glow: 0 0 12px rgba(164,196,200,0.4);
+    --card-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --sidebar-w: 80px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+  }
+
+  /* Grain texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.032;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+
+  /* Ambient radial glows */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 10%, rgba(164,196,200,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 300px at 80% 80%, rgba(106,142,207,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 300px at 60% 30%, rgba(170,142,103,0.03) 0%, transparent 70%);
+  }
+
+  /* ─── LAYOUT ─────────────────────────────────────────── */
+  .app {
+    display: flex;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── SIDEBAR ─────────────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 24px;
+    gap: 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  .sidebar-logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 28px;
+    border: 1.5px solid rgba(164,196,200,0.3);
+    box-shadow: 0 0 16px rgba(164,196,200,0.2);
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .nav-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    width: 100%;
+  }
+
+  .nav-item {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
+    color: var(--text-dim);
+  }
+
+  .nav-item svg {
+    width: 22px;
+    height: 22px;
+    transition: color 0.2s ease;
+  }
+
+  .nav-item:hover {
+    background: rgba(164,196,200,0.08);
+    color: var(--teal);
+  }
+
+  .nav-item.active {
+    background: rgba(164,196,200,0.12);
+    color: var(--teal);
+    box-shadow: var(--teal-glow);
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    background: var(--teal);
+    border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 8px rgba(164,196,200,0.6);
+  }
+
+  .nav-item:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  .nav-item:active { transform: scale(0.94); }
+
+  .nav-tooltip {
+    position: absolute;
+    left: calc(100% + 12px);
+    background: var(--elevated);
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    border: 1px solid var(--border);
+    z-index: 100;
+  }
+
+  .nav-item:hover .nav-tooltip {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .sidebar-divider {
+    width: 32px;
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0;
+  }
+
+  .sidebar-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .staff-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--forest) 0%, var(--teal-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bg);
+    cursor: pointer;
+    border: 1.5px solid var(--border-hover);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .staff-avatar:hover { box-shadow: var(--teal-glow); }
+
+  /* ─── MAIN ────────────────────────────────────────────── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* ─── HEADER ──────────────────────────────────────────── */
+  .header {
+    height: 64px;
+    min-height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .header-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .header-spacer { flex: 1; }
+
+  .header-date {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .clock {
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--teal);
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 16px rgba(164,196,200,0.5);
+    line-height: 1;
+  }
+
+  .staff-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(164,196,200,0.07);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px 5px 6px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .staff-badge:hover {
+    border-color: var(--border-hover);
+    background: rgba(164,196,200,0.11);
+  }
+
+  .staff-badge-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--forest) 0%, var(--teal-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+  }
+
+  .staff-badge-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .staff-badge-role {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 6px rgba(74,222,128,0.7);
+    animation: pulse-green 2s ease infinite;
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+
+  /* ─── CONTENT ─────────────────────────────────────────── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px 20px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(164,196,200,0.2) transparent;
+  }
+
+  .content::-webkit-scrollbar { width: 4px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: rgba(164,196,200,0.2); border-radius: 4px; }
+
+  /* ─── KPI STRIP ───────────────────────────────────────── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 14px 10px;
+    cursor: pointer;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(164,196,200,0.06) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .kpi-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--teal-glow), var(--card-shadow);
+    transform: translateY(-2px);
+  }
+
+  .kpi-card:hover::before { opacity: 1; }
+  .kpi-card:active { transform: translateY(0) scale(0.98); }
+
+  .kpi-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 20px rgba(170,142,103,0.35);
+  }
+
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+  }
+
+  .kpi-sparkline {
+    margin-top: 8px;
+    width: 100%;
+    height: 28px;
+  }
+
+  /* ─── BENTO GRID ──────────────────────────────────────── */
+  .bento {
+    display: grid;
+    grid-template-columns: 42fr 33fr 25fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .bento-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .card-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .badge-teal {
+    background: rgba(164,196,200,0.12);
+    color: var(--teal);
+    border: 1px solid rgba(164,196,200,0.2);
+  }
+
+  .badge-gold {
+    background: rgba(170,142,103,0.12);
+    color: var(--gold);
+    border: 1px solid rgba(170,142,103,0.2);
+  }
+
+  /* ─── TRANSFERS TABLE ─────────────────────────────────── */
+  .transfers-card {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .table-wrap {
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(164,196,200,0.15) transparent;
+  }
+
+  .table-wrap::-webkit-scrollbar { width: 3px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: rgba(164,196,200,0.15); border-radius: 3px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead th {
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    background: rgba(164,196,200,0.05);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(164,196,200,0.05);
+    transition: background 0.15s ease;
+    cursor: pointer;
+  }
+
+  tbody tr:hover { background: rgba(164,196,200,0.04); }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 10px 12px;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 400;
+  }
+
+  .td-guest { font-weight: 500; }
+
+  .td-villa {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .td-route {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .td-time {
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .td-driver {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-confirmed {
+    background: rgba(106,142,207,0.15);
+    color: var(--aqua);
+    border: 1px solid rgba(106,142,207,0.25);
+  }
+  .status-confirmed .status-dot { background: var(--aqua); }
+
+  .status-en-route {
+    background: rgba(164,196,200,0.15);
+    color: var(--teal);
+    border: 1px solid rgba(164,196,200,0.25);
+  }
+  .status-en-route .status-dot {
+    background: var(--teal);
+    animation: blink 1.2s ease infinite;
+  }
+
+  .status-done {
+    background: rgba(124,142,103,0.15);
+    color: var(--forest);
+    border: 1px solid rgba(124,142,103,0.2);
+  }
+  .status-done .status-dot { background: var(--forest); }
+
+  .status-pending {
+    background: rgba(170,142,103,0.12);
+    color: var(--gold);
+    border: 1px solid rgba(170,142,103,0.2);
+  }
+  .status-pending .status-dot { background: var(--gold); }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; box-shadow: 0 0 5px rgba(164,196,200,0.8); }
+    50% { opacity: 0.3; box-shadow: none; }
+  }
+
+  /* ─── KANBAN ──────────────────────────────────────────── */
+  .kanban-card {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .kanban-body {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 12px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .kanban-col {
+    background: rgba(164,196,200,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .kanban-col.drag-over {
+    border-color: var(--teal);
+    background: rgba(164,196,200,0.08);
+    box-shadow: 0 0 0 1px rgba(164,196,200,0.3);
+  }
+
+  .kanban-col-header {
+    padding: 8px 10px 6px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .kanban-col-title {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .col-pending .kanban-col-title { color: var(--gold); }
+  .col-enroute .kanban-col-title { color: var(--teal); }
+  .col-confirmed .kanban-col-title { color: var(--aqua); }
+  .col-done .kanban-col-title { color: var(--forest); }
+
+  .kanban-col-count {
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .kanban-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 6px;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: none;
+  }
+
+  .kanban-items::-webkit-scrollbar { display: none; }
+
+  .kanban-item {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 8px 6px;
+    cursor: grab;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+    user-select: none;
+  }
+
+  .kanban-item:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+  }
+
+  .kanban-item:active { cursor: grabbing; opacity: 0.85; }
+  .kanban-item.dragging { opacity: 0.4; transform: scale(0.97); }
+
+  .ki-guest {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .ki-time {
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .ki-progress {
+    margin-top: 7px;
+    height: 3px;
+    background: rgba(164,196,200,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .ki-progress-bar {
+    height: 100%;
+    border-radius: 2px;
+    width: 0;
+    animation: grow-bar 1.2s cubic-bezier(0.25,1,0.5,1) forwards;
+  }
+
+  @keyframes grow-bar {
+    from { width: 0; }
+    to { width: var(--progress); }
+  }
+
+  .col-pending .ki-progress-bar { background: var(--gold); }
+  .col-enroute .ki-progress-bar { background: var(--teal); }
+  .col-confirmed .ki-progress-bar { background: var(--aqua); }
+  .col-done .ki-progress-bar { background: var(--forest); }
+
+  /* ─── ACTIVITY FEED ───────────────────────────────────── */
+  .activity-card { flex: 1; min-height: 0; }
+
+  .activity-list {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px;
+    gap: 0;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(164,196,200,0.1) transparent;
+  }
+
+  .activity-list::-webkit-scrollbar { width: 3px; }
+  .activity-list::-webkit-scrollbar-thumb { background: rgba(164,196,200,0.1); border-radius: 3px; }
+
+  .activity-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(164,196,200,0.04);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .activity-item:last-child { border-bottom: none; }
+  .activity-item:hover { background: rgba(164,196,200,0.03); }
+
+  .activity-dot-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    padding-top: 3px;
+    position: relative;
+    width: 14px;
+  }
+
+  .activity-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .activity-dot.latest {
+    box-shadow: 0 0 0 0 rgba(164,196,200,0.6);
+    animation: pulse-ring 2s ease infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(164,196,200,0.6); }
+    70% { box-shadow: 0 0 0 6px rgba(164,196,200,0); }
+    100% { box-shadow: 0 0 0 0 rgba(164,196,200,0); }
+  }
+
+  .activity-line {
+    position: absolute;
+    top: 14px;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    background: var(--border);
+  }
+
+  .activity-item:last-child .activity-line { display: none; }
+
+  .activity-content { flex: 1; min-width: 0; }
+
+  .activity-text {
+    font-size: 11.5px;
+    color: var(--text-primary);
+    line-height: 1.45;
+    font-weight: 400;
+  }
+
+  .activity-time {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-family: 'DM Mono', 'Courier New', monospace;
+  }
+
+  /* Activity colors */
+  .act-teal { background: var(--teal); border-left: 3px solid var(--teal); }
+  .act-gold { background: var(--gold); border-left: 3px solid var(--gold); }
+  .act-terra { background: var(--terracotta); border-left: 3px solid var(--terracotta); }
+  .act-aqua { background: var(--aqua); border-left: 3px solid var(--aqua); }
+  .act-forest { background: var(--forest); border-left: 3px solid var(--forest); }
+
+  /* ─── QUICK STATS ─────────────────────────────────────── */
+  .quick-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px;
+    flex-shrink: 0;
+  }
+
+  .qs-card {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .qs-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .qs-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .qs-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+
+  .qs-icon {
+    font-size: 18px;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+
+  /* ─── FADEUP ANIMATION ────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .kpi-card { animation: fadeUp 0.5s ease both; }
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.10s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.20s; }
+  .kpi-card:nth-child(5) { animation-delay: 0.25s; }
+  .kpi-card:nth-child(6) { animation-delay: 0.30s; }
+  .kpi-card:nth-child(7) { animation-delay: 0.35s; }
+
+  .bento > * { animation: fadeUp 0.5s ease both; }
+  .bento > *:nth-child(1) { animation-delay: 0.4s; }
+  .bento > *:nth-child(2) { animation-delay: 0.5s; }
+  .bento > *:nth-child(3) { animation-delay: 0.6s; }
+
+  /* ─── SECTION DIVIDER ─────────────────────────────────── */
+  .right-col-bottom {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .right-col-bottom .card-header {
+    padding: 10px 14px 8px;
+  }
+
+  /* ─── SCROLLBAR UNIFORM ───────────────────────────────── */
+  * { scrollbar-width: thin; scrollbar-color: rgba(164,196,200,0.15) transparent; }
+
+  .version-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px; margin-top: 32px;
+    background: #0A191C; border-top: 1px solid rgba(164,196,200,0.1);
+    flex-wrap: wrap; gap: 12px;
+  }
+  .version-nav-label {
+    font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: rgba(164,196,200,0.3);
+  }
+  .version-nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .version-btn {
+    font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 7px 14px;
+    border-radius: 6px; border: 1px solid rgba(164,196,200,0.2);
+    color: rgba(164,196,200,0.5); text-decoration: none;
+    transition: border-color 200ms, color 200ms, background 200ms;
+    cursor: pointer;
+  }
+  .version-btn:hover { border-color: #A4C4C8; color: #A4C4C8; background: rgba(164,196,200,0.08); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="brand_assets/Nayara-Bocas-Del-Toro-Logo-White-Colour round.png" alt="Nayara Logo" onerror="this.style.display='none';this.parentNode.style.background='linear-gradient(135deg,#1A2E33,#A4C4C8)'">
+    </div>
+
+    <nav class="nav-items">
+      <div class="nav-item active" data-nav="dashboard" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span class="nav-tooltip">Dashboard</span>
+      </div>
+
+      <div class="nav-item" data-nav="transfers" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/>
+          <rect x="9" y="11" width="14" height="10" rx="2"/>
+          <circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        </svg>
+        <span class="nav-tooltip">Transfers</span>
+      </div>
+
+      <div class="nav-item" data-nav="tours" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+          <path d="M2 12h20"/>
+        </svg>
+        <span class="nav-tooltip">Tours</span>
+      </div>
+
+      <div class="nav-item" data-nav="dining" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+          <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+        </svg>
+        <span class="nav-tooltip">Dining</span>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="nav-item" data-nav="guests" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        <span class="nav-tooltip">Guests</span>
+      </div>
+
+      <div class="nav-item" data-nav="messages" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+        <span class="nav-tooltip">Messages</span>
+      </div>
+
+      <div class="nav-item" data-nav="settings" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+        <span class="nav-tooltip">Settings</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="staff-avatar" title="My Profile">MR</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div>
+        <div class="header-title">Nayara Bocas del Toro</div>
+        <div class="header-subtitle">Operations Dashboard</div>
+      </div>
+      <div class="header-spacer"></div>
+      <div style="text-align:right;">
+        <div class="clock" id="clock">00:00:00</div>
+        <div class="header-date" id="header-date">Thursday, 19 February 2026</div>
+      </div>
+      <div style="width:1px;height:32px;background:var(--border);margin:0 8px;"></div>
+      <div class="live-dot"></div>
+      <div class="staff-badge" tabindex="0">
+        <div class="staff-badge-avatar">MR</div>
+        <div>
+          <div class="staff-badge-name">Marco Rivera</div>
+          <div class="staff-badge-role">Operations Manager</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- KPI STRIP -->
+      <div class="kpi-strip">
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-number" data-target="34">0</div>
+          <div class="kpi-label">Guests</div>
+          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none">
+            <polyline points="0,22 13,18 26,20 39,12 52,14 65,8 80,10" fill="none" stroke="#A4C4C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+            <polyline points="0,22 13,18 26,20 39,12 52,14 65,8 80,10 80,28 0,28" fill="url(#spark-fill-1)" opacity="0.15"/>
+            <defs><linearGradient id="spark-fill-1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#A4C4C8"/><stop offset="100%" stop-color="#A4C4C8" stop-opacity="0"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-number" data-target="18">0</div>
+          <div class="kpi-label">Villas</div>
+          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none">
+            <polyline points="0,20 13,16 26,18 39,14 52,16 65,10 80,12" fill="none" stroke="#A4C4C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+            <polyline points="0,20 13,16 26,18 39,14 52,16 65,10 80,12 80,28 0,28" fill="url(#spark-fill-2)" opacity="0.15"/>
+            <defs><linearGradient id="spark-fill-2" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#A4C4C8"/><stop offset="100%" stop-color="#A4C4C8" stop-opacity="0"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-number" data-target="8">0</div>
+          <div class="kpi-label">Transfers</div>
+          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none">
+            <polyline points="0,24 13,20 26,22 39,16 52,18 65,10 80,14" fill="none" stroke="#A4C4C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+            <polyline points="0,24 13,20 26,22 39,16 52,18 65,10 80,14 80,28 0,28" fill="url(#spark-fill-3)" opacity="0.15"/>
+            <defs><linearGradient id="spark-fill-3" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#A4C4C8"/><stop offset="100%" stop-color="#A4C4C8" stop-opacity="0"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-number" data-target="6">0</div>
+          <div class="kpi-label">Tours</div>
+          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none">
+            <polyline points="0,18 13,14 26,16 39,10 52,12 65,6 80,8" fill="none" stroke="#A4C4C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+            <polyline points="0,18 13,14 26,16 39,10 52,12 65,6 80,8 80,28 0,28" fill="url(#spark-fill-4)" opacity="0.15"/>
+            <defs><linearGradient id="spark-fill-4" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#A4C4C8"/><stop offset="100%" stop-color="#A4C4C8" stop-opacity="0"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-number" data-target="3">0</div>
+          <div class="kpi-label">Dinners</div>
+          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none">
+            <polyline points="0,22 13,20 26,22 39,18 52,20 65,14 80,16" fill="none" stroke="#A4C4C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+            <polyline points="0,22 13,20 26,22 39,18 52,20 65,14 80,16 80,28 0,28" fill="url(#spark-fill-5)" opacity="0.15"/>
+            <defs><linearGradient id="spark-fill-5" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#A4C4C8"/><stop offset="100%" stop-color="#A4C4C8" stop-opacity="0"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-number" data-target="12">0</div>
+          <div class="kpi-label">Messages</div>
+          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none">
+            <polyline points="0,16 13,14 26,10 39,12 52,8 65,10 80,6" fill="none" stroke="#A4C4C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+            <polyline points="0,16 13,14 26,10 39,12 52,8 65,10 80,6 80,28 0,28" fill="url(#spark-fill-6)" opacity="0.15"/>
+            <defs><linearGradient id="spark-fill-6" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#A4C4C8"/><stop offset="100%" stop-color="#A4C4C8" stop-opacity="0"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="kpi-card" tabindex="0">
+          <div class="kpi-number" data-target="94">0</div>
+          <div class="kpi-label">Satisfaction %</div>
+          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none">
+            <polyline points="0,14 13,12 26,10 39,8 52,10 65,6 80,4" fill="none" stroke="#A4C4C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+            <polyline points="0,14 13,12 26,10 39,8 52,10 65,6 80,4 80,28 0,28" fill="url(#spark-fill-7)" opacity="0.15"/>
+            <defs><linearGradient id="spark-fill-7" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#A4C4C8"/><stop offset="100%" stop-color="#A4C4C8" stop-opacity="0"/></linearGradient></defs>
+          </svg>
+        </div>
+      </div>
+
+      <!-- BENTO GRID -->
+      <div class="bento">
+
+        <!-- LEFT: TRANSFERS -->
+        <div class="bento-col">
+          <div class="card transfers-card">
+            <div class="card-header">
+              <div class="card-title">Guest Transfers</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span class="card-badge badge-teal">Today</span>
+                <span class="card-badge badge-gold">8 Scheduled</span>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Guest</th>
+                    <th>Villa</th>
+                    <th>Route</th>
+                    <th>Time</th>
+                    <th>Driver</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr tabindex="0">
+                    <td class="td-guest">The Harrington Family</td>
+                    <td class="td-villa">Villa 12</td>
+                    <td class="td-route">Marina → Resort</td>
+                    <td class="td-time">14:30</td>
+                    <td class="td-driver">Carlos M.</td>
+                    <td><span class="status-pill status-confirmed"><span class="status-dot"></span>Confirmed</span></td>
+                  </tr>
+                  <tr tabindex="0">
+                    <td class="td-guest">Dr. &amp; Mrs. Chen</td>
+                    <td class="td-villa">Villa 7</td>
+                    <td class="td-route">Airport → Resort</td>
+                    <td class="td-time">16:00</td>
+                    <td class="td-driver">Luis R.</td>
+                    <td><span class="status-pill status-en-route"><span class="status-dot"></span>En Route</span></td>
+                  </tr>
+                  <tr tabindex="0">
+                    <td class="td-guest">The Morrison Group</td>
+                    <td class="td-villa">Villa 3</td>
+                    <td class="td-route">Resort → Airport</td>
+                    <td class="td-time">11:00</td>
+                    <td class="td-driver">Ana P.</td>
+                    <td><span class="status-pill status-done"><span class="status-dot"></span>Done</span></td>
+                  </tr>
+                  <tr tabindex="0">
+                    <td class="td-guest">Sophia &amp; James Webb</td>
+                    <td class="td-villa">Villa 15</td>
+                    <td class="td-route">Marina → Resort</td>
+                    <td class="td-time">17:30</td>
+                    <td class="td-driver">Carlos M.</td>
+                    <td><span class="status-pill status-pending"><span class="status-dot"></span>Pending</span></td>
+                  </tr>
+                  <tr tabindex="0">
+                    <td class="td-guest">The Nakamura Family</td>
+                    <td class="td-villa">Villa 9</td>
+                    <td class="td-route">Resort → Marina</td>
+                    <td class="td-time">09:00</td>
+                    <td class="td-driver">Luis R.</td>
+                    <td><span class="status-pill status-done"><span class="status-dot"></span>Done</span></td>
+                  </tr>
+                  <tr tabindex="0">
+                    <td class="td-guest">Isabella Rodriguez</td>
+                    <td class="td-villa">Villa 4</td>
+                    <td class="td-route">Airport → Resort</td>
+                    <td class="td-time">18:45</td>
+                    <td class="td-driver">Ana P.</td>
+                    <td><span class="status-pill status-confirmed"><span class="status-dot"></span>Confirmed</span></td>
+                  </tr>
+                  <tr tabindex="0">
+                    <td class="td-guest">The O'Brien Party</td>
+                    <td class="td-villa">Villa 11</td>
+                    <td class="td-route">Marina → Resort</td>
+                    <td class="td-time">20:00</td>
+                    <td class="td-driver">Carlos M.</td>
+                    <td><span class="status-pill status-pending"><span class="status-dot"></span>Pending</span></td>
+                  </tr>
+                  <tr tabindex="0">
+                    <td class="td-guest">Mr. &amp; Mrs. Delacroix</td>
+                    <td class="td-villa">Villa 6</td>
+                    <td class="td-route">Resort → Airport</td>
+                    <td class="td-time">07:30</td>
+                    <td class="td-driver">Luis R.</td>
+                    <td><span class="status-pill status-done"><span class="status-dot"></span>Done</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER: KANBAN -->
+        <div class="bento-col">
+          <div class="card kanban-card">
+            <div class="card-header">
+              <div class="card-title">Operations Board</div>
+              <span class="card-badge badge-teal">Drag to move</span>
+            </div>
+            <div class="kanban-body">
+              <!-- PENDING -->
+              <div class="kanban-col col-pending" id="col-pending" ondragover="handleDragOver(event)" ondrop="handleDrop(event,'pending')">
+                <div class="kanban-col-header">
+                  <div class="kanban-col-title">Pending</div>
+                  <div class="kanban-col-count" id="count-pending">2 tasks</div>
+                </div>
+                <div class="kanban-items" id="items-pending">
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k1" data-col="pending" tabindex="0">
+                    <div class="ki-guest">Webb Transfer</div>
+                    <div class="ki-time">17:30 · Marina</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:15%"></div></div>
+                  </div>
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k2" data-col="pending" tabindex="0">
+                    <div class="ki-guest">O'Brien Arrival</div>
+                    <div class="ki-time">20:00 · Marina</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:5%"></div></div>
+                  </div>
+                </div>
+              </div>
+              <!-- EN ROUTE -->
+              <div class="kanban-col col-enroute" id="col-enroute" ondragover="handleDragOver(event)" ondrop="handleDrop(event,'enroute')">
+                <div class="kanban-col-header">
+                  <div class="kanban-col-title">En Route</div>
+                  <div class="kanban-col-count" id="count-enroute">2 tasks</div>
+                </div>
+                <div class="kanban-items" id="items-enroute">
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k3" data-col="enroute" tabindex="0">
+                    <div class="ki-guest">Chen Transfer</div>
+                    <div class="ki-time">16:00 · Airport</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:60%"></div></div>
+                  </div>
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k4" data-col="enroute" tabindex="0">
+                    <div class="ki-guest">Rodriguez Pickup</div>
+                    <div class="ki-time">18:45 · Airport</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:35%"></div></div>
+                  </div>
+                </div>
+              </div>
+              <!-- CONFIRMED -->
+              <div class="kanban-col col-confirmed" id="col-confirmed" ondragover="handleDragOver(event)" ondrop="handleDrop(event,'confirmed')">
+                <div class="kanban-col-header">
+                  <div class="kanban-col-title">Confirmed</div>
+                  <div class="kanban-col-count" id="count-confirmed">2 tasks</div>
+                </div>
+                <div class="kanban-items" id="items-confirmed">
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k5" data-col="confirmed" tabindex="0">
+                    <div class="ki-guest">Harrington Family</div>
+                    <div class="ki-time">14:30 · Marina</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:80%"></div></div>
+                  </div>
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k6" data-col="confirmed" tabindex="0">
+                    <div class="ki-guest">Sunset Tour × 6</div>
+                    <div class="ki-time">17:00 · Beach</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:70%"></div></div>
+                  </div>
+                </div>
+              </div>
+              <!-- DONE -->
+              <div class="kanban-col col-done" id="col-done" ondragover="handleDragOver(event)" ondrop="handleDrop(event,'done')">
+                <div class="kanban-col-header">
+                  <div class="kanban-col-title">Done</div>
+                  <div class="kanban-col-count" id="count-done">3 tasks</div>
+                </div>
+                <div class="kanban-items" id="items-done">
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k7" data-col="done" tabindex="0">
+                    <div class="ki-guest">Morrison Departure</div>
+                    <div class="ki-time">11:00 · Airport</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:100%"></div></div>
+                  </div>
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k8" data-col="done" tabindex="0">
+                    <div class="ki-guest">Nakamura Transfer</div>
+                    <div class="ki-time">09:00 · Marina</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:100%"></div></div>
+                  </div>
+                  <div class="kanban-item" draggable="true" ondragstart="handleDragStart(event)" data-id="k9" data-col="done" tabindex="0">
+                    <div class="ki-guest">Delacroix Checkout</div>
+                    <div class="ki-time">07:30 · Airport</div>
+                    <div class="ki-progress"><div class="ki-progress-bar" style="--progress:100%"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: ACTIVITY + QUICK STATS -->
+        <div class="bento-col">
+          <!-- Activity Feed -->
+          <div class="card activity-card" style="flex:1;min-height:0;">
+            <div class="card-header">
+              <div class="card-title">Live Activity</div>
+              <span class="card-badge badge-teal">Live</span>
+            </div>
+            <div class="activity-list">
+              <div class="activity-item" tabindex="0">
+                <div class="activity-dot-wrap">
+                  <div class="activity-dot latest" style="background:var(--teal)"></div>
+                  <div class="activity-line"></div>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-text">Carlos M. departed with <strong>Harrington Family</strong></div>
+                  <div class="activity-time">14:28</div>
+                </div>
+              </div>
+              <div class="activity-item" tabindex="0">
+                <div class="activity-dot-wrap">
+                  <div class="activity-dot" style="background:var(--aqua)"></div>
+                  <div class="activity-line"></div>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-text">New booking: <strong>Chen party</strong> — Villa 7 confirmed</div>
+                  <div class="activity-time">13:55</div>
+                </div>
+              </div>
+              <div class="activity-item" tabindex="0">
+                <div class="activity-dot-wrap">
+                  <div class="activity-dot" style="background:var(--forest)"></div>
+                  <div class="activity-line"></div>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-text">Morrison Group checked out — transfer complete</div>
+                  <div class="activity-time">11:12</div>
+                </div>
+              </div>
+              <div class="activity-item" tabindex="0">
+                <div class="activity-dot-wrap">
+                  <div class="activity-dot" style="background:var(--gold)"></div>
+                  <div class="activity-line"></div>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-text">Dinner reservation added: <strong>Webb party × 2</strong></div>
+                  <div class="activity-time">10:44</div>
+                </div>
+              </div>
+              <div class="activity-item" tabindex="0">
+                <div class="activity-dot-wrap">
+                  <div class="activity-dot" style="background:var(--terracotta)"></div>
+                  <div class="activity-line"></div>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-text">Ana P. collected Rodriguez from Airport</div>
+                  <div class="activity-time">10:20</div>
+                </div>
+              </div>
+              <div class="activity-item" tabindex="0">
+                <div class="activity-dot-wrap">
+                  <div class="activity-dot" style="background:var(--forest)"></div>
+                  <div class="activity-line"></div>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-text">Nakamura Family marina transfer — <strong>Done</strong></div>
+                  <div class="activity-time">09:18</div>
+                </div>
+              </div>
+              <div class="activity-item" tabindex="0">
+                <div class="activity-dot-wrap">
+                  <div class="activity-dot" style="background:var(--aqua)"></div>
+                  <div class="activity-line"></div>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-text">12 unread messages — <strong>Guest Relations</strong></div>
+                  <div class="activity-time">08:55</div>
+                </div>
+              </div>
+              <div class="activity-item" tabindex="0">
+                <div class="activity-dot-wrap">
+                  <div class="activity-dot" style="background:var(--gold)"></div>
+                  <div class="activity-line"></div>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-text">Delacroix checkout — early morning transfer complete</div>
+                  <div class="activity-time">07:45</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="card" style="flex-shrink:0;">
+            <div class="card-header" style="padding:10px 14px 8px;">
+              <div class="card-title" style="font-size:13px;">Quick Stats</div>
+            </div>
+            <div class="quick-stats">
+              <div class="qs-card" tabindex="0">
+                <div class="qs-icon">🚤</div>
+                <div class="qs-number" style="color:var(--teal);">3</div>
+                <div class="qs-label">Active Boats</div>
+              </div>
+              <div class="qs-card" tabindex="0">
+                <div class="qs-icon">⭐</div>
+                <div class="qs-number" style="color:var(--gold);">4.9</div>
+                <div class="qs-label">Avg Rating</div>
+              </div>
+              <div class="qs-card" tabindex="0">
+                <div class="qs-icon">🏝</div>
+                <div class="qs-number" style="color:var(--aqua);">6</div>
+                <div class="qs-label">Tours Today</div>
+              </div>
+              <div class="qs-card" tabindex="0">
+                <div class="qs-icon">🍽</div>
+                <div class="qs-number" style="color:var(--terracotta);">3</div>
+                <div class="qs-label">Reservations</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /bento -->
+
+    </div><!-- /content -->
+
+  </main>
+</div>
+
+<script>
+  // ─── CLOCK ───────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ─── KPI COUNTER ─────────────────────────────────────────
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target, 10);
+    const duration = 1200;
+    const start = performance.now();
+    function step(ts) {
+      const elapsed = ts - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        animateCounter(e.target);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  document.querySelectorAll('[data-target]').forEach(el => observer.observe(el));
+
+  // ─── NAV ACTIVE STATE ─────────────────────────────────────
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+    });
+    item.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        item.click();
+      }
+    });
+  });
+
+  // ─── KANBAN DRAG & DROP ───────────────────────────────────
+  let draggedItem = null;
+  let sourceCol = null;
+
+  function handleDragStart(e) {
+    draggedItem = e.currentTarget;
+    sourceCol = draggedItem.dataset.col;
+    draggedItem.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', draggedItem.dataset.id);
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const col = e.currentTarget;
+    col.classList.add('drag-over');
+  }
+
+  document.querySelectorAll('.kanban-col').forEach(col => {
+    col.addEventListener('dragleave', (e) => {
+      if (!col.contains(e.relatedTarget)) {
+        col.classList.remove('drag-over');
+      }
+    });
+    col.addEventListener('dragend', () => {
+      document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+      if (draggedItem) draggedItem.classList.remove('dragging');
+      draggedItem = null;
+    });
+  });
+
+  function handleDrop(e, targetColId) {
+    e.preventDefault();
+    const col = e.currentTarget;
+    col.classList.remove('drag-over');
+
+    if (!draggedItem) return;
+    draggedItem.classList.remove('dragging');
+
+    const targetItems = document.getElementById(`items-${targetColId}`);
+    targetItems.appendChild(draggedItem);
+    draggedItem.dataset.col = targetColId;
+
+    updateKanbanCounts();
+    draggedItem = null;
+  }
+
+  function updateKanbanCounts() {
+    ['pending','enroute','confirmed','done'].forEach(col => {
+      const count = document.getElementById(`items-${col}`).children.length;
+      const label = count === 1 ? 'task' : 'tasks';
+      document.getElementById(`count-${col}`).textContent = `${count} ${label}`;
+    });
+  }
+
+  // Init counts
+  updateKanbanCounts();
+</script>
+
+<!-- Version Navigator -->
+<div class="version-nav">
+  <span class="version-nav-label">Design Concepts</span>
+  <div class="version-nav-links">
+    <a href="ui-v1-tropical-luxury.html" class="version-btn">V1 · Tropical Luxury</a>
+    <a href="ui-v2-dark-command.html" class="version-btn">V2 · Dark Command</a>
+    <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand & Gold</a>
+    <a href="ui-v4-teal-night.html" class="version-btn">V4 · Teal Night</a>
+    <a href="ui-v5-cream-split.html" class="version-btn">V5 · Cream Split</a>
+    <a href="ui-v6-mono-minimal.html" class="version-btn">V6 · Mono Minimal</a>
+    <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
+  </div>
+</div>
+
+</body>
+</html>

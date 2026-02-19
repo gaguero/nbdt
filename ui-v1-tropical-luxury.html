@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
   :root {
     --forest: #1B3A2D;
@@ -509,6 +508,30 @@
     font-size: 9px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; padding: 0 5px;
   }
+
+  /* Ensure all interactive elements have pointer cursor */
+  button, .sidebar-item, .date-nav-btn, .date-nav-arrow,
+  .conversation-item, .guest-list-item, .header-avatar {
+    cursor: pointer;
+  }
+.version-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 32px; margin-top: 32px;
+  background: #1B3A2D; border-top: 1px solid rgba(201,169,110,0.2);
+  flex-wrap: wrap; gap: 12px;
+}
+.version-nav-label {
+  font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: rgba(255,255,255,0.35);
+}
+.version-nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.version-btn {
+  font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 7px 14px;
+  border-radius: 6px; border: 1px solid rgba(201,169,110,0.3);
+  color: rgba(255,255,255,0.55); text-decoration: none;
+  transition: border-color 200ms, color 200ms, background 200ms; cursor: pointer;
+}
+.version-btn:hover { border-color: #C9A96E; color: #C9A96E; background: rgba(201,169,110,0.08); }
 </style>
 </head>
 <body>
@@ -800,5 +823,19 @@
     });
   });
 </script>
+
+<!-- Version Navigator -->
+<div class="version-nav">
+  <span class="version-nav-label">Design Concepts</span>
+  <div class="version-nav-links">
+    <a href="ui-v1-tropical-luxury.html" class="version-btn">V1 · Tropical Luxury</a>
+    <a href="ui-v2-dark-command.html" class="version-btn">V2 · Dark Command</a>
+    <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand &amp; Gold</a>
+    <a href="ui-v4-teal-night.html" class="version-btn">V4 · Teal Night</a>
+    <a href="ui-v5-cream-split.html" class="version-btn">V5 · Cream Split</a>
+    <a href="ui-v6-mono-minimal.html" class="version-btn">V6 · Mono Minimal</a>
+    <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
+  </div>
+</div>
 </body>
 </html>

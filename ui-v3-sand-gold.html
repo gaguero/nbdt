@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nayara Bocas del Toro — Staff Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sand: #F5EBD7;
+    --sand-light: #FEFCF7;
+    --charcoal: #4A4A4A;
+    --gold: #AA8E67;
+    --gold-light: #C4A882;
+    --gold-pale: rgba(170,142,103,0.10);
+    --gold-border: rgba(170,142,103,0.20);
+    --forest: #7C8E67;
+    --teal: #A4C4C8;
+    --terracotta: #EC6C4B;
+    --sidebar-bg: #2D2520;
+    --sidebar-width: 72px;
+    --card-radius: 16px;
+    --card-shadow: 0 4px 24px rgba(170,142,103,0.08), 0 1px 4px rgba(74,74,74,0.06);
+    --card-shadow-hover: 0 8px 40px rgba(170,142,103,0.16), 0 2px 8px rgba(74,74,74,0.08);
+    --transition-spring: cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--sand);
+    color: var(--charcoal);
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+  }
+
+  /* ── APP SHELL ─────────────────────────────────────────────── */
+  .app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 24px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+    /* grain texture */
+    isolation: isolate;
+  }
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.6;
+  }
+
+  .sidebar-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1.5px solid rgba(170,142,103,0.35);
+    margin-bottom: 28px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .sidebar-logo:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(170,142,103,0.15);
+  }
+  .sidebar-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    width: 100%;
+  }
+
+  .nav-item {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.38);
+    transition: color 0.25s ease;
+  }
+  .nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 24px;
+    background: var(--gold);
+    border-radius: 0 3px 3px 0;
+    transition: transform 0.3s var(--transition-spring);
+  }
+  .nav-item:hover { color: rgba(255,255,255,0.75); }
+  .nav-item.active {
+    color: var(--gold);
+  }
+  .nav-item.active::before {
+    transform: translateY(-50%) scaleY(1);
+  }
+  .nav-item svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.6;
+    flex-shrink: 0;
+  }
+
+  .nav-tooltip {
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1A1410;
+    color: rgba(255,255,255,0.9);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 100;
+  }
+  .nav-tooltip::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    border-right-color: #1A1410;
+  }
+  .nav-item:hover .nav-tooltip { opacity: 1; }
+
+  .sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ── MAIN ─────────────────────────────────────────────────── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* ── TOPBAR ─────────────────────────────────────────────────── */
+  .topbar {
+    background: var(--sand-light);
+    border-bottom: 1px solid var(--gold-border);
+    padding: 0 28px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .topbar-left {
+    flex: 1;
+  }
+
+  .topbar-breadcrumb {
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2px;
+  }
+  .topbar-breadcrumb span { color: rgba(74,74,74,0.4); margin: 0 6px; }
+
+  .topbar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--charcoal);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  .topbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .live-clock {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--charcoal);
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .live-date {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 2px;
+    text-align: center;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .topbar-notif {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--sand);
+    border: 1px solid var(--gold-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--charcoal);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .topbar-notif:hover { background: rgba(170,142,103,0.12); border-color: var(--gold); }
+  .topbar-notif svg { width: 16px; height: 16px; stroke-width: 1.8; }
+  .notif-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    border: 1.5px solid var(--sand-light);
+  }
+
+  .topbar-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold) 0%, #8B6E48 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    border: 2px solid rgba(170,142,103,0.3);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .topbar-avatar:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(170,142,103,0.15);
+  }
+
+  /* ── SCROLL AREA ─────────────────────────────────────────────── */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px 28px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(170,142,103,0.25) transparent;
+  }
+  .scroll-area::-webkit-scrollbar { width: 5px; }
+  .scroll-area::-webkit-scrollbar-track { background: transparent; }
+  .scroll-area::-webkit-scrollbar-thumb { background: rgba(170,142,103,0.25); border-radius: 3px; }
+
+  /* ── KPI STRIP ─────────────────────────────────────────────── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .kpi-tile {
+    background: var(--sand-light);
+    border-radius: var(--card-radius);
+    padding: 18px 18px 14px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s var(--transition-spring);
+    animation: fadeUp 0.5s ease both;
+    animation-delay: calc(var(--i) * 80ms);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-tile::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 16px;
+    bottom: 16px;
+    width: 3px;
+    background: var(--gold);
+    border-radius: 0 3px 3px 0;
+    opacity: 0;
+    transform: scaleY(0.4);
+    transition: opacity 0.3s ease, transform 0.3s var(--transition-spring);
+  }
+  .kpi-tile:hover {
+    box-shadow: var(--card-shadow-hover);
+    border-color: var(--gold-border);
+    transform: translateY(-2px);
+  }
+  .kpi-tile:hover::after { opacity: 1; transform: scaleY(1); }
+
+  .kpi-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kpi-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 44px;
+    font-weight: 300;
+    color: var(--charcoal);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .kpi-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .kpi-change {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .kpi-change.up { color: var(--forest); }
+  .kpi-change.down { color: var(--terracotta); }
+  .kpi-change.neutral { color: var(--gold); }
+
+  .kpi-sparkline { flex-shrink: 0; }
+
+  /* ── BENTO GRID ─────────────────────────────────────────────── */
+  .bento {
+    display: grid;
+    grid-template-columns: 40% 35% 25%;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* ── CARDS ─────────────────────────────────────────────────── */
+  .card {
+    background: var(--sand-light);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: 24px;
+    border: 1px solid rgba(170,142,103,0.08);
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--charcoal);
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .card-subtitle {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 3px;
+  }
+
+  .card-badge {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--gold-pale);
+    color: var(--gold);
+    border: 1px solid var(--gold-border);
+    flex-shrink: 0;
+  }
+
+  /* ── TABLES ─────────────────────────────────────────────────── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-table thead th {
+    font-family: 'Jost', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(74,74,74,0.45);
+    text-align: left;
+    padding: 0 8px 10px;
+    border-bottom: 1px solid rgba(170,142,103,0.12);
+  }
+  .data-table thead th:first-child { padding-left: 0; }
+  .data-table tbody tr {
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .data-table tbody tr:hover { background: rgba(170,142,103,0.04); }
+  .data-table tbody td {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(170,142,103,0.06);
+    vertical-align: middle;
+  }
+  .data-table tbody td:first-child { padding-left: 0; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+
+  .td-name {
+    font-family: 'Jost', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--charcoal);
+    white-space: nowrap;
+  }
+  .td-sub {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(74,74,74,0.5);
+    margin-top: 1px;
+  }
+  .td-route {
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(74,74,74,0.65);
+  }
+  .td-time {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--charcoal);
+    white-space: nowrap;
+  }
+  .td-driver {
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    color: rgba(74,74,74,0.6);
+    white-space: nowrap;
+  }
+
+  /* ── STATUS PILLS ─────────────────────────────────────────────── */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Jost', sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .pill::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pill-confirmed {
+    background: rgba(170,142,103,0.12);
+    color: #8B6E48;
+    border: 1px solid rgba(170,142,103,0.25);
+  }
+  .pill-confirmed::before { background: var(--gold); }
+  .pill-enroute {
+    background: rgba(164,196,200,0.18);
+    color: #5A8E94;
+    border: 1px solid rgba(164,196,200,0.35);
+  }
+  .pill-enroute::before { background: var(--teal); }
+  .pill-completed {
+    background: rgba(124,142,103,0.12);
+    color: #5A6E47;
+    border: 1px solid rgba(124,142,103,0.25);
+  }
+  .pill-completed::before { background: var(--forest); }
+  .pill-pending {
+    background: rgba(236,108,75,0.10);
+    color: #C0502A;
+    border: 1px solid rgba(236,108,75,0.22);
+  }
+  .pill-pending::before { background: var(--terracotta); }
+
+  /* ── COL CENTER STACK ─────────────────────────────────────────── */
+  .col-center { display: flex; flex-direction: column; gap: 16px; }
+  .col-right { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── IN-HOUSE GUESTS CARD ─────────────────────────────────────── */
+  .guests-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .guest-stat {
+    background: var(--sand);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid rgba(170,142,103,0.10);
+    transition: border-color 0.2s ease;
+    cursor: pointer;
+  }
+  .guest-stat:hover { border-color: var(--gold-border); }
+  .guest-stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--charcoal);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .guest-stat-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 5px;
+  }
+
+  /* ── ROMANTIC DINNERS ─────────────────────────────────────────── */
+  .dinner-item {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(170,142,103,0.08);
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dinner-item:last-child { border-bottom: none; }
+  .dinner-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(236,108,75,0.12) 0%, rgba(170,142,103,0.12) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--terracotta);
+  }
+  .dinner-icon svg { width: 16px; height: 16px; stroke-width: 1.6; }
+  .dinner-info { flex: 1; min-width: 0; }
+  .dinner-name {
+    font-family: 'Jost', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--charcoal);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dinner-detail {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    color: rgba(74,74,74,0.55);
+    margin-top: 2px;
+  }
+  .dinner-time {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--gold);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── CONVERSATIONS ─────────────────────────────────────────────── */
+  .conv-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(170,142,103,0.08);
+    cursor: pointer;
+    align-items: flex-start;
+  }
+  .conv-item:last-child { border-bottom: none; }
+  .conv-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sand) 0%, var(--gold-pale) 100%);
+    border: 1.5px solid var(--gold-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .conv-body { flex: 1; min-width: 0; }
+  .conv-name {
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--charcoal);
+  }
+  .conv-snippet {
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(74,74,74,0.55);
+    line-height: 1.5;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .conv-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .conv-time {
+    font-family: 'Jost', sans-serif;
+    font-size: 9px;
+    font-weight: 400;
+    color: rgba(74,74,74,0.4);
+    letter-spacing: 0.06em;
+  }
+  .conv-unread {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* ── KEYFRAMES ─────────────────────────────────────────────────── */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ── DIVIDER ─────────────────────────────────────────────────── */
+  .sidebar-divider {
+    width: 32px;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 8px 0;
+  }
+
+  /* ── TABLE WRAPPER SCROLL ─────────────────────────────────────── */
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  .version-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px; margin-top: 32px;
+    background: #2D2520; border-top: 1px solid rgba(170,142,103,0.2);
+    flex-wrap: wrap; gap: 12px;
+  }
+  .version-nav-label {
+    font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: rgba(255,255,255,0.4);
+  }
+  .version-nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .version-btn {
+    font-family: 'Jost', sans-serif; font-size: 12px; padding: 7px 14px;
+    border-radius: 6px; border: 1px solid rgba(170,142,103,0.3);
+    color: rgba(255,255,255,0.6); text-decoration: none;
+    transition: border-color 200ms, color 200ms, background 200ms;
+    cursor: pointer;
+  }
+  .version-btn:hover { border-color: #AA8E67; color: #AA8E67; background: rgba(170,142,103,0.08); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="brand_assets/Nayara-Bocas-Del-Toro-Logo-White-Colour round.png" alt="Nayara Logo">
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- Dashboard -->
+      <div class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="8" height="8" rx="1.5"/>
+          <rect x="13" y="3" width="8" height="8" rx="1.5"/>
+          <rect x="3" y="13" width="8" height="8" rx="1.5"/>
+          <rect x="13" y="13" width="8" height="8" rx="1.5"/>
+        </svg>
+        <span class="nav-tooltip">Dashboard</span>
+      </div>
+
+      <!-- Transfers -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+        </svg>
+        <span class="nav-tooltip">Transfers</span>
+      </div>
+
+      <!-- Tours -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 3v1m0 16v1M3 12h1m16 0h1"/>
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M12 10l-1-3M12 14l1 3M10 12l-3 1M14 12l3-1"/>
+        </svg>
+        <span class="nav-tooltip">Tours</span>
+      </div>
+
+      <!-- Guests -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span class="nav-tooltip">Guests</span>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Dinners -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <span class="nav-tooltip">Romantic Dinners</span>
+      </div>
+
+      <!-- Conversations -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="nav-tooltip">Conversations</span>
+      </div>
+
+      <!-- Reports -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+          <line x1="3" y1="20" x2="21" y2="20"/>
+        </svg>
+        <span class="nav-tooltip">Reports</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <!-- Settings -->
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="nav-tooltip">Settings</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">Nayara Bocas del Toro <span>/</span> Operations</div>
+        <div class="topbar-title">Staff Command Center</div>
+      </div>
+
+      <div class="topbar-center">
+        <div class="live-clock" id="live-clock">00:00:00</div>
+        <div class="live-date" id="live-date">Thursday, 19 February 2026</div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="topbar-notif">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-badge"></span>
+        </div>
+        <div class="topbar-avatar">MG</div>
+      </div>
+    </header>
+
+    <!-- SCROLL AREA -->
+    <div class="scroll-area">
+
+      <!-- KPI STRIP -->
+      <div class="kpi-strip">
+
+        <div class="kpi-tile" style="--i:0">
+          <div class="kpi-label">In-House Guests</div>
+          <div class="kpi-value" data-target="34">0</div>
+          <div class="kpi-meta">
+            <span class="kpi-change up">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2L8 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              +3 today
+            </span>
+            <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
+              <polyline points="0,16 8,14 16,12 24,10 32,13 40,8 48,6" fill="none" stroke="rgba(170,142,103,0.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,16 8,14 16,12 24,10 32,13 40,8 48,6" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.4s ease forwards;"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-tile" style="--i:1">
+          <div class="kpi-label">Villas Occupied</div>
+          <div class="kpi-value" data-target="18">0</div>
+          <div class="kpi-meta">
+            <span class="kpi-change neutral">of 24 total</span>
+            <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
+              <polyline points="0,12 8,10 16,14 24,9 32,11 40,7 48,8" fill="none" stroke="rgba(170,142,103,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,12 8,10 16,14 24,9 32,11 40,7 48,8" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.5s ease forwards;"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-tile" style="--i:2">
+          <div class="kpi-label">Arrivals Today</div>
+          <div class="kpi-value" data-target="6">0</div>
+          <div class="kpi-meta">
+            <span class="kpi-change up">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2L8 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              on schedule
+            </span>
+            <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
+              <polyline points="0,18 8,15 16,16 24,12 32,14 40,10 48,8" fill="none" stroke="rgba(124,142,103,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,18 8,15 16,16 24,12 32,14 40,10 48,8" fill="none" stroke="var(--forest)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.6s ease forwards;"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-tile" style="--i:3">
+          <div class="kpi-label">Departures</div>
+          <div class="kpi-value" data-target="4">0</div>
+          <div class="kpi-meta">
+            <span class="kpi-change down">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2v6M5 8L2 5M5 8L8 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              2 pending CO
+            </span>
+            <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
+              <polyline points="0,8 8,11 16,9 24,13 32,10 40,14 48,12" fill="none" stroke="rgba(236,108,75,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,8 8,11 16,9 24,13 32,10 40,14 48,12" fill="none" stroke="var(--terracotta)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.7s ease forwards;"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-tile" style="--i:4">
+          <div class="kpi-label">Transfers Today</div>
+          <div class="kpi-value" data-target="8">0</div>
+          <div class="kpi-meta">
+            <span class="kpi-change neutral">3 pending</span>
+            <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
+              <polyline points="0,14 8,12 16,10 24,8 32,10 40,6 48,4" fill="none" stroke="rgba(164,196,200,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,14 8,12 16,10 24,8 32,10 40,6 48,4" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.8s ease forwards;"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-tile" style="--i:5">
+          <div class="kpi-label">Active Tours</div>
+          <div class="kpi-value" data-target="6">0</div>
+          <div class="kpi-meta">
+            <span class="kpi-change up">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2L8 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              38 guests
+            </span>
+            <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
+              <polyline points="0,16 8,14 16,10 24,12 32,8 40,6 48,4" fill="none" stroke="rgba(170,142,103,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,16 8,14 16,10 24,12 32,8 40,6 48,4" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.9s ease forwards;"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi-tile" style="--i:6">
+          <div class="kpi-label">Dinners Tonight</div>
+          <div class="kpi-value" data-target="3">0</div>
+          <div class="kpi-meta">
+            <span class="kpi-change up">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2L8 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              all set up
+            </span>
+            <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
+              <polyline points="0,18 8,16 16,18 24,14 32,16 40,12 48,10" fill="none" stroke="rgba(236,108,75,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,18 8,16 16,18 24,14 32,16 40,12 48,10" fill="none" stroke="var(--terracotta)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 1.0s ease forwards;"/>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+      <!-- /KPI STRIP -->
+
+      <!-- BENTO GRID -->
+      <div class="bento">
+
+        <!-- COL 1: TRANSFERS -->
+        <div class="col col-transfers">
+          <div class="card" style="animation-delay: 0.15s">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Guest Transfers</div>
+                <div class="card-subtitle">Today's Schedule</div>
+              </div>
+              <span class="card-badge">8 Total</span>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Guest</th>
+                    <th>Route</th>
+                    <th>Time</th>
+                    <th>Driver</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="td-name">The Harrington Family</div>
+                      <div class="td-sub">Villa 12</div>
+                    </td>
+                    <td><div class="td-route">Marina → Resort</div></td>
+                    <td><div class="td-time">14:30</div></td>
+                    <td><div class="td-driver">Carlos M.</div></td>
+                    <td><span class="pill pill-confirmed">Confirmed</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="td-name">Dr. & Mrs. Chen</div>
+                      <div class="td-sub">Villa 7</div>
+                    </td>
+                    <td><div class="td-route">Airport → Resort</div></td>
+                    <td><div class="td-time">16:00</div></td>
+                    <td><div class="td-driver">Luis R.</div></td>
+                    <td><span class="pill pill-enroute">En Route</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="td-name">The Morrison Group</div>
+                      <div class="td-sub">Villa 3</div>
+                    </td>
+                    <td><div class="td-route">Resort → Airport</div></td>
+                    <td><div class="td-time">11:00</div></td>
+                    <td><div class="td-driver">Ana P.</div></td>
+                    <td><span class="pill pill-completed">Completed</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="td-name">Sophia & James Webb</div>
+                      <div class="td-sub">Villa 15</div>
+                    </td>
+                    <td><div class="td-route">Marina → Resort</div></td>
+                    <td><div class="td-time">17:30</div></td>
+                    <td><div class="td-driver">Carlos M.</div></td>
+                    <td><span class="pill pill-pending">Pending</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="td-name">The Nakamura Family</div>
+                      <div class="td-sub">Villa 9</div>
+                    </td>
+                    <td><div class="td-route">Resort → Marina</div></td>
+                    <td><div class="td-time">09:00</div></td>
+                    <td><div class="td-driver">Luis R.</div></td>
+                    <td><span class="pill pill-completed">Completed</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="td-name">Isabella Rodriguez</div>
+                      <div class="td-sub">Villa 4</div>
+                    </td>
+                    <td><div class="td-route">Airport → Resort</div></td>
+                    <td><div class="td-time">18:45</div></td>
+                    <td><div class="td-driver">Ana P.</div></td>
+                    <td><span class="pill pill-confirmed">Confirmed</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="td-name">The O'Brien Party</div>
+                      <div class="td-sub">Villa 11</div>
+                    </td>
+                    <td><div class="td-route">Marina → Resort</div></td>
+                    <td><div class="td-time">20:00</div></td>
+                    <td><div class="td-driver">Carlos M.</div></td>
+                    <td><span class="pill pill-pending">Pending</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="td-name">Mr. & Mrs. Delacroix</div>
+                      <div class="td-sub">Villa 6</div>
+                    </td>
+                    <td><div class="td-route">Resort → Airport</div></td>
+                    <td><div class="td-time">07:30</div></td>
+                    <td><div class="td-driver">Luis R.</div></td>
+                    <td><span class="pill pill-completed">Completed</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- COL 2: TOURS + GUESTS -->
+        <div class="col col-center">
+
+          <!-- Tours Card -->
+          <div class="card" style="animation-delay: 0.22s">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Excursions & Tours</div>
+                <div class="card-subtitle">Active Today</div>
+              </div>
+              <span class="card-badge">6 Tours</span>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tour</th>
+                  <th>Time</th>
+                  <th>Guide</th>
+                  <th>Pax</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="td-name" style="font-size:12px;">Dolphin Bay Snorkel</div></td>
+                  <td><div class="td-time" style="font-size:14px;">08:00</div></td>
+                  <td><div class="td-driver">Marco V.</div></td>
+                  <td><div class="td-driver">6</div></td>
+                  <td><span class="pill pill-enroute">En Route</span></td>
+                </tr>
+                <tr>
+                  <td><div class="td-name" style="font-size:12px;">Red Frog Beach Hike</div></td>
+                  <td><div class="td-time" style="font-size:14px;">09:30</div></td>
+                  <td><div class="td-driver">Sofia A.</div></td>
+                  <td><div class="td-driver">4</div></td>
+                  <td><span class="pill pill-confirmed">Confirmed</span></td>
+                </tr>
+                <tr>
+                  <td><div class="td-name" style="font-size:12px;">Starfish Beach Kayak</div></td>
+                  <td><div class="td-time" style="font-size:14px;">11:00</div></td>
+                  <td><div class="td-driver">Marco V.</div></td>
+                  <td><div class="td-driver">8</div></td>
+                  <td><span class="pill pill-pending">Pending</span></td>
+                </tr>
+                <tr>
+                  <td><div class="td-name" style="font-size:12px;">Night Jungle Walk</div></td>
+                  <td><div class="td-time" style="font-size:14px;">19:00</div></td>
+                  <td><div class="td-driver">Carlos B.</div></td>
+                  <td><div class="td-driver">3</div></td>
+                  <td><span class="pill pill-confirmed">Confirmed</span></td>
+                </tr>
+                <tr>
+                  <td><div class="td-name" style="font-size:12px;">Chocolate Farm Tour</div></td>
+                  <td><div class="td-time" style="font-size:14px;">10:00</div></td>
+                  <td><div class="td-driver">Sofia A.</div></td>
+                  <td><div class="td-driver">5</div></td>
+                  <td><span class="pill pill-completed">Completed</span></td>
+                </tr>
+                <tr>
+                  <td><div class="td-name" style="font-size:12px;">Catamaran Sunset</div></td>
+                  <td><div class="td-time" style="font-size:14px;">17:30</div></td>
+                  <td><div class="td-driver">Marco V.</div></td>
+                  <td><div class="td-driver">12</div></td>
+                  <td><span class="pill pill-confirmed">Confirmed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- In-House Guests Card -->
+          <div class="card" style="animation-delay: 0.30s">
+            <div class="card-header">
+              <div>
+                <div class="card-title">In-House Occupancy</div>
+                <div class="card-subtitle">Live Overview</div>
+              </div>
+            </div>
+            <div class="guests-grid">
+              <div class="guest-stat">
+                <div class="guest-stat-value" data-target="34">0</div>
+                <div class="guest-stat-label">Total Guests</div>
+              </div>
+              <div class="guest-stat">
+                <div class="guest-stat-value" data-target="18">0</div>
+                <div class="guest-stat-label">Villas Occupied</div>
+              </div>
+              <div class="guest-stat">
+                <div class="guest-stat-value" data-target="6">0</div>
+                <div class="guest-stat-label">Arrivals Today</div>
+              </div>
+              <div class="guest-stat">
+                <div class="guest-stat-value" data-target="4">0</div>
+                <div class="guest-stat-label">Departures</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- COL 3: DINNERS + CONVERSATIONS -->
+        <div class="col col-right">
+
+          <!-- Romantic Dinners Card -->
+          <div class="card" style="animation-delay: 0.28s">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Romantic Dinners</div>
+                <div class="card-subtitle">Special Arrangements</div>
+              </div>
+              <span class="card-badge">3</span>
+            </div>
+
+            <div class="dinner-item">
+              <div class="dinner-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <div class="dinner-info">
+                <div class="dinner-name">Harrington Anniversary</div>
+                <div class="dinner-detail">Villa 12 · Overwater Setup</div>
+              </div>
+              <div class="dinner-time">19:30</div>
+            </div>
+
+            <div class="dinner-item">
+              <div class="dinner-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <div class="dinner-info">
+                <div class="dinner-name">Chen Proposal Dinner</div>
+                <div class="dinner-detail">Villa 7 · Beach Torches</div>
+              </div>
+              <div class="dinner-time">20:00</div>
+            </div>
+
+            <div class="dinner-item">
+              <div class="dinner-icon" style="background: linear-gradient(135deg, rgba(170,142,103,0.14) 0%, rgba(124,142,103,0.14) 100%); color: var(--forest);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <div class="dinner-info">
+                <div class="dinner-name">Webb Honeymoon</div>
+                <div class="dinner-detail">Villa 15 · Garden Pavilion</div>
+              </div>
+              <div class="dinner-time" style="color: rgba(74,74,74,0.5); font-size: 12px; font-family: 'Jost'; font-weight: 500;">Tomorrow<br>19:00</div>
+            </div>
+
+          </div>
+
+          <!-- Conversations Card -->
+          <div class="card" style="animation-delay: 0.36s">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Guest Messages</div>
+                <div class="card-subtitle">Recent Conversations</div>
+              </div>
+              <span class="card-badge" style="background: rgba(236,108,75,0.10); color: var(--terracotta); border-color: rgba(236,108,75,0.22);">3 New</span>
+            </div>
+
+            <div class="conv-item">
+              <div class="conv-avatar">H</div>
+              <div class="conv-body">
+                <div class="conv-name">The Harrington Family</div>
+                <div class="conv-snippet">Could we arrange a late check-out on Sunday? The children…</div>
+              </div>
+              <div class="conv-meta">
+                <span class="conv-time">9:41 AM</span>
+                <span class="conv-unread">2</span>
+              </div>
+            </div>
+
+            <div class="conv-item">
+              <div class="conv-avatar">C</div>
+              <div class="conv-body">
+                <div class="conv-name">Dr. Chen</div>
+                <div class="conv-snippet">Please ensure the beach setup has extra candles, she loves…</div>
+              </div>
+              <div class="conv-meta">
+                <span class="conv-time">8:55 AM</span>
+                <span class="conv-unread">1</span>
+              </div>
+            </div>
+
+            <div class="conv-item">
+              <div class="conv-avatar">N</div>
+              <div class="conv-body">
+                <div class="conv-name">Nakamura Family</div>
+                <div class="conv-snippet">Thank you for the wonderful stay — the sunset tour was…</div>
+              </div>
+              <div class="conv-meta">
+                <span class="conv-time">7:30 AM</span>
+              </div>
+            </div>
+
+            <div class="conv-item">
+              <div class="conv-avatar">W</div>
+              <div class="conv-body">
+                <div class="conv-name">James Webb</div>
+                <div class="conv-snippet">We would love a bottle of champagne chilled by 18:30…</div>
+              </div>
+              <div class="conv-meta">
+                <span class="conv-time">Yesterday</span>
+              </div>
+            </div>
+
+            <div class="conv-item">
+              <div class="conv-avatar">R</div>
+              <div class="conv-body">
+                <div class="conv-name">Isabella Rodriguez</div>
+                <div class="conv-snippet">Is there a spa availability for tomorrow morning? Ideally…</div>
+              </div>
+              <div class="conv-meta">
+                <span class="conv-time">Yesterday</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+      <!-- /BENTO -->
+
+    </div>
+    <!-- /SCROLL AREA -->
+
+  </div>
+</div>
+
+<style>
+@keyframes sparkDraw {
+  to { stroke-dashoffset: 0; }
+}
+</style>
+
+<script>
+  // ── LIVE CLOCK ──────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('live-clock').textContent = `${hh}:${mm}:${ss}`;
+
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    document.getElementById('live-date').textContent = dateStr;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── KPI COUNTER ANIMATION ────────────────────────────────────
+  function animateCounter(el, target, duration) {
+    const start = performance.now();
+    const from = 0;
+    function step(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease out quart
+      const eased = 1 - Math.pow(1 - progress, 4);
+      el.textContent = Math.round(from + (target - from) * eased);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Run counters after a short delay to let fadeUp animations start
+  setTimeout(() => {
+    document.querySelectorAll('[data-target]').forEach((el, i) => {
+      const target = parseInt(el.getAttribute('data-target'), 10);
+      const delay = i * 60;
+      setTimeout(() => animateCounter(el, target, 900), delay);
+    });
+  }, 200);
+
+  // ── NAV ACTIVE STATE ─────────────────────────────────────────
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // ── INTERACTIVE RIPPLE ON TABLE ROWS ─────────────────────────
+  document.querySelectorAll('tbody tr').forEach(row => {
+    row.style.cursor = 'pointer';
+  });
+</script>
+
+<!-- Version Navigator -->
+<div class="version-nav">
+  <span class="version-nav-label">Design Concepts</span>
+  <div class="version-nav-links">
+    <a href="ui-v1-tropical-luxury.html" class="version-btn">V1 · Tropical Luxury</a>
+    <a href="ui-v2-dark-command.html" class="version-btn">V2 · Dark Command</a>
+    <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand & Gold</a>
+    <a href="ui-v4-teal-night.html" class="version-btn">V4 · Teal Night</a>
+    <a href="ui-v5-cream-split.html" class="version-btn">V5 · Cream Split</a>
+    <a href="ui-v6-mono-minimal.html" class="version-btn">V6 · Mono Minimal</a>
+    <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
+  </div>
+</div>
+
+</body>
+</html>

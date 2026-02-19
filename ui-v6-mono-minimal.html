@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nayara Bocas del Toro — Staff Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sand: #F5EBD7;
+    --charcoal: #4A4A4A;
+    --gold: #AA8E67;
+    --gold-light: rgba(170,142,103,0.12);
+    --forest: #7C8E67;
+    --teal: #A4C4C8;
+    --terra: #EC6C4B;
+    --bg: #F8F6F2;
+    --surface: #FFFFFF;
+    --border: #EBEBEB;
+    --text-primary: #2A2A2A;
+    --text-secondary: #888888;
+    --text-muted: #AAAAAA;
+    --shadow-card: 0 1px 4px rgba(0,0,0,0.06);
+    --radius: 8px;
+  }
+
+  html, body {
+    font-family: 'Jost', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    opacity: 0;
+    animation: fadeIn 300ms ease forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 60px;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .nav-brand img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--charcoal);
+  }
+
+  .nav-brand-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.2em;
+    color: var(--text-primary);
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .nav-link {
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 0 16px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 200ms ease, border-color 200ms ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .nav-link:hover {
+    color: var(--text-primary);
+  }
+
+  .nav-link.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .nav-date {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--charcoal);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: opacity 180ms ease;
+  }
+
+  .nav-avatar:hover { opacity: 0.8; }
+
+  /* ─── KPI STRIP ─── */
+  .kpi-strip {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+  }
+
+  .kpi-card {
+    flex: 1;
+    padding: 20px 24px 18px;
+    border-right: 1px solid var(--border);
+    position: relative;
+    cursor: default;
+    transition: background 200ms ease;
+  }
+
+  .kpi-card:last-child { border-right: none; }
+
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .kpi-card:hover::after { transform: scaleX(1); }
+  .kpi-card:hover { background: #FDFCFB; }
+
+  .kpi-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    line-height: 1;
+    color: var(--gold);
+    display: block;
+    letter-spacing: 0.01em;
+  }
+
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* ─── MAIN ─── */
+  .main {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .row {
+    display: flex;
+    gap: 24px;
+  }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+  }
+
+  .card-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* ─── TABLE ─── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th:first-child { padding-left: 0; }
+
+  tbody tr {
+    position: relative;
+    cursor: pointer;
+    transition: background 150ms ease;
+  }
+
+  tbody tr::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  tbody tr:hover::before { transform: scaleX(1); }
+  tbody tr:hover { background: #FDFCFB; }
+
+  tbody td {
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+
+  tbody td:first-child { padding-left: 0; }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  .td-name {
+    font-weight: 500;
+  }
+
+  .td-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .td-time {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    color: var(--text-primary);
+  }
+
+  /* ─── STATUS PILLS ─── */
+  .pill {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid;
+    background: transparent;
+    white-space: nowrap;
+  }
+
+  .pill-confirmed  { color: var(--forest);  border-color: var(--forest); }
+  .pill-completed  { color: var(--text-muted); border-color: var(--border); }
+  .pill-en-route   { color: var(--teal);    border-color: var(--teal); }
+  .pill-pending    { color: var(--charcoal); border-color: #CCCCCC; }
+
+  /* ─── QUICK ACTIONS ─── */
+  .quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gold);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: opacity 180ms ease, transform 120ms ease;
+    text-align: left;
+    width: 100%;
+  }
+
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-primary:active { opacity: 1; transform: translateY(0); }
+
+  .btn-primary .btn-icon {
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1;
+    opacity: 0.9;
+  }
+
+  /* ─── TODAY SUMMARY ─── */
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .summary-row:last-child { border-bottom: none; }
+
+  .summary-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  .summary-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--text-primary);
+    letter-spacing: 0.04em;
+  }
+
+  .summary-bar {
+    margin-top: 12px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .summary-bar-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 2px;
+    width: 0;
+    transition: width 800ms cubic-bezier(0.65, 0, 0.35, 1) 400ms;
+  }
+
+  .summary-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ─── IN-HOUSE GUESTS BIG CARD ─── */
+  .guests-big-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 96px;
+    line-height: 1;
+    color: var(--gold);
+    letter-spacing: -0.01em;
+  }
+
+  .guests-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .guests-stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+  }
+
+  .guests-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .guests-stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+
+  .guests-stat-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* ─── DINNER CARDS ─── */
+  .dinner-scroll {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    cursor: grab;
+    padding-bottom: 4px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dinner-scroll:active { cursor: grabbing; }
+  .dinner-scroll::-webkit-scrollbar { height: 3px; }
+  .dinner-scroll::-webkit-scrollbar-track { background: var(--border); border-radius: 2px; }
+  .dinner-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
+  .dinner-card {
+    flex-shrink: 0;
+    width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    transition: border-color 200ms ease, transform 200ms ease;
+    cursor: pointer;
+  }
+
+  .dinner-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+
+  .dinner-time {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--gold);
+    letter-spacing: 0.03em;
+    line-height: 1;
+  }
+
+  .dinner-when {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .dinner-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+    margin-top: 12px;
+    line-height: 1.4;
+  }
+
+  .dinner-setup {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  /* ─── CONVERSATIONS ─── */
+  .convo-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 150ms ease;
+    border-radius: 4px;
+  }
+
+  .convo-item:last-child { border-bottom: none; }
+
+  .convo-item:hover { background: #FDFCFB; }
+
+  .convo-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--charcoal);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+    letter-spacing: 0.05em;
+  }
+
+  .convo-body { flex: 1; min-width: 0; }
+
+  .convo-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .convo-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+
+  .convo-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  .convo-snippet {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .convo-unread {
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 14px;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 24px; }
+
+  /* ─── SECTION VISIBILITY ─── */
+  .content-section { display: none; }
+  .content-section.active { display: flex; flex-direction: column; gap: 24px; }
+
+  /* ─── UTILITY ─── */
+  .flex-1 { flex: 1; min-width: 0; }
+  .w-60 { flex: 0 0 60%; min-width: 0; }
+  .w-40 { flex: 0 0 40%; min-width: 0; }
+
+  .version-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px; margin-top: 48px;
+    background: #FFFFFF; border-top: 1px solid #EBEBEB;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .version-nav-label {
+    font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #AAAAAA;
+  }
+  .version-nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .version-btn {
+    font-family: 'Jost', sans-serif; font-size: 12px; padding: 7px 14px;
+    border-radius: 6px; border: 1px solid #EBEBEB;
+    color: #888888; text-decoration: none;
+    transition: border-color 200ms, color 200ms;
+    cursor: pointer;
+  }
+  .version-btn:hover { border-color: #AA8E67; color: #AA8E67; }
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a class="nav-brand" href="#">
+    <img src="brand_assets/Nayara-Bocas-Del-Toro-Logo-White-Colour round.png" alt="Nayara Logo" />
+    <span class="nav-brand-name">Nayara</span>
+  </a>
+
+  <div class="nav-links">
+    <span class="nav-link active" data-section="transfers">Transfers</span>
+    <span class="nav-link" data-section="tours">Tours</span>
+    <span class="nav-link" data-section="guests">Guests</span>
+    <span class="nav-link" data-section="dinners">Dinners</span>
+    <span class="nav-link" data-section="conversations">Conversations</span>
+    <span class="nav-link" data-section="reports">Reports</span>
+  </div>
+
+  <div class="nav-right">
+    <span class="nav-date">Wed 19 Feb</span>
+    <div class="nav-avatar" title="Maria Alvarado">MA</div>
+  </div>
+</nav>
+
+<!-- ─── KPI STRIP ─── -->
+<div class="kpi-strip">
+  <div class="kpi-card">
+    <span class="kpi-number" data-target="34">0</span>
+    <span class="kpi-label">Guests</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-number" data-target="18">0</span>
+    <span class="kpi-label">Villas</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-number" data-target="8">0</span>
+    <span class="kpi-label">Transfers Today</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-number" data-target="6">0</span>
+    <span class="kpi-label">Tours Active</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-number" data-target="3">0</span>
+    <span class="kpi-label">Dinners Tonight</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-number" data-target="12">0</span>
+    <span class="kpi-label">Messages</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-number" data-target="94">0</span>
+    <span class="kpi-label">% Satisfaction</span>
+  </div>
+</div>
+
+<!-- ─── MAIN ─── -->
+<div class="main">
+
+  <!-- TRANSFERS SECTION -->
+  <div class="content-section active" id="section-transfers">
+    <!-- ROW 1: Transfers + Sidebar -->
+    <div class="row">
+      <!-- Transfers Table -->
+      <div class="card flex-1">
+        <div class="card-header">
+          <span class="card-title">Transfers</span>
+          <span class="card-meta">8 scheduled</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Villa</th>
+              <th>Route</th>
+              <th>Time</th>
+              <th>Driver</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="td-name">The Harrington Family</div></td>
+              <td>12</td>
+              <td><div style="font-size:12px;color:var(--text-secondary)">Marina → Resort</div></td>
+              <td><span class="td-time">14:30</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Carlos M.</td>
+              <td><span class="pill pill-confirmed">Confirmed</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Dr. &amp; Mrs. Chen</div></td>
+              <td>7</td>
+              <td><div style="font-size:12px;color:var(--text-secondary)">Airport → Resort</div></td>
+              <td><span class="td-time">16:00</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Luis R.</td>
+              <td><span class="pill pill-en-route">En Route</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">The Morrison Group</div></td>
+              <td>3</td>
+              <td><div style="font-size:12px;color:var(--text-secondary)">Resort → Airport</div></td>
+              <td><span class="td-time">11:00</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Ana P.</td>
+              <td><span class="pill pill-completed">Completed</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Sophia &amp; James Webb</div></td>
+              <td>15</td>
+              <td><div style="font-size:12px;color:var(--text-secondary)">Marina → Resort</div></td>
+              <td><span class="td-time">17:30</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Carlos M.</td>
+              <td><span class="pill pill-pending">Pending</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">The Nakamura Family</div></td>
+              <td>9</td>
+              <td><div style="font-size:12px;color:var(--text-secondary)">Resort → Marina</div></td>
+              <td><span class="td-time">09:00</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Luis R.</td>
+              <td><span class="pill pill-completed">Completed</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Isabella Rodriguez</div></td>
+              <td>4</td>
+              <td><div style="font-size:12px;color:var(--text-secondary)">Airport → Resort</div></td>
+              <td><span class="td-time">18:45</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Ana P.</td>
+              <td><span class="pill pill-confirmed">Confirmed</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">The O'Brien Party</div></td>
+              <td>11</td>
+              <td><div style="font-size:12px;color:var(--text-secondary)">Marina → Resort</div></td>
+              <td><span class="td-time">20:00</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Carlos M.</td>
+              <td><span class="pill pill-pending">Pending</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Mr. &amp; Mrs. Delacroix</div></td>
+              <td>6</td>
+              <td><div style="font-size:12px;color:var(--text-secondary)">Resort → Airport</div></td>
+              <td><span class="td-time">07:30</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Luis R.</td>
+              <td><span class="pill pill-completed">Completed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Quick Actions -->
+        <div class="card">
+          <div class="card-header" style="margin-bottom:16px">
+            <span class="card-title">Quick Actions</span>
+          </div>
+          <div class="quick-actions">
+            <button class="btn-primary"><span class="btn-icon">+</span> New Transfer</button>
+            <button class="btn-primary"><span class="btn-icon">+</span> Book Tour</button>
+            <button class="btn-primary"><span class="btn-icon">+</span> Schedule Dinner</button>
+            <button class="btn-primary" style="background:var(--charcoal)"><span class="btn-icon" style="font-size:13px">↗</span> Export Report</button>
+          </div>
+        </div>
+
+        <!-- Today Summary -->
+        <div class="card">
+          <div class="card-header" style="margin-bottom:4px">
+            <span class="card-title">Today Summary</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Arrivals</span>
+            <span class="summary-value">6</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Departures</span>
+            <span class="summary-value">4</span>
+          </div>
+          <div class="summary-row" style="border-bottom:none;flex-direction:column;align-items:flex-start;gap:8px">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
+              <span class="summary-label">Occupancy</span>
+              <span class="summary-value">18<span style="font-size:14px;font-family:'Jost',sans-serif;color:var(--text-muted);font-weight:400"> / 20</span></span>
+            </div>
+            <div class="summary-bar" style="width:100%">
+              <div class="summary-bar-fill" id="occupancyBar" style="width:0%"></div>
+            </div>
+            <div class="summary-bar-label" style="width:100%">
+              <span>18 occupied</span>
+              <span>2 available</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOURS SECTION -->
+  <div class="content-section" id="section-tours">
+    <div class="row">
+      <!-- Tours Table -->
+      <div class="card w-60">
+        <div class="card-header">
+          <span class="card-title">Tours</span>
+          <span class="card-meta">6 scheduled</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Tour</th>
+              <th>Time</th>
+              <th>Guide</th>
+              <th>Guests</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="td-name">Dolphin Bay Snorkel</div></td>
+              <td><span class="td-time">08:00</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Marco V.</td>
+              <td>6</td>
+              <td><span class="pill pill-en-route">En Route</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Red Frog Beach Hike</div></td>
+              <td><span class="td-time">09:30</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Sofia A.</td>
+              <td>4</td>
+              <td><span class="pill pill-confirmed">Confirmed</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Starfish Beach Kayak</div></td>
+              <td><span class="td-time">11:00</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Marco V.</td>
+              <td>8</td>
+              <td><span class="pill pill-pending">Pending</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Night Jungle Walk</div></td>
+              <td><span class="td-time">19:00</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Carlos B.</td>
+              <td>3</td>
+              <td><span class="pill pill-confirmed">Confirmed</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Chocolate Farm Tour</div></td>
+              <td><span class="td-time">10:00</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Sofia A.</td>
+              <td>5</td>
+              <td><span class="pill pill-completed">Completed</span></td>
+            </tr>
+            <tr>
+              <td><div class="td-name">Catamaran Sunset</div></td>
+              <td><span class="td-time">17:30</span></td>
+              <td style="font-size:12px;color:var(--text-secondary)">Marco V.</td>
+              <td>12</td>
+              <td><span class="pill pill-confirmed">Confirmed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- In-House Guests -->
+      <div class="card w-40">
+        <div class="card-header">
+          <span class="card-title">In-House Guests</span>
+          <span class="card-meta">Live count</span>
+        </div>
+        <div class="guests-big-number" data-target="34" id="guestsBig">0</div>
+        <div class="guests-label">Total Guests In-House</div>
+        <div class="guests-stats">
+          <div class="guests-stat">
+            <span class="guests-stat-num">18</span>
+            <span class="guests-stat-label">Villas Occupied</span>
+          </div>
+          <div class="guests-stat">
+            <span class="guests-stat-num" style="color:var(--forest)">+6</span>
+            <span class="guests-stat-label">Arriving Today</span>
+          </div>
+          <div class="guests-stat">
+            <span class="guests-stat-num" style="color:var(--terra)">−4</span>
+            <span class="guests-stat-label">Departing Today</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUESTS SECTION -->
+  <div class="content-section" id="section-guests">
+    <div class="row">
+      <div class="card flex-1">
+        <div class="card-header">
+          <span class="card-title">In-House Guests</span>
+          <span class="card-meta">34 total</span>
+        </div>
+        <div style="display:flex;gap:48px;padding:32px 0">
+          <div>
+            <div class="guests-big-number" style="font-size:80px">34</div>
+            <div class="guests-label">Guests In-House</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:20px;justify-content:center">
+            <div class="guests-stat">
+              <span class="guests-stat-num">18</span>
+              <span class="guests-stat-label">Villas Occupied</span>
+            </div>
+            <div class="guests-stat">
+              <span class="guests-stat-num" style="color:var(--forest)">+6</span>
+              <span class="guests-stat-label">Arriving Today</span>
+            </div>
+            <div class="guests-stat">
+              <span class="guests-stat-num" style="color:var(--terra)">−4</span>
+              <span class="guests-stat-label">Departing Today</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DINNERS SECTION -->
+  <div class="content-section" id="section-dinners">
+    <div class="row">
+      <!-- Romantic Dinners -->
+      <div class="card w-60">
+        <div class="card-header">
+          <span class="card-title">Romantic Dinners</span>
+          <span class="card-meta">3 upcoming</span>
+        </div>
+        <div class="dinner-scroll" id="dinnerScroll">
+          <div class="dinner-card">
+            <div class="dinner-time">19:30</div>
+            <div class="dinner-when">Tonight</div>
+            <div class="dinner-name">Villa 12 — Harrington Anniversary</div>
+            <div class="dinner-setup">Overwater Setup</div>
+          </div>
+          <div class="dinner-card">
+            <div class="dinner-time">20:00</div>
+            <div class="dinner-when">Tonight</div>
+            <div class="dinner-name">Villa 7 — Chen Proposal</div>
+            <div class="dinner-setup">Beach Torches</div>
+          </div>
+          <div class="dinner-card">
+            <div class="dinner-time">19:00</div>
+            <div class="dinner-when">Tomorrow</div>
+            <div class="dinner-name">Villa 15 — Webb Honeymoon</div>
+            <div class="dinner-setup">Garden Pavilion</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversations -->
+      <div class="card w-40">
+        <div class="card-header">
+          <span class="card-title">Conversations</span>
+          <span class="card-meta">12 messages</span>
+        </div>
+        <div>
+          <div class="convo-item">
+            <div class="convo-unread"></div>
+            <div class="convo-avatar" style="background:#7C8E67">TH</div>
+            <div class="convo-body">
+              <div class="convo-top">
+                <span class="convo-name">The Harrington Family</span>
+                <span class="convo-time">2m ago</span>
+              </div>
+              <div class="convo-snippet">Could we arrange early check-in for tomorrow's arrival?</div>
+            </div>
+          </div>
+          <div class="convo-item">
+            <div class="convo-unread"></div>
+            <div class="convo-avatar" style="background:#A4C4C8;color:var(--charcoal)">DC</div>
+            <div class="convo-body">
+              <div class="convo-top">
+                <span class="convo-name">Dr. Chen</span>
+                <span class="convo-time">18m ago</span>
+              </div>
+              <div class="convo-snippet">The snorkeling tour — is it still confirmed for tomorrow morning?</div>
+            </div>
+          </div>
+          <div class="convo-item">
+            <div class="convo-avatar" style="background:#EC6C4B">SW</div>
+            <div class="convo-body">
+              <div class="convo-top">
+                <span class="convo-name">Sophia Webb</span>
+                <span class="convo-time">1h ago</span>
+              </div>
+              <div class="convo-snippet">Thank you for the beautiful dinner setup! Absolutely perfect.</div>
+            </div>
+          </div>
+          <div class="convo-item">
+            <div class="convo-avatar">IR</div>
+            <div class="convo-body">
+              <div class="convo-top">
+                <span class="convo-name">Isabella Rodriguez</span>
+                <span class="convo-time">3h ago</span>
+              </div>
+              <div class="convo-snippet">What time does the boat depart for Starfish Beach?</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONVERSATIONS SECTION -->
+  <div class="content-section" id="section-conversations">
+    <div class="row">
+      <div class="card flex-1">
+        <div class="card-header">
+          <span class="card-title">Conversations</span>
+          <span class="card-meta">12 messages</span>
+        </div>
+        <div>
+          <div class="convo-item">
+            <div class="convo-unread"></div>
+            <div class="convo-avatar" style="background:#7C8E67">TH</div>
+            <div class="convo-body">
+              <div class="convo-top">
+                <span class="convo-name">The Harrington Family</span>
+                <span class="convo-time">2m ago</span>
+              </div>
+              <div class="convo-snippet">Could we arrange early check-in for tomorrow's arrival?</div>
+            </div>
+          </div>
+          <div class="convo-item">
+            <div class="convo-unread"></div>
+            <div class="convo-avatar" style="background:#A4C4C8;color:var(--charcoal)">DC</div>
+            <div class="convo-body">
+              <div class="convo-top">
+                <span class="convo-name">Dr. Chen</span>
+                <span class="convo-time">18m ago</span>
+              </div>
+              <div class="convo-snippet">The snorkeling tour — is it still confirmed for tomorrow morning?</div>
+            </div>
+          </div>
+          <div class="convo-item">
+            <div class="convo-avatar" style="background:#EC6C4B">SW</div>
+            <div class="convo-body">
+              <div class="convo-top">
+                <span class="convo-name">Sophia Webb</span>
+                <span class="convo-time">1h ago</span>
+              </div>
+              <div class="convo-snippet">Thank you for the beautiful dinner setup! Absolutely perfect.</div>
+            </div>
+          </div>
+          <div class="convo-item">
+            <div class="convo-avatar">IR</div>
+            <div class="convo-body">
+              <div class="convo-top">
+                <span class="convo-name">Isabella Rodriguez</span>
+                <span class="convo-time">3h ago</span>
+              </div>
+              <div class="convo-snippet">What time does the boat depart for Starfish Beach?</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS SECTION -->
+  <div class="content-section" id="section-reports">
+    <div class="row">
+      <div class="card flex-1">
+        <div class="card-header">
+          <span class="card-title">Reports</span>
+          <span class="card-meta">Daily overview</span>
+        </div>
+        <div style="display:flex;gap:40px;padding:24px 0;flex-wrap:wrap">
+          <div class="guests-stat">
+            <span class="guests-stat-num">94<span style="font-size:18px;font-family:'Jost';color:var(--text-muted);font-weight:300">%</span></span>
+            <span class="guests-stat-label">Guest Satisfaction</span>
+          </div>
+          <div class="guests-stat">
+            <span class="guests-stat-num">34</span>
+            <span class="guests-stat-label">Guests In-House</span>
+          </div>
+          <div class="guests-stat">
+            <span class="guests-stat-num">8</span>
+            <span class="guests-stat-label">Transfers Today</span>
+          </div>
+          <div class="guests-stat">
+            <span class="guests-stat-num">6</span>
+            <span class="guests-stat-label">Tours Active</span>
+          </div>
+          <div class="guests-stat">
+            <span class="guests-stat-num">3</span>
+            <span class="guests-stat-label">Dinners Tonight</span>
+          </div>
+        </div>
+        <div style="margin-top:16px">
+          <button class="btn-primary" style="width:auto;display:inline-flex">↗ Export Full Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+  // ─── KPI COUNTER ANIMATION ───
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target, 10);
+    const duration = 900;
+    const start = performance.now();
+    function step(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Run counters on load
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.kpi-number[data-target]').forEach(el => {
+      animateCounter(el);
+    });
+    // Occupancy bar
+    setTimeout(() => {
+      const bar = document.getElementById('occupancyBar');
+      if (bar) bar.style.width = '90%';
+    }, 300);
+    // Big guests number (hidden by default, animate when visible)
+    const bigGuests = document.getElementById('guestsBig');
+    if (bigGuests) animateCounter(bigGuests);
+  });
+
+  // ─── NAV TAB SWITCHING ───
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('.content-section');
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      const target = link.dataset.section;
+
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+
+      sections.forEach(s => s.classList.remove('active'));
+      const targetSection = document.getElementById('section-' + target);
+      if (targetSection) {
+        targetSection.classList.add('active');
+        // Animate counters in new section
+        targetSection.querySelectorAll('[data-target]').forEach(el => {
+          el.textContent = '0';
+          animateCounter(el);
+        });
+        // Occupancy bar reset
+        setTimeout(() => {
+          const bar = document.getElementById('occupancyBar');
+          if (bar) bar.style.width = '90%';
+        }, 100);
+      }
+    });
+  });
+
+  // ─── DINNER DRAG SCROLL ───
+  const dinnerScroll = document.getElementById('dinnerScroll');
+  if (dinnerScroll) {
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    dinnerScroll.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - dinnerScroll.offsetLeft;
+      scrollLeft = dinnerScroll.scrollLeft;
+    });
+
+    dinnerScroll.addEventListener('mouseleave', () => { isDown = false; });
+    dinnerScroll.addEventListener('mouseup', () => { isDown = false; });
+    dinnerScroll.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - dinnerScroll.offsetLeft;
+      const walk = (x - startX) * 1.2;
+      dinnerScroll.scrollLeft = scrollLeft - walk;
+    });
+  }
+</script>
+
+<!-- Version Navigator -->
+<div class="version-nav">
+  <span class="version-nav-label">Design Concepts</span>
+  <div class="version-nav-links">
+    <a href="ui-v1-tropical-luxury.html" class="version-btn">V1 · Tropical Luxury</a>
+    <a href="ui-v2-dark-command.html" class="version-btn">V2 · Dark Command</a>
+    <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand & Gold</a>
+    <a href="ui-v4-teal-night.html" class="version-btn">V4 · Teal Night</a>
+    <a href="ui-v5-cream-split.html" class="version-btn">V5 · Cream Split</a>
+    <a href="ui-v6-mono-minimal.html" class="version-btn">V6 · Mono Minimal</a>
+    <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
+  </div>
+</div>
+
+</body>
+</html>
