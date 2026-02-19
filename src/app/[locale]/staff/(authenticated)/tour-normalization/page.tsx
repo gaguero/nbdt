@@ -47,6 +47,18 @@ const VENDOR_TYPE_COLORS: Record<string, string> = {
   other: 'text-gray-500',
 };
 
+function buildCompositeKey(name: string, vendorLegacyId: string): string {
+  const n = (name || '').trim();
+  const v = (vendorLegacyId || '').trim();
+  return `${n}|||${v || 'NO_VENDOR'}`;
+}
+
+function keyToLabel(entry: UniqueNameEntry): string {
+  return entry.vendorLegacyId
+    ? `${entry.name} [${entry.vendorLegacyId}${entry.vendorName ? `: ${entry.vendorName}` : ''}]`
+    : `${entry.name} [NO_VENDOR]`;
+}
+
 export default function TourNormalizationPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -140,23 +152,46 @@ export default function TourNormalizationPage() {
 
     const allCsvKeys = new Set(uniqueNames.map(n => n.key));
     const coveredKeys = new Set<string>();
+    const keyByLabel = new Map(uniqueNames.map((n) => [keyToLabel(n), n.key]));
+    const keysByName = new Map<string, string[]>();
+    for (const n of uniqueNames) {
+      const base = n.name.toLowerCase().trim();
+      if (!keysByName.has(base)) keysByName.set(base, []);
+      keysByName.get(base)!.push(n.key);
+    }
 
     // Build a per-key lookup for new/existing counts from the parse result
     const keyDetails = new Map(uniqueNames.map(n => [n.key, n]));
 
+    function resolveTokenToKeys(token: string): string[] {
+      const t = (token || '').trim();
+      if (!t) return [];
+      if (allCsvKeys.has(t)) return [t];
+      if (keyByLabel.has(t)) return [keyByLabel.get(t)!];
+
+      const labelMatch = t.match(/^(.*)\s+\[([^\]]+)\]$/);
+      if (labelMatch) {
+        const namePart = labelMatch[1].trim();
+        const bracket = labelMatch[2].trim();
+        const vendorLegacyId = bracket.split(':')[0].trim();
+        const composite = buildCompositeKey(namePart, vendorLegacyId === 'NO_VENDOR' ? '' : vendorLegacyId);
+        if (allCsvKeys.has(composite)) return [composite];
+      }
+
+      const byName = keysByName.get(t.toLowerCase().trim()) ?? [];
+      return byName;
+    }
+
     const parsed: ParsedGroup[] = rawGroups
       .map((g, i) => {
         const sourceKeys = (g.csvKeys && g.csvKeys.length > 0 ? g.csvKeys : g.csvNames ?? []);
-        const validKeys = sourceKeys.filter(key => allCsvKeys.has(key));
+        const validKeys = Array.from(new Set(sourceKeys.flatMap(resolveTokenToKeys)));
         validKeys.forEach(key => coveredKeys.add(key));
         const rowCount = validKeys.reduce((s, key) => s + (nameCountMap[key] ?? 0), 0);
         const existingCount = validKeys.reduce((s, key) => s + (keyDetails.get(key)?.existingCount ?? 0), 0);
         const csvLabels = validKeys.map((key) => {
           const d = keyDetails.get(key);
-          if (!d) return key;
-          return d.vendorLegacyId
-            ? `${d.name} [${d.vendorLegacyId}${d.vendorName ? `: ${d.vendorName}` : ''}]`
-            : `${d.name} [NO_VENDOR]`;
+          return d ? keyToLabel(d) : key;
         });
         const vendorIds = Array.from(
           new Set(validKeys.map((key) => keyDetails.get(key)?.vendorId).filter(Boolean))
@@ -188,10 +223,7 @@ export default function TourNormalizationPage() {
         csvKeys: uncovered,
         csvLabels: uncovered.map((key) => {
           const d = keyDetails.get(key);
-          if (!d) return key;
-          return d.vendorLegacyId
-            ? `${d.name} [${d.vendorLegacyId}${d.vendorName ? `: ${d.vendorName}` : ''}]`
-            : `${d.name} [NO_VENDOR]`;
+          return d ? keyToLabel(d) : key;
         }),
         rowCount,
         newCount: rowCount - existingCount,
@@ -253,6 +285,69 @@ export default function TourNormalizationPage() {
 
   function setDec(groupId: number, patch: Partial<GroupDecision>) {
     setDecisions(prev => ({ ...prev, [groupId]: { ...prev[groupId], ...patch } }));
+  }
+
+  function hydrateGroup(keys: string[], groupId: number, current?: ParsedGroup): ParsedGroup {
+    const keyDetails = new Map(uniqueNames.map(n => [n.key, n]));
+    const rowCount = keys.reduce((s, key) => s + (nameCountMap[key] ?? 0), 0);
+    const existingCount = keys.reduce((s, key) => s + (keyDetails.get(key)?.existingCount ?? 0), 0);
+    const csvLabels = keys.map((key) => {
+      const d = keyDetails.get(key);
+      return d ? keyToLabel(d) : key;
+    });
+    return {
+      groupId,
+      csvKeys: keys,
+      csvLabels,
+      rowCount,
+      newCount: rowCount - existingCount,
+      existingCount,
+      suggestedAction: current?.suggestedAction ?? 'skip',
+      suggestedProductId: current?.suggestedProductId,
+      suggestedNameEn: current?.suggestedNameEn ?? (keyDetails.get(keys[0] ?? '')?.name ?? ''),
+      suggestedNameEs: current?.suggestedNameEs ?? (keyDetails.get(keys[0] ?? '')?.name ?? ''),
+      suggestedVendorId: current?.suggestedVendorId ?? '',
+    };
+  }
+
+  function moveKeyBetweenGroups(fromGroupId: number, key: string, target: string) {
+    const source = groups.find(g => g.groupId === fromGroupId);
+    if (!source) return;
+
+    const nextGroups = [...groups];
+    const sourceIdx = nextGroups.findIndex(g => g.groupId === fromGroupId);
+    const sourceKeys = nextGroups[sourceIdx].csvKeys.filter(k => k !== key);
+    nextGroups[sourceIdx] = hydrateGroup(sourceKeys, fromGroupId, nextGroups[sourceIdx]);
+
+    let newGroupId: number | null = null;
+    if (target === 'new') {
+      newGroupId = Math.max(0, ...nextGroups.map(g => g.groupId)) + 1;
+      nextGroups.push(hydrateGroup([key], newGroupId));
+    } else {
+      const toId = parseInt(target, 10);
+      const targetIdx = nextGroups.findIndex(g => g.groupId === toId);
+      if (targetIdx >= 0) {
+        const merged = Array.from(new Set([...nextGroups[targetIdx].csvKeys, key]));
+        nextGroups[targetIdx] = hydrateGroup(merged, toId, nextGroups[targetIdx]);
+      }
+    }
+
+    const filteredGroups = nextGroups.filter(g => g.csvKeys.length > 0);
+    setGroups(filteredGroups);
+
+    setDecisions(prev => {
+      const next = { ...prev };
+      if (sourceKeys.length === 0) delete next[fromGroupId];
+      if (newGroupId) {
+        next[newGroupId] = {
+          action: 'create',
+          name_en: uniqueNames.find(n => n.key === key)?.name ?? '',
+          name_es: uniqueNames.find(n => n.key === key)?.name ?? '',
+          vendor_id: uniqueNames.find(n => n.key === key)?.vendorId ?? '',
+        };
+      }
+      return next;
+    });
   }
 
   function reset() {
@@ -466,12 +561,38 @@ export default function TourNormalizationPage() {
                   {/* Top row: CSV name tags + row count + action toggle */}
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap gap-1 mb-1">
-                        {g.csvLabels.map(label => (
-                          <span key={label} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-mono">
-                            {label}
-                          </span>
-                        ))}
+                      <div className="flex flex-col gap-1 mb-1">
+                        {g.csvKeys.map((key) => {
+                          const detail = uniqueNames.find((n) => n.key === key);
+                          const label = detail ? keyToLabel(detail) : key;
+                          return (
+                            <div key={key} className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-mono">
+                                {label}
+                              </span>
+                              <select
+                                className="text-[11px] border border-gray-300 rounded px-1.5 py-0.5 text-gray-600"
+                                defaultValue=""
+                                onChange={(e) => {
+                                  const target = e.target.value;
+                                  if (!target) return;
+                                  moveKeyBetweenGroups(g.groupId, key, target);
+                                  e.target.value = '';
+                                }}
+                              >
+                                <option value="">Move record...</option>
+                                {groups
+                                  .filter(other => other.groupId !== g.groupId)
+                                  .map(other => (
+                                    <option key={other.groupId} value={other.groupId}>
+                                      Group {other.groupId}
+                                    </option>
+                                  ))}
+                                <option value="new">New group</option>
+                              </select>
+                            </div>
+                          );
+                        })}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-gray-400">
                         <span>{g.rowCount} booking{g.rowCount !== 1 ? 's' : ''}</span>
