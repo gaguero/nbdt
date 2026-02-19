@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     // ── Per-row processing ────────────────────────────────────────────────────
     for (const item of rows) {
       try {
-        const { csv, match, action, userDate } = item;
+        const { csv, match, action, userDate, vendor } = item;
 
         // Determine which actions are eligible
         const isEligible =
@@ -134,16 +134,17 @@ export async function POST(request: NextRequest) {
           if (byName.rows.length > 0) vendorId = byName.rows[0].id;
         }
 
-        // If no existing vendor was found, create one so transfer stays linked.
-        if (!vendorId && (vendorName || vendorLegacyId)) {
-          const insertedVendor = await query(
-            `INSERT INTO vendors (name, type, color_code, is_active, legacy_appsheet_id)
-             VALUES ($1, 'transfer', '#6B7280', true, $2)
-             RETURNING id`,
-            [vendorName || `Legacy Vendor ${vendorLegacyId}`, vendorLegacyId]
+        // Some legacy exports put the vendor name in the "vendor id" column.
+        if (!vendorId && vendorLegacyId) {
+          const byNameFromLegacyField = await query(
+            `SELECT id FROM vendors WHERE name ILIKE $1 LIMIT 1`,
+            [vendorLegacyId]
           );
-          if (insertedVendor.rows.length > 0) vendorId = insertedVendor.rows[0].id;
+          if (byNameFromLegacyField.rows.length > 0) vendorId = byNameFromLegacyField.rows[0].id;
         }
+
+        // Last fallback: trust analysis resolution, but never auto-create vendor rows here.
+        if (!vendorId && vendor?.id) vendorId = vendor.id;
 
         // ── Normalize statuses ────────────────────────────────────────────────
         const guestStatus = normalizeStatus(csv?.guestStatus);

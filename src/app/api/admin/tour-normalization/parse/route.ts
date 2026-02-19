@@ -78,15 +78,21 @@ export async function POST(request: NextRequest) {
       )
     );
     const vendorByLegacyId = new Map<string, { id: string; name: string }>();
+    const vendorByName = new Map<string, { id: string; name: string }>();
     if (allVendorLegacyIds.length > 0) {
+      const legacyAsNames = allVendorLegacyIds.map((id) => id.toLowerCase());
       const vendorRes = await query(
         `SELECT id, name, BTRIM(legacy_appsheet_id) AS legacy_appsheet_id
          FROM vendors
-         WHERE BTRIM(legacy_appsheet_id) = ANY($1::text[])`,
-        [allVendorLegacyIds]
+         WHERE BTRIM(legacy_appsheet_id) = ANY($1::text[])
+            OR LOWER(name) = ANY($2::text[])`,
+        [allVendorLegacyIds, legacyAsNames]
       );
       for (const vendor of vendorRes.rows as { id: string; name: string; legacy_appsheet_id: string }[]) {
-        vendorByLegacyId.set(vendor.legacy_appsheet_id, { id: vendor.id, name: vendor.name });
+        if (vendor.legacy_appsheet_id) {
+          vendorByLegacyId.set(vendor.legacy_appsheet_id, { id: vendor.id, name: vendor.name });
+        }
+        vendorByName.set(vendor.name.toLowerCase(), { id: vendor.id, name: vendor.name });
       }
     }
 
@@ -109,7 +115,9 @@ export async function POST(request: NextRequest) {
           keyLegacyIds[key].push(legacyId);
         }
         if (!keyMeta[key]) {
-          const vendorMatch = vendorLegacyId ? vendorByLegacyId.get(vendorLegacyId) : undefined;
+          const vendorMatch = vendorLegacyId
+            ? vendorByLegacyId.get(vendorLegacyId) ?? vendorByName.get(vendorLegacyId.toLowerCase())
+            : undefined;
           keyMeta[key] = {
             name,
             vendorLegacyId,

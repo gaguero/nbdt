@@ -183,15 +183,22 @@ export async function POST(request: NextRequest) {
       )
     );
     const vendorIdByLegacyId = new Map<string, string>();
+    const vendorIdByName = new Map<string, string>();
     if (allLegacyVendorIds.length > 0) {
+      const legacyAsNames = allLegacyVendorIds.map((id) => id.toLowerCase());
       const vendorsRes = await query(
         `SELECT id, BTRIM(legacy_appsheet_id) AS legacy_appsheet_id
+               , name
          FROM vendors
-         WHERE BTRIM(legacy_appsheet_id) = ANY($1::text[])`,
-        [allLegacyVendorIds]
+         WHERE BTRIM(legacy_appsheet_id) = ANY($1::text[])
+            OR LOWER(name) = ANY($2::text[])`,
+        [allLegacyVendorIds, legacyAsNames]
       );
-      for (const vendor of vendorsRes.rows as { id: string; legacy_appsheet_id: string }[]) {
-        vendorIdByLegacyId.set(vendor.legacy_appsheet_id, vendor.id);
+      for (const vendor of vendorsRes.rows as { id: string; legacy_appsheet_id: string; name: string }[]) {
+        if (vendor.legacy_appsheet_id) {
+          vendorIdByLegacyId.set(vendor.legacy_appsheet_id, vendor.id);
+        }
+        vendorIdByName.set(vendor.name.toLowerCase(), vendor.id);
       }
     }
 
@@ -207,7 +214,9 @@ export async function POST(request: NextRequest) {
           .find((id) => id && id !== 'NO_VENDOR');
         const prelinkedVendorId =
           group.vendor_id ||
-          (fallbackLegacyVendorId ? vendorIdByLegacyId.get(fallbackLegacyVendorId) : null) ||
+          (fallbackLegacyVendorId
+            ? vendorIdByLegacyId.get(fallbackLegacyVendorId) ?? vendorIdByName.get(fallbackLegacyVendorId.toLowerCase())
+            : null) ||
           null;
 
         const productRes = await query(
@@ -278,7 +287,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
       const resolvedVendorId = normalizedLegacyVendorId
-        ? vendorIdByLegacyId.get(normalizedLegacyVendorId) ?? null
+        ? vendorIdByLegacyId.get(normalizedLegacyVendorId) ?? vendorIdByName.get(normalizedLegacyVendorId.toLowerCase()) ?? null
         : null;
 
       const guestName = getField(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');

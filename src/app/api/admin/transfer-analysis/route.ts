@@ -74,6 +74,10 @@ function parseDate(raw: string): string | null {
   return null;
 }
 
+function normalizeText(raw: string): string {
+  return (raw || '').trim();
+}
+
 /**
  * POST /api/admin/transfer-analysis
  * Analyzes a Transfer CSV file before actual import.
@@ -121,8 +125,10 @@ export async function POST(request: NextRequest) {
       const time          = pick(row, 'hora', 'time', 'hora_traslado');
       const guestLegacyId = pick(row, 'id_huesped', 'guest_id');
       const guestName     = pick(row, 'huesped', 'guest', 'guest_name', 'nombre_completo', 'nombre_huesped');
-      const vendorLegacyId = pick(row, 'id_proveedor', 'vendor_id', 'id_vendedor');
-      const vendorName    = pick(row, 'proveedor', 'vendor', 'vendor_name', 'nombre_proveedor');
+      const vendorLegacyId = normalizeText(pick(row, 'id_proveedor', 'vendor_id', 'id_vendedor'));
+      const vendorName = normalizeText(
+        pick(row, 'proveedor', 'vendor', 'vendor_name', 'nombre_proveedor', 'vendedor', 'nombre_vendedor')
+      );
       const origin        = pick(row, 'origen', 'origin', 'lugar_origen');
       const destination   = pick(row, 'destino', 'destination', 'lugar_destino');
       const numPassengersRaw = pick(row, 'num_passengers', 'pasajeros', 'pax', 'cantidad_pasajeros');
@@ -184,8 +190,10 @@ export async function POST(request: NextRequest) {
     const allTransferLegacyIds  = actionableRows.map(c => c.row.legacyId).filter(Boolean);
     const allGuestLegacyIds     = actionableRows.map(c => c.row.guestLegacyId).filter(Boolean);
     const allGuestNames         = actionableRows.map(c => c.row.guestName.toLowerCase()).filter(Boolean);
-    const allVendorLegacyIds    = actionableRows.map(c => c.row.vendorLegacyId).filter(Boolean);
-    const allVendorNames        = actionableRows.map(c => c.row.vendorName.toLowerCase()).filter(Boolean);
+    const allVendorLegacyIds    = actionableRows.map(c => normalizeText(c.row.vendorLegacyId)).filter(Boolean);
+    const allVendorNamesFromNameColumn = actionableRows.map(c => c.row.vendorName.toLowerCase()).filter(Boolean);
+    const allVendorNamesFromLegacyColumn = actionableRows.map(c => normalizeText(c.row.vendorLegacyId).toLowerCase()).filter(Boolean);
+    const allVendorNames = Array.from(new Set([...allVendorNamesFromNameColumn, ...allVendorNamesFromLegacyColumn]));
 
     const [existingTransfers, existingGuests, existingVendors] = await Promise.all([
       allTransferLegacyIds.length
@@ -207,9 +215,9 @@ export async function POST(request: NextRequest) {
 
       (allVendorLegacyIds.length || allVendorNames.length)
         ? queryMany(
-            `SELECT id, name, legacy_appsheet_id
+            `SELECT id, name, BTRIM(legacy_appsheet_id) AS legacy_appsheet_id
              FROM vendors
-             WHERE legacy_appsheet_id = ANY($1::text[])
+             WHERE BTRIM(legacy_appsheet_id) = ANY($1::text[])
                 OR LOWER(name) = ANY($2::text[])`,
             [allVendorLegacyIds, allVendorNames]
           )
@@ -279,8 +287,9 @@ export async function POST(request: NextRequest) {
                       ?? null;
 
       // Resolve vendor
-      const vendorMatch = (r.vendorLegacyId ? vendorByLegacyId.get(r.vendorLegacyId) : undefined)
+      const vendorMatch = (r.vendorLegacyId ? vendorByLegacyId.get(normalizeText(r.vendorLegacyId)) : undefined)
                        ?? (r.vendorName     ? vendorByName.get(r.vendorName.toLowerCase()) : undefined)
+                       ?? (r.vendorLegacyId ? vendorByName.get(normalizeText(r.vendorLegacyId).toLowerCase()) : undefined)
                        ?? null;
 
       return {
