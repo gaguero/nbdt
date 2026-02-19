@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nayara Bocas del Toro — Operations Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --forest: #1B3A2D;
+    --forest-light: #2D5243;
+    --gold: #C9A96E;
+    --gold-light: #E8D5A3;
+    --sand: #F5E6CC;
+    --cream: #FEFCF7;
+    --amber: #D4821A;
+    --ocean: #2E6DA4;
+    --purple: #5B3F8A;
+    --rose: #A94060;
+    --teal: #2A8A7E;
+    --text-dark: #1A1A1A;
+    --text-mid: #4A4A4A;
+    --text-soft: #8A8A8A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .grain-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  }
+
+  .app-shell {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 72px;
+    min-width: 72px;
+    background: var(--forest);
+    border-right: 1px solid rgba(201,169,110,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  .sidebar-logo {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 28px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900; font-size: 18px;
+    color: var(--forest);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(201,169,110,0.3), 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .sidebar-nav {
+    display: flex; flex-direction: column;
+    gap: 4px; width: 100%; flex: 1;
+  }
+
+  .sidebar-item {
+    width: 100%; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 200ms ease;
+    border-left: 3px solid transparent;
+  }
+
+  .sidebar-item svg {
+    width: 20px; height: 20px;
+    stroke: rgba(255,255,255,0.45);
+    transition: all 200ms ease;
+  }
+
+  .sidebar-item:hover svg { stroke: rgba(255,255,255,0.85); transform: scale(1.12); }
+
+  .sidebar-item.active {
+    border-left-color: var(--gold);
+    background: rgba(201,169,110,0.1);
+  }
+
+  .sidebar-item.active svg {
+    stroke: var(--gold);
+    filter: drop-shadow(0 0 6px rgba(201,169,110,0.5));
+  }
+
+  .sidebar-item:hover:not(.active) {
+    background: rgba(255,255,255,0.05);
+    border-left-color: rgba(201,169,110,0.3);
+  }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding: 16px 0 4px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 5px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    width: 100%;
+  }
+
+  .sidebar-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--forest-light), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 13px; color: white;
+    border: 2px solid rgba(201,169,110,0.4);
+  }
+
+  .sidebar-user-name {
+    font-size: 9px; color: rgba(255,255,255,0.6);
+    font-weight: 600; letter-spacing: 0.05em; text-align: center;
+  }
+
+  .sidebar-user-role {
+    font-size: 8px; color: rgba(201,169,110,0.7);
+    letter-spacing: 0.08em; text-align: center;
+  }
+
+  /* MAIN */
+  .main-content {
+    flex: 1; display: flex; flex-direction: column;
+    overflow: hidden; background: var(--cream);
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--cream);
+    border-bottom: 1px solid rgba(201,169,110,0.2);
+    padding: 0 28px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 28px; right: 28px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.3;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 12px; }
+
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic; font-size: 22px; font-weight: 900;
+    color: var(--forest); letter-spacing: -0.01em;
+  }
+
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%; background: #22c55e;
+    position: relative; flex-shrink: 0;
+  }
+
+  .live-dot::after {
+    content: '';
+    position: absolute; inset: -3px;
+    border-radius: 50%;
+    background: rgba(34,197,94,0.3);
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50%       { transform: scale(1.5); opacity: 0; }
+  }
+
+  .live-label {
+    font-size: 9px; font-weight: 600; color: #22c55e;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+
+  .header-right { display: flex; align-items: center; gap: 16px; }
+
+  .header-date { font-size: 12px; color: var(--text-soft); font-weight: 400; letter-spacing: 0.04em; }
+
+  .header-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--forest), var(--forest-light));
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold); font-weight: 700; font-size: 13px;
+    border: 2px solid var(--gold-light); cursor: pointer;
+  }
+
+  /* DATE NAV */
+  .date-nav {
+    padding: 10px 28px;
+    display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(201,169,110,0.1);
+  }
+
+  .date-nav-btn {
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 500; color: var(--text-soft);
+    cursor: pointer; transition: all 150ms ease;
+    border: none; background: transparent;
+    font-family: 'DM Sans', sans-serif; letter-spacing: 0.02em;
+  }
+
+  .date-nav-btn:hover { background: rgba(201,169,110,0.12); color: var(--forest); }
+  .date-nav-btn.active { background: var(--gold); color: white; font-weight: 600; }
+
+  .date-nav-arrow {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 150ms ease;
+    background: transparent; border: 1px solid rgba(201,169,110,0.3);
+    color: var(--text-soft);
+  }
+
+  .date-nav-arrow:hover { background: rgba(201,169,110,0.1); color: var(--forest); }
+
+  /* KPI BAR */
+  .kpi-bar {
+    padding: 14px 28px;
+    display: flex; gap: 10px; overflow-x: auto;
+    flex-shrink: 0; scrollbar-width: none;
+  }
+  .kpi-bar::-webkit-scrollbar { display: none; }
+
+  .kpi-card {
+    min-width: 128px; background: white;
+    border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 2px 12px rgba(27,58,45,0.07), 0 1px 3px rgba(27,58,45,0.04);
+    display: flex; flex-direction: column; gap: 6px;
+    position: relative; overflow: hidden; flex-shrink: 0;
+    opacity: 0; transform: translateY(16px);
+    animation: fadeUp 0.4s ease-out forwards;
+  }
+
+  .kpi-number {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 28px; line-height: 1; letter-spacing: -0.02em;
+  }
+
+  .kpi-label {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-soft);
+  }
+
+  .kpi-icon {
+    position: absolute; right: 12px; top: 12px;
+    width: 18px; height: 18px; opacity: 0.22;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* WIDGET */
+  .widget {
+    background: white; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 4px 24px rgba(27,58,45,0.08), 0 1px 4px rgba(27,58,45,0.04);
+    display: flex; flex-direction: column;
+    opacity: 0; transform: translateY(16px);
+    animation: fadeUp 0.4s ease-out forwards;
+  }
+
+  .widget-header {
+    padding: 16px 20px 12px;
+    border-top: 3px solid var(--gold);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .widget-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-mid);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .widget-title::after {
+    content: ''; width: 20px; height: 1px;
+    background: var(--gold); opacity: 0.6;
+  }
+
+  .widget-count {
+    font-size: 10px; font-weight: 600; color: var(--text-soft);
+    background: rgba(201,169,110,0.12);
+    padding: 2px 8px; border-radius: 10px;
+  }
+
+  .widget-body {
+    flex: 1; overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201,169,110,0.3) transparent;
+  }
+  .widget-body::-webkit-scrollbar { width: 3px; }
+  .widget-body::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.3); border-radius: 10px; }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; }
+
+  .data-table th {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-soft);
+    padding: 8px 18px; text-align: left;
+    border-bottom: 1px solid rgba(201,169,110,0.15);
+    background: rgba(254,252,247,0.9);
+    position: sticky; top: 0; z-index: 1;
+  }
+
+  .data-table td {
+    padding: 11px 18px; font-size: 13px; color: var(--text-mid);
+    border-bottom: 1px solid rgba(0,0,0,0.04); white-space: nowrap;
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tbody tr { transition: background 150ms ease; cursor: default; }
+  .data-table tbody tr:hover { background: rgba(201,169,110,0.06); }
+
+  .guest-name-cell { font-weight: 600; color: var(--text-dark); }
+
+  .time-cell {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; color: var(--forest); font-size: 14px;
+  }
+
+  .room-badge {
+    display: inline-block; padding: 2px 7px; border-radius: 6px;
+    background: rgba(27,58,45,0.08); color: var(--forest);
+    font-size: 11px; font-weight: 700;
+  }
+
+  /* STATUS BADGES */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.03em; text-transform: capitalize;
+  }
+
+  .badge-confirmed  { background: rgba(27,58,45,0.1);   color: var(--forest); }
+  .badge-completed  { background: rgba(42,138,126,0.13); color: var(--teal);   }
+  .badge-pending    { background: rgba(212,130,26,0.13); color: var(--amber);  }
+  .badge-cancelled  { background: rgba(169,64,96,0.1);  color: var(--rose);   }
+
+  /* GRID */
+  .content-scroll {
+    flex: 1; overflow-y: auto; padding: 0 28px 28px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201,169,110,0.3) transparent;
+  }
+  .content-scroll::-webkit-scrollbar { width: 4px; }
+  .content-scroll::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.3); border-radius: 10px; }
+
+  .bento-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 310px;
+    gap: 16px;
+  }
+
+  .col-span-2 { grid-column: span 2; }
+
+  /* GUEST LIST */
+  .guest-list-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: background 150ms ease; cursor: default;
+  }
+
+  .guest-list-item:hover { background: rgba(201,169,110,0.06); }
+  .guest-list-item:last-child { border-bottom: none; }
+
+  .guest-room-num {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 15px;
+    color: var(--forest); min-width: 34px;
+  }
+
+  .guest-info { flex: 1; min-width: 0; }
+
+  .guest-info-name {
+    font-size: 12px; font-weight: 600; color: var(--text-dark);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .guest-info-meta { font-size: 10px; color: var(--text-soft); margin-top: 1px; }
+
+  .svc-badges { display: flex; gap: 3px; }
+
+  .svc-badge {
+    width: 18px; height: 18px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700;
+  }
+
+  .svc-T { background: rgba(91,63,138,0.12);  color: var(--purple); }
+  .svc-A { background: rgba(201,169,110,0.2);  color: #8a6a2e; }
+  .svc-D { background: rgba(169,64,96,0.12);   color: var(--rose); }
+
+  /* DINNER CARDS */
+  .dinner-cards { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; }
+
+  .dinner-card {
+    background: linear-gradient(135deg, #FEFCF7, #FDF7EE);
+    border: 1px solid rgba(201,169,110,0.35);
+    border-radius: 14px; padding: 14px;
+    position: relative; overflow: hidden;
+  }
+
+  .dinner-card::before {
+    content: '♡';
+    position: absolute; right: 13px; top: 10px;
+    font-size: 20px; color: rgba(169,64,96,0.18); line-height: 1;
+  }
+
+  .dinner-guest { font-size: 12px; font-weight: 600; color: var(--text-dark); }
+
+  .dinner-meta { display: flex; gap: 8px; margin-top: 5px; align-items: center; }
+
+  .dinner-loc { font-size: 10px; color: var(--text-soft); font-weight: 500; }
+
+  .dinner-time {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; font-weight: 700; color: var(--forest);
+  }
+
+  .dinner-note {
+    font-size: 10px; color: var(--text-mid); margin-top: 7px;
+    font-style: italic; line-height: 1.45; padding: 5px 8px;
+    background: rgba(201,169,110,0.08); border-radius: 6px;
+    border-left: 2px solid rgba(201,169,110,0.45);
+  }
+
+  .dinner-note.confidential {
+    background: rgba(169,64,96,0.07);
+    border-left-color: rgba(169,64,96,0.4);
+    color: var(--rose); font-weight: 500;
+  }
+
+  .dot-sep {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: var(--text-soft); opacity: 0.5; display: inline-block; vertical-align: middle;
+  }
+
+  /* CONVERSATIONS */
+  .conversation-item {
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: background 150ms ease; cursor: pointer;
+  }
+
+  .conversation-item:hover { background: rgba(201,169,110,0.06); }
+  .conversation-item:last-child { border-bottom: none; }
+
+  .convo-top {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;
+  }
+
+  .convo-guest { font-size: 12px; font-weight: 600; color: var(--text-dark); }
+  .convo-room  { font-size: 10px; color: var(--text-soft); }
+
+  .convo-channel {
+    font-size: 9px; font-weight: 600; padding: 2px 7px;
+    border-radius: 10px; letter-spacing: 0.03em; white-space: nowrap;
+  }
+
+  .ch-roomservice { background: rgba(212,130,26,0.12); color: var(--amber); }
+  .ch-concierge   { background: rgba(27,58,45,0.1);   color: var(--forest); }
+  .ch-tours       { background: rgba(201,169,110,0.2); color: #8a6a2e; }
+
+  .convo-message {
+    font-size: 11px; color: var(--text-mid);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4;
+  }
+
+  .convo-bottom {
+    display: flex; align-items: center; justify-content: space-between; margin-top: 4px;
+  }
+
+  .convo-time { font-size: 10px; color: var(--text-soft); }
+
+  .unread-pill {
+    min-width: 18px; height: 18px; border-radius: 9px;
+    background: var(--rose); color: white;
+    font-size: 9px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; padding: 0 5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="grain-overlay"></div>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">N</div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-item active" title="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      </div>
+      <div class="sidebar-item" title="Guests">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </div>
+      <div class="sidebar-item" title="Orders">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+          <rect x="9" y="3" width="6" height="4" rx="1"/>
+          <line x1="9" y1="12" x2="15" y2="12"/>
+          <line x1="9" y1="16" x2="13" y2="16"/>
+        </svg>
+      </div>
+      <div class="sidebar-item" title="Transfers">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="10" width="20" height="8" rx="2"/>
+          <path d="M6 10V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/>
+          <circle cx="7" cy="18" r="1.5"/>
+          <circle cx="17" cy="18" r="1.5"/>
+        </svg>
+      </div>
+      <div class="sidebar-item" title="Tours">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <line x1="12" y1="3" x2="12" y2="12"/>
+          <line x1="12" y1="12" x2="17.5" y2="7"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+      </div>
+      <div class="sidebar-item" title="Messages">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <div class="sidebar-item" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-avatar">GA</div>
+      <div class="sidebar-user-name">G. Agüero</div>
+      <div class="sidebar-user-role">Manager</div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <header class="header">
+      <div class="header-left">
+        <h1 class="header-title">Operations Dashboard</h1>
+        <div class="live-dot"></div>
+        <span class="live-label">Live</span>
+      </div>
+      <div class="header-right">
+        <span class="header-date" id="current-date">Thursday, 19 February 2026</span>
+        <div class="header-avatar">GA</div>
+      </div>
+    </header>
+
+    <div class="date-nav">
+      <button class="date-nav-arrow">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>
+      </button>
+      <button class="date-nav-btn">Mon 16</button>
+      <button class="date-nav-btn">Tue 17</button>
+      <button class="date-nav-btn">Wed 18</button>
+      <button class="date-nav-btn active">Thu 19 ✓</button>
+      <button class="date-nav-btn">Fri 20</button>
+      <button class="date-nav-btn">Sat 21</button>
+      <button class="date-nav-arrow">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"/></svg>
+      </button>
+    </div>
+
+    <!-- KPI BAR -->
+    <div class="kpi-bar">
+      <div class="kpi-card" style="animation-delay:0ms;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--forest);border-radius:14px 0 0 14px;"></div>
+        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#1B3A2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></svg>
+        <div class="kpi-number" style="color:var(--forest)">12</div>
+        <div class="kpi-label">Arrivals</div>
+      </div>
+      <div class="kpi-card" style="animation-delay:80ms;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber);border-radius:14px 0 0 14px;"></div>
+        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#D4821A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/></svg>
+        <div class="kpi-number" style="color:var(--amber)">8</div>
+        <div class="kpi-label">Departures</div>
+      </div>
+      <div class="kpi-card" style="animation-delay:160ms;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ocean);border-radius:14px 0 0 14px;"></div>
+        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#2E6DA4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+        <div class="kpi-number" style="color:var(--ocean)">47</div>
+        <div class="kpi-label">In House</div>
+      </div>
+      <div class="kpi-card" style="animation-delay:240ms;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--purple);border-radius:14px 0 0 14px;"></div>
+        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#5B3F8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="10" width="20" height="8" rx="2"/><path d="M6 10V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3"/><circle cx="7" cy="18" r="1"/><circle cx="17" cy="18" r="1"/></svg>
+        <div class="kpi-number" style="color:var(--purple)">6</div>
+        <div class="kpi-label">Transfers</div>
+      </div>
+      <div class="kpi-card" style="animation-delay:320ms;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);border-radius:14px 0 0 14px;"></div>
+        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="12"/><line x1="12" y1="12" x2="17" y2="7"/><circle cx="12" cy="12" r="2"/></svg>
+        <div class="kpi-number" style="color:var(--gold)">9</div>
+        <div class="kpi-label">Tours</div>
+      </div>
+      <div class="kpi-card" style="animation-delay:400ms;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rose);border-radius:14px 0 0 14px;"></div>
+        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#A94060" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <div class="kpi-number" style="color:var(--rose)">3</div>
+        <div class="kpi-label">Dinners</div>
+      </div>
+      <div class="kpi-card" style="animation-delay:480ms;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal);border-radius:14px 0 0 14px;"></div>
+        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#2A8A7E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div class="kpi-number" style="color:var(--teal)">14</div>
+        <div class="kpi-label">Messages</div>
+      </div>
+    </div>
+
+    <!-- BENTO GRID -->
+    <div class="content-scroll">
+      <div class="bento-grid">
+
+        <!-- TRANSFERS — spans 2 cols -->
+        <div class="widget col-span-2" style="animation-delay:120ms;">
+          <div class="widget-header">
+            <span class="widget-title">Today's Transfers</span>
+            <span class="widget-count">8 scheduled</span>
+          </div>
+          <div class="widget-body">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th><th>Guest</th><th>Room</th><th>Route</th><th>Vendor</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td class="time-cell">06:30</td><td class="guest-name-cell">Sofia Marchetti</td><td><span class="room-badge">204</span></td><td style="font-size:12px;color:var(--text-soft)">Airport → Resort</td><td style="font-size:12px">Panama Transfers</td><td><span class="badge badge-confirmed">confirmed</span></td></tr>
+                <tr><td class="time-cell">07:00</td><td class="guest-name-cell">James &amp; Linda Howell</td><td><span class="room-badge">301</span></td><td style="font-size:12px;color:var(--text-soft)">Resort → Airport</td><td style="font-size:12px">Bocas Express</td><td><span class="badge badge-completed">completed</span></td></tr>
+                <tr><td class="time-cell">09:15</td><td class="guest-name-cell">Dr. Alejandro Vega</td><td><span class="room-badge">118</span></td><td style="font-size:12px;color:var(--text-soft)">Airport → Resort</td><td style="font-size:12px">Panama Transfers</td><td><span class="badge badge-pending">pending</span></td></tr>
+                <tr><td class="time-cell">10:00</td><td class="guest-name-cell">The Chen Family</td><td><span class="room-badge">412</span></td><td style="font-size:12px;color:var(--text-soft)">Water Taxi Dock → Resort</td><td style="font-size:12px">Water Wings</td><td><span class="badge badge-confirmed">confirmed</span></td></tr>
+                <tr><td class="time-cell">11:30</td><td class="guest-name-cell">Marie Dubois</td><td><span class="room-badge">207</span></td><td style="font-size:12px;color:var(--text-soft)">Resort → Marina</td><td style="font-size:12px">Island Hop Co</td><td><span class="badge badge-confirmed">confirmed</span></td></tr>
+                <tr><td class="time-cell">14:00</td><td class="guest-name-cell">Robert Fairbanks III</td><td><span class="room-badge">305</span></td><td style="font-size:12px;color:var(--text-soft)">Airport → Resort</td><td style="font-size:12px">VIP Transport</td><td><span class="badge badge-pending">pending</span></td></tr>
+                <tr><td class="time-cell">16:45</td><td class="guest-name-cell">Yuki Tanaka</td><td><span class="room-badge">109</span></td><td style="font-size:12px;color:var(--text-soft)">Resort → Airport</td><td style="font-size:12px">Bocas Express</td><td><span class="badge badge-pending">pending</span></td></tr>
+                <tr><td class="time-cell">18:00</td><td class="guest-name-cell">Carlos &amp; Ana Reyes</td><td><span class="room-badge">220</span></td><td style="font-size:12px;color:var(--text-soft)">Airport → Resort</td><td style="font-size:12px">Panama Transfers</td><td><span class="badge badge-confirmed">confirmed</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- IN-HOUSE GUESTS — spans 2 rows -->
+        <div class="widget" style="animation-delay:200ms; grid-row: span 2;">
+          <div class="widget-header">
+            <span class="widget-title">In-House Guests</span>
+            <span class="widget-count">47 total</span>
+          </div>
+          <div class="widget-body">
+            <div class="guest-list-item"><div class="guest-room-num">101</div><div class="guest-info"><div class="guest-info-name">James &amp; Linda Howell</div><div class="guest-info-meta">🇺🇸 &nbsp;2 nights left</div></div><div class="svc-badges"><span class="svc-badge svc-T">T</span><span class="svc-badge svc-A">A</span></div></div>
+            <div class="guest-list-item"><div class="guest-room-num">109</div><div class="guest-info"><div class="guest-info-name">Yuki Tanaka</div><div class="guest-info-meta">🇯🇵 &nbsp;5 nights left</div></div><div class="svc-badges"><span class="svc-badge svc-A">A</span></div></div>
+            <div class="guest-list-item"><div class="guest-room-num">118</div><div class="guest-info"><div class="guest-info-name">Dr. Alejandro Vega</div><div class="guest-info-meta">🇲🇽 &nbsp;3 nights left</div></div><div class="svc-badges"><span class="svc-badge svc-T">T</span><span class="svc-badge svc-A">A</span><span class="svc-badge svc-D">D</span></div></div>
+            <div class="guest-list-item"><div class="guest-room-num">204</div><div class="guest-info"><div class="guest-info-name">Sofia Marchetti</div><div class="guest-info-meta">🇮🇹 &nbsp;1 night left</div></div><div class="svc-badges"><span class="svc-badge svc-T">T</span><span class="svc-badge svc-D">D</span></div></div>
+            <div class="guest-list-item"><div class="guest-room-num">207</div><div class="guest-info"><div class="guest-info-name">Marie Dubois</div><div class="guest-info-meta">🇫🇷 &nbsp;4 nights left</div></div><div class="svc-badges"><span class="svc-badge svc-T">T</span></div></div>
+            <div class="guest-list-item"><div class="guest-room-num">220</div><div class="guest-info"><div class="guest-info-name">Carlos &amp; Ana Reyes</div><div class="guest-info-meta">🇪🇸 &nbsp;6 nights left</div></div><div class="svc-badges"><span class="svc-badge svc-A">A</span><span class="svc-badge svc-D">D</span></div></div>
+            <div class="guest-list-item"><div class="guest-room-num">301</div><div class="guest-info"><div class="guest-info-name">The Chen Family</div><div class="guest-info-meta">🇨🇳 &nbsp;7 nights left</div></div><div class="svc-badges"><span class="svc-badge svc-T">T</span><span class="svc-badge svc-A">A</span></div></div>
+            <div class="guest-list-item"><div class="guest-room-num">412</div><div class="guest-info"><div class="guest-info-name">Robert Fairbanks III</div><div class="guest-info-meta">🇬🇧 &nbsp;2 nights left</div></div><div class="svc-badges"><span class="svc-badge svc-T">T</span><span class="svc-badge svc-D">D</span></div></div>
+            <div style="padding:10px 18px;border-top:1px solid rgba(201,169,110,0.12);">
+              <div style="display:flex;gap:12px;align-items:center;">
+                <span style="font-size:9px;color:var(--text-soft);font-weight:500;letter-spacing:0.08em;text-transform:uppercase;">Legend</span>
+                <span style="font-size:9px;color:var(--purple);font-weight:700;">T Transfer</span>
+                <span style="font-size:9px;color:#8a6a2e;font-weight:700;">A Activity</span>
+                <span style="font-size:9px;color:var(--rose);font-weight:700;">D Dinner</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOURS -->
+        <div class="widget" style="animation-delay:280ms;">
+          <div class="widget-header">
+            <span class="widget-title">Today's Tours</span>
+            <span class="widget-count">6 tours</span>
+          </div>
+          <div class="widget-body">
+            <table class="data-table">
+              <thead><tr><th>Time</th><th>Tour</th><th>Guest</th><th style="text-align:center;">Pax</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="time-cell">07:00</td><td style="font-size:12px;font-weight:500;color:var(--text-dark);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Sloth Sanctuary Morning</td><td class="guest-name-cell" style="font-size:12px;">S. Marchetti</td><td style="text-align:center;font-family:'Playfair Display',serif;font-weight:700;font-size:14px;color:var(--forest);">2</td><td><span class="badge badge-confirmed">confirmed</span></td></tr>
+                <tr><td class="time-cell">08:30</td><td style="font-size:12px;font-weight:500;color:var(--text-dark);">Coral Reef Snorkeling</td><td class="guest-name-cell" style="font-size:12px;">Chen Family</td><td style="text-align:center;font-family:'Playfair Display',serif;font-weight:700;font-size:14px;color:var(--forest);">4</td><td><span class="badge badge-confirmed">confirmed</span></td></tr>
+                <tr><td class="time-cell">09:00</td><td style="font-size:12px;font-weight:500;color:var(--text-dark);">Bocas Town Tour</td><td class="guest-name-cell" style="font-size:12px;">J. Howell</td><td style="text-align:center;font-family:'Playfair Display',serif;font-weight:700;font-size:14px;color:var(--forest);">2</td><td><span class="badge badge-pending">pending</span></td></tr>
+                <tr><td class="time-cell">13:00</td><td style="font-size:12px;font-weight:500;color:var(--text-dark);">Sunset Catamaran Cruise</td><td class="guest-name-cell" style="font-size:12px;">M. Dubois</td><td style="text-align:center;font-family:'Playfair Display',serif;font-weight:700;font-size:14px;color:var(--forest);">1</td><td><span class="badge badge-confirmed">confirmed</span></td></tr>
+                <tr><td class="time-cell">14:30</td><td style="font-size:12px;font-weight:500;color:var(--text-dark);">Dolphin Watch Adventure</td><td class="guest-name-cell" style="font-size:12px;">Dr. Vega</td><td style="text-align:center;font-family:'Playfair Display',serif;font-weight:700;font-size:14px;color:var(--forest);">3</td><td><span class="badge badge-pending">pending</span></td></tr>
+                <tr><td class="time-cell">16:00</td><td style="font-size:12px;font-weight:500;color:var(--text-dark);">Night Snorkeling Experience</td><td class="guest-name-cell" style="font-size:12px;">Y. Tanaka</td><td style="text-align:center;font-family:'Playfair Display',serif;font-weight:700;font-size:14px;color:var(--forest);">2</td><td><span class="badge badge-confirmed">confirmed</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ROMANTIC DINNERS -->
+        <div class="widget" style="animation-delay:360ms;">
+          <div class="widget-header">
+            <span class="widget-title">Romantic Dinners</span>
+            <span class="widget-count">3 tonight</span>
+          </div>
+          <div class="widget-body">
+            <div class="dinner-cards">
+              <div class="dinner-card">
+                <div class="dinner-guest">Sofia Marchetti + Guest</div>
+                <div class="dinner-meta"><span class="dinner-loc">Overwater Deck</span><span class="dot-sep"></span><span class="dinner-time">19:30</span></div>
+                <div class="dinner-note">Anniversary — rose petals requested</div>
+              </div>
+              <div class="dinner-card">
+                <div class="dinner-guest">The Chen Family</div>
+                <div class="dinner-meta"><span class="dinner-loc">Garden Pavilion</span><span class="dot-sep"></span><span class="dinner-time">20:00</span></div>
+                <div class="dinner-note">Dietary: 2 vegetarian, nut allergy</div>
+              </div>
+              <div class="dinner-card">
+                <div class="dinner-guest">Robert Fairbanks III + Guest</div>
+                <div class="dinner-meta"><span class="dinner-loc">Cliffside Table</span><span class="dot-sep"></span><span class="dinner-time">21:00</span></div>
+                <div class="dinner-note confidential">⚑ Proposal setup requested — CONFIDENTIAL</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONVERSATIONS -->
+        <div class="widget" style="animation-delay:440ms;">
+          <div class="widget-header">
+            <span class="widget-title">Open Conversations</span>
+            <span class="widget-count">6 unread</span>
+          </div>
+          <div class="widget-body">
+            <div class="conversation-item"><div class="convo-top"><div><span class="convo-guest">Sofia Marchetti</span><span class="convo-room"> · R204</span></div><span class="convo-channel ch-roomservice">Room Service</span></div><div class="convo-message">"Could we get extra towels please?"</div><div class="convo-bottom"><span class="convo-time">2 min ago</span><span class="unread-pill">2</span></div></div>
+            <div class="conversation-item"><div class="convo-top"><div><span class="convo-guest">James Howell</span><span class="convo-room"> · R301</span></div><span class="convo-channel ch-concierge">Concierge</span></div><div class="convo-message">"What time does the breakfast close?"</div><div class="convo-bottom"><span class="convo-time">15 min ago</span><span class="unread-pill">1</span></div></div>
+            <div class="conversation-item"><div class="convo-top"><div><span class="convo-guest">The Chen Family</span><span class="convo-room"> · R412</span></div><span class="convo-channel ch-tours">Tours</span></div><div class="convo-message">"Is the snorkeling still on? Seeing clouds"</div><div class="convo-bottom"><span class="convo-time">32 min ago</span><span class="unread-pill">3</span></div></div>
+            <div class="conversation-item"><div class="convo-top"><div><span class="convo-guest">Yuki Tanaka</span><span class="convo-room"> · R109</span></div><span class="convo-channel ch-concierge">Concierge</span></div><div class="convo-message">"Arigato! The sunset tour was perfect"</div><div class="convo-bottom"><span class="convo-time">1 hr ago</span><span style="font-size:10px;color:var(--text-soft)">read</span></div></div>
+            <div class="conversation-item"><div class="convo-top"><div><span class="convo-guest">Dr. Vega</span><span class="convo-room"> · R118</span></div><span class="convo-channel ch-roomservice">Room Service</span></div><div class="convo-message">"Can we get the dinner menu sent up?"</div><div class="convo-bottom"><span class="convo-time">2 hr ago</span><span style="font-size:10px;color:var(--text-soft)">read</span></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const dateEl = document.getElementById('current-date');
+  if (dateEl) {
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    dateEl.textContent = new Date().toLocaleDateString('en-US', opts);
+  }
+
+  document.querySelectorAll('.date-nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.date-nav-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

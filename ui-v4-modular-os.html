@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nayara — Dashboard OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --surface-2: #F4F4F5;
+  --surface-3: #E4E4E7;
+  --accent: #5046E5;
+  --accent-dim: rgba(80,70,229,0.08);
+  --accent-mid: rgba(80,70,229,0.15);
+  --success: #16A34A;
+  --success-dim: rgba(22,163,74,0.1);
+  --warning: #CA8A04;
+  --warning-dim: rgba(202,138,4,0.1);
+  --danger: #DC2626;
+  --danger-dim: rgba(220,38,38,0.1);
+  --info: #0284C7;
+  --info-dim: rgba(2,132,199,0.1);
+  --text-1: #09090B;
+  --text-2: #3F3F46;
+  --text-3: #71717A;
+  --text-4: #A1A1AA;
+  --border: #E4E4E7;
+  --border-mid: #D4D4D8;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.dark {
+  --bg: #09090B; --surface: #18181B; --surface-2: #27272A;
+  --surface-3: #3F3F46; --border: #27272A; --border-mid: #3F3F46;
+  --text-1: #FAFAFA; --text-2: #D4D4D8; --text-3: #A1A1AA; --text-4: #71717A;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg); color: var(--text-1);
+  height: 100vh; overflow: hidden;
+  transition: background 200ms, color 200ms;
+  scrollbar-width: thin; scrollbar-color: var(--surface-3) transparent;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* ── COMMAND BAR ── */
+.command-bar {
+  height: 40px; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 12px; flex-shrink: 0; z-index: 100;
+}
+
+.app-icon {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: var(--accent); display: flex; align-items: center;
+  justify-content: center; font-size: 12px; font-weight: 800;
+  color: white; flex-shrink: 0; cursor: pointer;
+}
+
+.app-name {
+  font-size: 14px; font-weight: 700; color: var(--text-1);
+  letter-spacing: -0.01em; margin-right: 8px;
+}
+
+.cmd-trigger {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0 10px; height: 26px; width: 240px; cursor: pointer;
+  transition: border-color 150ms;
+}
+
+.cmd-trigger:hover { border-color: var(--border-mid); }
+
+.cmd-text { font-size: 12px; color: var(--text-4); flex: 1; }
+
+.cmd-kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--text-4);
+  background: var(--surface-3); border: 1px solid var(--border);
+  padding: 1px 5px; border-radius: 4px;
+}
+
+.bar-spacer { flex: 1; }
+
+.view-switcher {
+  display: flex; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 6px;
+  overflow: hidden;
+}
+
+.view-btn {
+  padding: 4px 10px; font-size: 11px; font-weight: 600;
+  color: var(--text-3); cursor: pointer; border: none; background: transparent;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 150ms, color 150ms; display: flex; align-items: center; gap: 5px;
+}
+
+.view-btn.active { background: var(--accent); color: white; }
+.view-btn:hover:not(.active) { background: var(--surface-3); color: var(--text-2); }
+
+.notif-btn {
+  position: relative; width: 32px; height: 32px;
+  border-radius: 8px; background: transparent;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  border: 1px solid var(--border); color: var(--text-3);
+  transition: background 150ms;
+}
+
+.notif-btn:hover { background: var(--surface-2); }
+
+.notif-badge {
+  position: absolute; top: 4px; right: 4px;
+  width: 8px; height: 8px; border-radius: 50%; background: var(--danger);
+  border: 1.5px solid var(--surface);
+}
+
+.dark-toggle {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: transparent; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  font-size: 14px; transition: background 150ms; color: var(--text-3);
+}
+
+.dark-toggle:hover { background: var(--surface-2); }
+
+.bar-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: white;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: 2px solid rgba(80,70,229,0.3);
+}
+
+/* ── BODY ── */
+.body { flex: 1; display: flex; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px; min-width: 220px;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+  padding: 8px 0;
+}
+
+.workspace-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 12px; cursor: pointer; border-radius: 6px; margin: 0 6px 6px;
+  transition: background 100ms;
+}
+
+.workspace-btn:hover { background: var(--surface-2); }
+.workspace-name { font-size: 13px; font-weight: 700; color: var(--text-1); }
+.workspace-chevron { font-size: 10px; color: var(--text-4); }
+
+.sidebar-section { margin-bottom: 2px; }
+
+.sidebar-section-label {
+  font-size: 10px; font-weight: 600; color: var(--text-4);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 6px 12px 2px; display: block;
+}
+
+.sidebar-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 8px 0 12px; height: 28px; cursor: pointer;
+  font-size: 12px; font-weight: 500; color: var(--text-3);
+  border-radius: 6px; margin: 0 6px;
+  transition: background 100ms, color 100ms; position: relative;
+}
+
+.sidebar-item:hover { background: var(--surface-2); color: var(--text-2); }
+
+.sidebar-item.active {
+  background: var(--accent-dim); color: var(--accent); font-weight: 600;
+}
+
+.sidebar-item.active::before {
+  content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%);
+  width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
+}
+
+.sidebar-chevron {
+  margin-left: auto; font-size: 9px; color: var(--text-4);
+  transition: transform 200ms;
+}
+
+.sidebar-children { padding-left: 8px; }
+
+.sidebar-kbd {
+  margin-left: auto; font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: var(--text-4);
+  background: var(--surface-2); border: 1px solid var(--border);
+  padding: 1px 4px; border-radius: 3px;
+}
+
+.sidebar-add {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 12px; height: 28px; cursor: pointer;
+  font-size: 12px; color: var(--text-4);
+  transition: color 150ms;
+}
+
+.sidebar-add:hover { color: var(--text-2); }
+
+.sidebar-bottom {
+  margin-top: auto; padding: 8px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-user {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 6px; border-radius: 6px; transition: background 100ms;
+}
+
+.sidebar-user:hover { background: var(--surface-2); }
+.sidebar-user-name { font-size: 12px; font-weight: 600; color: var(--text-1); }
+.sidebar-user-role { font-size: 10px; color: var(--text-4); }
+
+/* ── MAIN ── */
+.main { flex: 1; display: flex; overflow: hidden; }
+
+/* ── PAGE ── */
+.page { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.page-header {
+  padding: 16px 24px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+
+.breadcrumb {
+  font-size: 11px; color: var(--text-4); margin-bottom: 6px; letter-spacing: 0.02em;
+}
+
+.page-title-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.page-title {
+  font-size: 22px; font-weight: 800; color: var(--text-1); letter-spacing: -0.02em;
+}
+
+.header-actions { display: flex; align-items: center; gap: 8px; }
+
+.btn-primary {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 8px;
+  background: var(--accent); color: white;
+  font-size: 12px; font-weight: 600;
+  border: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: opacity 150ms;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-outline {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 8px;
+  background: transparent; color: var(--text-2);
+  font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 150ms;
+}
+
+.btn-outline:hover { background: var(--surface-2); }
+
+/* TABS */
+.page-tabs {
+  display: flex; gap: 0; padding: 0 24px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+
+.page-tab {
+  padding: 8px 14px; font-size: 13px; font-weight: 500;
+  color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: color 150ms, border-color 150ms;
+}
+
+.page-tab:hover { color: var(--text-1); }
+.page-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+/* ── CONTENT ── */
+.page-content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+/* ── KPI GRID ── */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; margin-bottom: 24px;
+}
+
+.kpi-tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px;
+  box-shadow: var(--shadow-sm);
+  opacity: 0; transform: translateY(8px);
+  animation: fadeUp 0.3s ease-out forwards;
+}
+
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+.kpi-tile-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+}
+
+.kpi-tile-label {
+  font-size: 11px; font-weight: 500; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+.kpi-dots { font-size: 14px; color: var(--text-4); cursor: pointer; }
+
+.kpi-tile-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px; font-weight: 700; color: var(--text-1);
+  letter-spacing: -0.02em; line-height: 1; margin-bottom: 8px;
+}
+
+.kpi-trend {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600;
+}
+
+.trend-up { color: var(--success); }
+.trend-down { color: var(--danger); }
+.trend-flat { color: var(--text-4); }
+
+/* INLINE SPARKLINE */
+.spark { margin-top: 10px; }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+
+.filter-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  background: var(--surface-2); color: var(--text-3);
+  border: 1px solid var(--border); cursor: pointer;
+  transition: all 150ms;
+}
+
+.filter-chip.active {
+  background: var(--accent-dim); color: var(--accent); border-color: var(--accent-mid);
+}
+
+.record-count {
+  font-size: 11px; color: var(--text-4); margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── BULK ACTION BAR ── */
+.bulk-bar {
+  display: none; align-items: center; gap: 10px;
+  padding: 8px 16px; background: var(--accent); border-radius: 8px;
+  margin-bottom: 12px; color: white;
+}
+
+.bulk-bar.visible { display: flex; }
+
+.bulk-text { font-size: 12px; font-weight: 600; flex: 1; }
+
+.bulk-btn {
+  padding: 4px 12px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  border: none; font-family: 'Plus Jakarta Sans', sans-serif;
+  background: rgba(255,255,255,0.2); color: white; transition: background 150ms;
+}
+
+.bulk-btn:hover { background: rgba(255,255,255,0.3); }
+
+.bulk-close { cursor: pointer; font-size: 16px; color: rgba(255,255,255,0.7); background: none; border: none; }
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* TABLE VIEW */
+.data-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); }
+
+.data-table { width: 100%; border-collapse: collapse; }
+
+.data-table th {
+  font-size: 11px; font-weight: 600; color: var(--text-3);
+  letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 0 14px; height: 36px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2); white-space: nowrap;
+  position: sticky; top: 0; cursor: pointer; user-select: none;
+}
+
+.data-table th:hover { color: var(--text-1); }
+
+.th-inner { display: flex; align-items: center; gap: 4px; }
+
+.th-resize {
+  width: 4px; cursor: col-resize; opacity: 0;
+  position: absolute; right: 0; top: 0; bottom: 0;
+  background: var(--border);
+}
+
+.data-table th { position: relative; }
+.data-table th:hover .th-resize { opacity: 1; }
+
+.data-table td {
+  padding: 0 14px; height: 44px; font-size: 12px;
+  color: var(--text-2); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+
+.data-table tbody tr { transition: background 80ms; cursor: default; }
+.data-table tbody tr:hover { background: var(--surface-2); }
+
+.data-table tbody tr:hover .td-actions { opacity: 1; }
+
+td.td-actions { opacity: 0; transition: opacity 100ms; }
+
+.row-cb { width: 40px; }
+.row-cb input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; }
+
+.guest-strong { font-weight: 600; color: var(--text-1); }
+
+.room-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  background: var(--accent-dim); color: var(--accent);
+  border: 1px solid var(--accent-mid);
+  padding: 2px 7px; border-radius: 6px; display: inline-block;
+}
+
+.status-chip {
+  display: inline-block; padding: 3px 9px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+}
+
+.sc-confirmed  { background: var(--success-dim); color: var(--success); }
+.sc-pending    { background: var(--warning-dim); color: var(--warning); }
+.sc-completed  { background: var(--surface-2); color: var(--text-4); }
+.sc-enroute    { background: var(--info-dim); color: var(--info); }
+
+.action-dots {
+  width: 28px; height: 28px; border-radius: 6px; display: inline-flex;
+  align-items: center; justify-content: center; cursor: pointer;
+  color: var(--text-3); border: 1px solid var(--border);
+  font-size: 14px; background: transparent; transition: background 100ms;
+}
+
+.action-dots:hover { background: var(--surface-3); }
+
+/* BOARD VIEW */
+.board-view { display: none; }
+.board-view.active { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+.board-col { background: var(--surface-2); border-radius: 8px; padding: 10px; }
+
+.board-col-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; padding: 0 4px;
+}
+
+.board-col-title { font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.board-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-4);
+  background: var(--surface-3); padding: 1px 6px; border-radius: 4px;
+}
+
+.board-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px; margin-bottom: 6px;
+  box-shadow: var(--shadow-sm); cursor: default;
+  transition: box-shadow 150ms, transform 150ms;
+}
+
+.board-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.board-card-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--accent); margin-bottom: 3px;
+}
+
+.board-card-name { font-size: 12px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+.board-card-meta { font-size: 11px; color: var(--text-4); }
+
+/* TIMELINE VIEW */
+.timeline-view { display: none; }
+.timeline-view.active { display: block; }
+
+.timeline-header { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.timeline-label-col { width: 160px; flex-shrink: 0; padding: 6px 0; font-size: 11px; color: var(--text-4); }
+.timeline-hours { flex: 1; display: flex; }
+.timeline-hour {
+  flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--text-4); padding: 6px 0;
+  border-left: 1px solid var(--border);
+}
+
+.timeline-row { display: flex; align-items: center; margin-bottom: 4px; min-height: 36px; }
+.timeline-guest { width: 160px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: var(--text-2); padding-right: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.timeline-track { flex: 1; position: relative; height: 28px; background: var(--surface-2); border-radius: 4px; }
+
+.timeline-bar {
+  position: absolute; height: 100%; border-radius: 4px;
+  display: flex; align-items: center; padding: 0 8px;
+  font-size: 10px; font-weight: 600; color: white;
+  white-space: nowrap; overflow: hidden;
+}
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  width: 280px; min-width: 280px;
+  background: var(--surface); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+  padding: 16px;
+}
+
+.rp-section { margin-bottom: 24px; }
+
+.rp-title {
+  font-size: 11px; font-weight: 700; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;
+}
+
+.mini-calendar { /* simple grid */ }
+
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+  text-align: center;
+}
+
+.cal-day-name {
+  font-size: 9px; font-weight: 600; color: var(--text-4);
+  letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 0;
+}
+
+.cal-day {
+  font-size: 11px; font-weight: 500; color: var(--text-3);
+  padding: 4px 0; border-radius: 4px; cursor: pointer;
+  transition: background 100ms;
+}
+
+.cal-day:hover { background: var(--surface-2); color: var(--text-1); }
+.cal-day.today { background: var(--accent); color: white; font-weight: 700; border-radius: 6px; }
+.cal-day.other-month { color: var(--text-4); }
+
+.countdown-widget {
+  background: var(--accent-dim); border: 1px solid var(--accent-mid);
+  border-radius: 8px; padding: 12px; margin-top: 10px;
+}
+
+.countdown-label { font-size: 11px; color: var(--text-3); margin-bottom: 4px; }
+.countdown-time { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--accent); }
+
+.quick-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.stat-card {
+  background: var(--surface-2); border-radius: 8px; padding: 10px;
+  border: 1px solid var(--border);
+}
+
+.stat-label { font-size: 10px; color: var(--text-4); font-weight: 500; margin-bottom: 4px; }
+.stat-value { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text-1); }
+
+.activity-mini { display: flex; flex-direction: column; gap: 0; }
+
+.activity-mini-item {
+  display: flex; gap: 8px; padding: 7px 0;
+  border-bottom: 1px solid var(--border); align-items: flex-start;
+}
+
+.activity-mini-item:last-child { border-bottom: none; }
+
+.activity-mini-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+}
+
+.activity-mini-time { font-size: 10px; color: var(--text-4); white-space: nowrap; }
+.activity-mini-text { font-size: 11px; color: var(--text-3); line-height: 1.4; }
+
+/* ── COMMAND PALETTE ── */
+.palette-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 1000;
+  align-items: flex-start; justify-content: center;
+  padding-top: 80px;
+}
+
+.palette-overlay.open { display: flex; }
+
+.palette-modal {
+  background: var(--surface); border-radius: 12px;
+  border: 1px solid var(--border-mid);
+  width: 560px; max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: palette-in 150ms ease-out;
+}
+
+@keyframes palette-in {
+  from { opacity: 0; transform: scale(0.97) translateY(-8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.palette-input-wrap {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+}
+
+.palette-input {
+  flex: 1; border: none; outline: none; font-size: 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: transparent; color: var(--text-1);
+}
+
+.palette-input::placeholder { color: var(--text-4); }
+
+.palette-group-label {
+  font-size: 10px; font-weight: 700; color: var(--text-4);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 10px 14px 4px;
+}
+
+.palette-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; cursor: pointer; transition: background 80ms;
+  font-size: 13px; color: var(--text-2);
+}
+
+.palette-item:hover { background: var(--accent-dim); color: var(--accent); }
+
+.palette-item-kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--text-4);
+  background: var(--surface-2); border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 4px;
+}
+
+.palette-footer {
+  padding: 8px 14px; border-top: 1px solid var(--border);
+  font-size: 10px; color: var(--text-4);
+  display: flex; gap: 12px;
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- COMMAND BAR -->
+  <div class="command-bar">
+    <div class="app-icon">N</div>
+    <span class="app-name">Nayara</span>
+
+    <div class="cmd-trigger" onclick="openPalette()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-4)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <span class="cmd-text">Search or run a command...</span>
+      <span class="cmd-kbd">⌘K</span>
+    </div>
+
+    <div class="bar-spacer"></div>
+
+    <div class="view-switcher">
+      <button class="view-btn active" onclick="switchView('table',this)">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
+        Table
+      </button>
+      <button class="view-btn" onclick="switchView('board',this)">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+        Board
+      </button>
+      <button class="view-btn" onclick="switchView('timeline',this)">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Timeline
+      </button>
+    </div>
+
+    <div class="notif-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div class="notif-badge"></div>
+    </div>
+
+    <button class="dark-toggle" onclick="document.body.classList.toggle('dark')" title="Toggle dark mode">🌙</button>
+
+    <div class="bar-avatar">GA</div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="workspace-btn">
+        <span class="workspace-name">Nayara BDT</span>
+        <span class="workspace-chevron">⌄</span>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-section-label">Pinned</span>
+        <div class="sidebar-item active">★ Dashboard <span class="sidebar-kbd">⌃1</span></div>
+        <div class="sidebar-item">★ Transfers (today)</div>
+        <div class="sidebar-item">★ Live Orders</div>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-section-label">Overview</span>
+        <div class="sidebar-item" onclick="toggleChildren(this)">
+          <span class="sidebar-chevron">▾</span> Overview
+        </div>
+        <div class="sidebar-children">
+          <div class="sidebar-item" style="padding-left:24px;">Dashboard</div>
+          <div class="sidebar-item" style="padding-left:24px;">Reservations</div>
+          <div class="sidebar-item" style="padding-left:24px;">Guest Profiles</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-section-label">Concierge</span>
+        <div class="sidebar-item" onclick="toggleChildren(this)">
+          <span class="sidebar-chevron">▾</span> Concierge
+        </div>
+        <div class="sidebar-children">
+          <div class="sidebar-item" style="padding-left:24px;">Transfers <span class="sidebar-kbd">⌃T</span></div>
+          <div class="sidebar-item" style="padding-left:24px;">Tours &amp; Activities</div>
+          <div class="sidebar-item" style="padding-left:24px;">Special Requests</div>
+          <div class="sidebar-item" style="padding-left:24px;">Romantic Dinners</div>
+          <div class="sidebar-item" style="padding-left:24px;">Billing</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-section-label">F&amp;B</span>
+        <div class="sidebar-item">Orders <span class="sidebar-kbd">⌃O</span></div>
+        <div class="sidebar-item">Menu Management</div>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-section-label">Communications</span>
+        <div class="sidebar-item">Messages <span class="sidebar-kbd">⌃M</span></div>
+        <div class="sidebar-item">Channels</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-item" onclick="toggleChildren(this)">
+          <span class="sidebar-chevron">▶</span> Settings
+        </div>
+      </div>
+
+      <div class="sidebar-add">+ Add page</div>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-user">
+          <div class="bar-avatar" style="width:24px;height:24px;font-size:10px;">GA</div>
+          <div>
+            <div class="sidebar-user-name">G. Agüero</div>
+            <div class="sidebar-user-role">Manager</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- PAGE AREA -->
+    <div class="main">
+      <div class="page">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+          <div class="breadcrumb">Workspace / Operations / Dashboard</div>
+          <div class="page-title-row">
+            <h1 class="page-title">Dashboard</h1>
+            <div class="header-actions">
+              <button class="btn-outline">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/></svg>
+                Filter
+              </button>
+              <button class="btn-outline">Sort</button>
+              <button class="btn-primary">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE TABS -->
+        <div class="page-tabs">
+          <div class="page-tab active">Overview</div>
+          <div class="page-tab">Transfers</div>
+          <div class="page-tab">Tours</div>
+          <div class="page-tab">Orders</div>
+          <div class="page-tab">Messages</div>
+        </div>
+
+        <!-- PAGE CONTENT -->
+        <div class="page-content">
+
+          <!-- KPI GRID -->
+          <div class="kpi-grid">
+
+            <div class="kpi-tile" style="animation-delay:0ms;">
+              <div class="kpi-tile-header"><span class="kpi-tile-label">Arrivals</span><span class="kpi-dots">⋯</span></div>
+              <div class="kpi-tile-num" data-target="12">0</div>
+              <div class="kpi-trend trend-up">↑ +20% vs yesterday</div>
+              <div class="spark">
+                <svg width="100%" height="24" viewBox="0 0 120 24">
+                  <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(22,163,74,0.3)"/><stop offset="100%" stop-color="rgba(22,163,74,0)"/></linearGradient></defs>
+                  <path d="M0,20 L17,16 L34,18 L51,12 L68,14 L85,8 L102,6 L120,4" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="kpi-tile" style="animation-delay:60ms;">
+              <div class="kpi-tile-header"><span class="kpi-tile-label">Departures</span><span class="kpi-dots">⋯</span></div>
+              <div class="kpi-tile-num" data-target="8">0</div>
+              <div class="kpi-trend trend-down">↓ -11% vs yesterday</div>
+              <div class="spark">
+                <svg width="100%" height="24" viewBox="0 0 120 24">
+                  <path d="M0,4 L17,8 L34,6 L51,12 L68,10 L85,14 L102,16 L120,20" fill="none" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="kpi-tile" style="animation-delay:120ms;">
+              <div class="kpi-tile-header"><span class="kpi-tile-label">In House</span><span class="kpi-dots">⋯</span></div>
+              <div class="kpi-tile-num" data-target="47">0</div>
+              <div class="kpi-trend trend-up">↑ +9% vs yesterday</div>
+              <div class="spark">
+                <svg width="100%" height="24" viewBox="0 0 120 24">
+                  <path d="M0,18 L17,14 L34,16 L51,10 L68,12 L85,7 L102,5 L120,3" fill="none" stroke="#5046E5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="kpi-tile" style="animation-delay:180ms;">
+              <div class="kpi-tile-header"><span class="kpi-tile-label">Transfers</span><span class="kpi-dots">⋯</span></div>
+              <div class="kpi-tile-num" data-target="6">0</div>
+              <div class="kpi-trend trend-flat">→ 0% vs yesterday</div>
+              <div class="spark">
+                <svg width="100%" height="24" viewBox="0 0 120 24">
+                  <path d="M0,12 L17,11 L34,13 L51,12 L68,11 L85,12 L102,12 L120,12" fill="none" stroke="#A1A1AA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="kpi-tile" style="animation-delay:240ms;">
+              <div class="kpi-tile-header"><span class="kpi-tile-label">Tours</span><span class="kpi-dots">⋯</span></div>
+              <div class="kpi-tile-num" data-target="9">0</div>
+              <div class="kpi-trend trend-up">↑ +50% vs yesterday</div>
+              <div class="spark">
+                <svg width="100%" height="24" viewBox="0 0 120 24">
+                  <path d="M0,20 L17,18 L34,16 L51,14 L68,10 L85,8 L102,5 L120,3" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="kpi-tile" style="animation-delay:300ms;">
+              <div class="kpi-tile-header"><span class="kpi-tile-label">Dinners</span><span class="kpi-dots">⋯</span></div>
+              <div class="kpi-tile-num" data-target="3">0</div>
+              <div class="kpi-trend trend-flat">→ 0% vs yesterday</div>
+              <div class="spark">
+                <svg width="100%" height="24" viewBox="0 0 120 24">
+                  <path d="M0,11 L17,13 L34,11 L51,12 L68,10 L85,12 L102,11 L120,12" fill="none" stroke="#A1A1AA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="kpi-tile" style="animation-delay:360ms;">
+              <div class="kpi-tile-header"><span class="kpi-tile-label">Messages</span><span class="kpi-dots">⋯</span></div>
+              <div class="kpi-tile-num" data-target="14">0</div>
+              <div class="kpi-trend trend-up">↑ +133% vs yesterday</div>
+              <div class="spark">
+                <svg width="100%" height="24" viewBox="0 0 120 24">
+                  <path d="M0,22 L17,20 L34,18 L51,16 L68,12 L85,9 L102,6 L120,2" fill="none" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+          </div><!-- /kpi-grid -->
+
+          <!-- FILTER BAR -->
+          <div class="filter-bar">
+            <div class="filter-chip active">All</div>
+            <div class="filter-chip">Pending</div>
+            <div class="filter-chip">Confirmed</div>
+            <div class="filter-chip">Completed</div>
+            <span class="record-count">8 records</span>
+          </div>
+
+          <!-- BULK ACTION BAR -->
+          <div class="bulk-bar" id="bulk-bar">
+            <span class="bulk-text" id="bulk-text">0 selected</span>
+            <button class="bulk-btn">Confirm All</button>
+            <button class="bulk-btn">Assign Vendor</button>
+            <button class="bulk-btn">Cancel</button>
+            <button class="bulk-close" onclick="clearSelection()">✕</button>
+          </div>
+
+          <!-- TABLE VIEW -->
+          <div class="view active" id="view-table">
+            <div class="data-table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th class="row-cb"><input type="checkbox" id="select-all" onchange="toggleAll(this)"></th>
+                    <th><div class="th-inner">TIME <div class="th-resize"></div></div></th>
+                    <th><div class="th-inner">GUEST <div class="th-resize"></div></div></th>
+                    <th><div class="th-inner">ROOM <div class="th-resize"></div></div></th>
+                    <th><div class="th-inner">ROUTE <div class="th-resize"></div></div></th>
+                    <th><div class="th-inner">VENDOR <div class="th-resize"></div></div></th>
+                    <th><div class="th-inner">STATUS <div class="th-resize"></div></div></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="table-body">
+                  <tr>
+                    <td class="row-cb"><input type="checkbox" class="row-cb-input" onchange="updateSelection()"></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)">06:30</td>
+                    <td class="guest-strong">Sofia Marchetti</td>
+                    <td><span class="room-pill">204</span></td>
+                    <td style="font-size:11px">✈ Airport → Resort</td>
+                    <td style="font-size:11px;color:var(--text-3)">Panama Transfers</td>
+                    <td><span class="status-chip sc-completed">completed</span></td>
+                    <td class="td-actions"><button class="action-dots">⋯</button></td>
+                  </tr>
+                  <tr>
+                    <td class="row-cb"><input type="checkbox" class="row-cb-input" onchange="updateSelection()"></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)">07:00</td>
+                    <td class="guest-strong">James &amp; Linda Howell</td>
+                    <td><span class="room-pill">301</span></td>
+                    <td style="font-size:11px">Resort → ✈ Airport</td>
+                    <td style="font-size:11px;color:var(--text-3)">Bocas Express</td>
+                    <td><span class="status-chip sc-completed">completed</span></td>
+                    <td class="td-actions"><button class="action-dots">⋯</button></td>
+                  </tr>
+                  <tr>
+                    <td class="row-cb"><input type="checkbox" class="row-cb-input" onchange="updateSelection()"></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)">09:15</td>
+                    <td class="guest-strong">Dr. Alejandro Vega</td>
+                    <td><span class="room-pill">118</span></td>
+                    <td style="font-size:11px">✈ Airport → Resort</td>
+                    <td style="font-size:11px;color:var(--text-3)">Panama Transfers</td>
+                    <td><span class="status-chip sc-enroute">en route</span></td>
+                    <td class="td-actions"><button class="action-dots">⋯</button></td>
+                  </tr>
+                  <tr>
+                    <td class="row-cb"><input type="checkbox" class="row-cb-input" onchange="updateSelection()"></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)">10:00</td>
+                    <td class="guest-strong">The Chen Family</td>
+                    <td><span class="room-pill">412</span></td>
+                    <td style="font-size:11px">🚤 Dock → Resort</td>
+                    <td style="font-size:11px;color:var(--text-3)">Water Wings</td>
+                    <td><span class="status-chip sc-confirmed">confirmed</span></td>
+                    <td class="td-actions"><button class="action-dots">⋯</button></td>
+                  </tr>
+                  <tr>
+                    <td class="row-cb"><input type="checkbox" class="row-cb-input" onchange="updateSelection()"></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)">11:30</td>
+                    <td class="guest-strong">Marie Dubois</td>
+                    <td><span class="room-pill">207</span></td>
+                    <td style="font-size:11px">Resort → 🚤 Marina</td>
+                    <td style="font-size:11px;color:var(--text-3)">Island Hop Co</td>
+                    <td><span class="status-chip sc-confirmed">confirmed</span></td>
+                    <td class="td-actions"><button class="action-dots">⋯</button></td>
+                  </tr>
+                  <tr>
+                    <td class="row-cb"><input type="checkbox" class="row-cb-input" onchange="updateSelection()"></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)">14:00</td>
+                    <td class="guest-strong">Robert Fairbanks III</td>
+                    <td><span class="room-pill">305</span></td>
+                    <td style="font-size:11px">✈ Airport → Resort</td>
+                    <td style="font-size:11px;color:var(--text-3)">VIP Transport</td>
+                    <td><span class="status-chip sc-pending">pending</span></td>
+                    <td class="td-actions"><button class="action-dots">⋯</button></td>
+                  </tr>
+                  <tr>
+                    <td class="row-cb"><input type="checkbox" class="row-cb-input" onchange="updateSelection()"></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)">16:45</td>
+                    <td class="guest-strong">Yuki Tanaka</td>
+                    <td><span class="room-pill">109</span></td>
+                    <td style="font-size:11px">Resort → ✈ Airport</td>
+                    <td style="font-size:11px;color:var(--text-3)">Bocas Express</td>
+                    <td><span class="status-chip sc-pending">pending</span></td>
+                    <td class="td-actions"><button class="action-dots">⋯</button></td>
+                  </tr>
+                  <tr>
+                    <td class="row-cb"><input type="checkbox" class="row-cb-input" onchange="updateSelection()"></td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)">18:00</td>
+                    <td class="guest-strong">Carlos &amp; Ana Reyes</td>
+                    <td><span class="room-pill">220</span></td>
+                    <td style="font-size:11px">✈ Airport → Resort</td>
+                    <td style="font-size:11px;color:var(--text-3)">Panama Transfers</td>
+                    <td><span class="status-chip sc-confirmed">confirmed</span></td>
+                    <td class="td-actions"><button class="action-dots">⋯</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- BOARD VIEW -->
+          <div class="board-view" id="view-board">
+            <div class="board-col">
+              <div class="board-col-header"><span class="board-col-title">PENDING</span><span class="board-count">2</span></div>
+              <div class="board-card"><div class="board-card-id">TRF-006</div><div class="board-card-name">Robert Fairbanks III</div><div class="board-card-meta">14:00 · ✈ Airport → Resort</div></div>
+              <div class="board-card"><div class="board-card-id">TRF-007</div><div class="board-card-name">Yuki Tanaka</div><div class="board-card-meta">16:45 · Resort → ✈ Airport</div></div>
+            </div>
+            <div class="board-col">
+              <div class="board-col-header"><span class="board-col-title">EN ROUTE</span><span class="board-count">1</span></div>
+              <div class="board-card" style="border-left:3px solid #0284C7;"><div class="board-card-id">TRF-003</div><div class="board-card-name">Dr. Alejandro Vega</div><div class="board-card-meta">09:15 · ✈ Airport → Resort</div></div>
+            </div>
+            <div class="board-col">
+              <div class="board-col-header"><span class="board-col-title">CONFIRMED</span><span class="board-count">3</span></div>
+              <div class="board-card" style="border-left:3px solid #16A34A;"><div class="board-card-id">TRF-004</div><div class="board-card-name">The Chen Family</div><div class="board-card-meta">10:00 · 🚤 Dock → Resort</div></div>
+              <div class="board-card" style="border-left:3px solid #16A34A;"><div class="board-card-id">TRF-005</div><div class="board-card-name">Marie Dubois</div><div class="board-card-meta">11:30 · Resort → 🚤 Marina</div></div>
+              <div class="board-card" style="border-left:3px solid #16A34A;"><div class="board-card-id">TRF-008</div><div class="board-card-name">Carlos &amp; Ana Reyes</div><div class="board-card-meta">18:00 · ✈ Airport → Resort</div></div>
+            </div>
+            <div class="board-col">
+              <div class="board-col-header"><span class="board-col-title">COMPLETED</span><span class="board-count">2</span></div>
+              <div class="board-card" style="opacity:0.6;"><div class="board-card-id">TRF-001</div><div class="board-card-name">Sofia Marchetti</div><div class="board-card-meta">06:30 · Done</div></div>
+              <div class="board-card" style="opacity:0.6;"><div class="board-card-id">TRF-002</div><div class="board-card-name">J. &amp; L. Howell</div><div class="board-card-meta">07:00 · Done</div></div>
+            </div>
+          </div>
+
+          <!-- TIMELINE VIEW -->
+          <div class="timeline-view" id="view-timeline">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;">
+              <div class="timeline-header">
+                <div class="timeline-label-col">Guest</div>
+                <div class="timeline-hours">
+                  <div class="timeline-hour">06:00</div>
+                  <div class="timeline-hour">09:00</div>
+                  <div class="timeline-hour">12:00</div>
+                  <div class="timeline-hour">15:00</div>
+                  <div class="timeline-hour">18:00</div>
+                  <div class="timeline-hour">21:00</div>
+                </div>
+              </div>
+              <div class="timeline-row"><div class="timeline-guest">Sofia Marchetti</div><div class="timeline-track"><div class="timeline-bar" style="left:2%;width:6%;background:#16A34A;">06:30</div></div></div>
+              <div class="timeline-row"><div class="timeline-guest">J. &amp; L. Howell</div><div class="timeline-track"><div class="timeline-bar" style="left:4%;width:6%;background:#71717A;">07:00</div></div></div>
+              <div class="timeline-row"><div class="timeline-guest">Dr. Alejandro Vega</div><div class="timeline-track"><div class="timeline-bar" style="left:22%;width:8%;background:#0284C7;">09:15</div></div></div>
+              <div class="timeline-row"><div class="timeline-guest">The Chen Family</div><div class="timeline-track"><div class="timeline-bar" style="left:27%;width:7%;background:#16A34A;">10:00</div></div></div>
+              <div class="timeline-row"><div class="timeline-guest">Marie Dubois</div><div class="timeline-track"><div class="timeline-bar" style="left:37%;width:7%;background:#16A34A;">11:30</div></div></div>
+              <div class="timeline-row"><div class="timeline-guest">R. Fairbanks III</div><div class="timeline-track"><div class="timeline-bar" style="left:53%;width:8%;background:#CA8A04;">14:00</div></div></div>
+              <div class="timeline-row"><div class="timeline-guest">Yuki Tanaka</div><div class="timeline-track"><div class="timeline-bar" style="left:71%;width:7%;background:#CA8A04;">16:45</div></div></div>
+              <div class="timeline-row"><div class="timeline-guest">C. &amp; A. Reyes</div><div class="timeline-track"><div class="timeline-bar" style="left:80%;width:8%;background:#16A34A;">18:00</div></div></div>
+            </div>
+          </div>
+
+        </div><!-- /page-content -->
+      </div><!-- /page -->
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+
+        <div class="rp-section">
+          <div class="rp-title">February 2026</div>
+          <div class="mini-calendar">
+            <div class="cal-grid">
+              <div class="cal-day-name">M</div><div class="cal-day-name">T</div><div class="cal-day-name">W</div>
+              <div class="cal-day-name">T</div><div class="cal-day-name">F</div><div class="cal-day-name">S</div><div class="cal-day-name">S</div>
+              <div class="cal-day other-month">27</div><div class="cal-day other-month">28</div><div class="cal-day other-month">29</div><div class="cal-day other-month">30</div><div class="cal-day other-month">31</div>
+              <div class="cal-day">1</div><div class="cal-day">2</div>
+              <div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day">5</div><div class="cal-day">6</div>
+              <div class="cal-day">7</div><div class="cal-day">8</div><div class="cal-day">9</div>
+              <div class="cal-day">10</div><div class="cal-day">11</div><div class="cal-day">12</div><div class="cal-day">13</div>
+              <div class="cal-day">14</div><div class="cal-day">15</div><div class="cal-day">16</div>
+              <div class="cal-day">17</div><div class="cal-day">18</div><div class="cal-day today">19</div><div class="cal-day">20</div>
+              <div class="cal-day">21</div><div class="cal-day">22</div><div class="cal-day">23</div>
+              <div class="cal-day">24</div><div class="cal-day">25</div><div class="cal-day">26</div><div class="cal-day">27</div>
+              <div class="cal-day">28</div>
+            </div>
+            <div class="countdown-widget">
+              <div class="countdown-label">Next arrival in</div>
+              <div class="countdown-time" id="countdown">2:45:00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rp-section">
+          <div class="rp-title">Quick Stats</div>
+          <div class="quick-stats">
+            <div class="stat-card"><div class="stat-label">Occupancy</div><div class="stat-value">90%</div></div>
+            <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value">$4.2k</div></div>
+            <div class="stat-card"><div class="stat-label">Pending Tasks</div><div class="stat-value">8</div></div>
+            <div class="stat-card"><div class="stat-label">Open Msgs</div><div class="stat-value">14</div></div>
+            <div class="stat-card"><div class="stat-label">Staff On Duty</div><div class="stat-value">6</div></div>
+            <div class="stat-card"><div class="stat-label">Alerts</div><div class="stat-value" style="color:var(--danger)">2</div></div>
+          </div>
+        </div>
+
+        <div class="rp-section">
+          <div class="rp-title">Recent Activity</div>
+          <div class="activity-mini">
+            <div class="activity-mini-item"><div class="activity-mini-dot" style="background:#FBBF24;"></div><span class="activity-mini-time">10:42</span><span class="activity-mini-text">Order from Room 109</span></div>
+            <div class="activity-mini-item"><div class="activity-mini-dot" style="background:#16A34A;"></div><span class="activity-mini-time">10:39</span><span class="activity-mini-text">Dr. Vega checked in</span></div>
+            <div class="activity-mini-item"><div class="activity-mini-dot" style="background:#5046E5;"></div><span class="activity-mini-time">10:35</span><span class="activity-mini-text">Transfer #009 → EN ROUTE</span></div>
+            <div class="activity-mini-item"><div class="activity-mini-dot" style="background:#F472B6;"></div><span class="activity-mini-time">10:31</span><span class="activity-mini-text">Message from Room 204</span></div>
+            <div class="activity-mini-item"><div class="activity-mini-dot" style="background:#16A34A;"></div><span class="activity-mini-time">10:08</span><span class="activity-mini-text">Payment: Room 301 $340</span></div>
+          </div>
+        </div>
+
+      </div><!-- /right-panel -->
+    </div><!-- /main -->
+  </div><!-- /body -->
+</div><!-- /app -->
+
+<!-- COMMAND PALETTE -->
+<div class="palette-overlay" id="palette" onclick="if(event.target===this) closePalette()">
+  <div class="palette-modal">
+    <div class="palette-input-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-4)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="palette-input" placeholder="Type a command or search..." autofocus id="palette-input">
+    </div>
+    <div class="palette-group-label">Navigation</div>
+    <div class="palette-item">→ Dashboard <span class="palette-item-kbd">⌃1</span></div>
+    <div class="palette-item">→ Guests</div>
+    <div class="palette-item">→ Transfers <span class="palette-item-kbd">⌃T</span></div>
+    <div class="palette-item">→ Orders <span class="palette-item-kbd">⌃O</span></div>
+    <div class="palette-group-label">Quick Actions</div>
+    <div class="palette-item">+ New Transfer <span class="palette-item-kbd">⌘N</span></div>
+    <div class="palette-item">+ New Order</div>
+    <div class="palette-item">+ Send Message</div>
+    <div class="palette-group-label">Recent</div>
+    <div class="palette-item">Room 204 — Sofia Marchetti</div>
+    <div class="palette-item">Order #0847</div>
+    <div class="palette-footer">
+      <span>↑↓ Navigate</span>
+      <span>↵ Select</span>
+      <span>Esc Close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Counter animation
+  function animateCounters() {
+    document.querySelectorAll('[data-target]').forEach(el => {
+      const target = parseInt(el.dataset.target);
+      const start = performance.now();
+      const duration = 1200;
+      function update(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(eased * target);
+        if (p < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    });
+  }
+  setTimeout(animateCounters, 200);
+
+  // View switcher
+  function switchView(name, btn) {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.getElementById('view-table').classList.remove('active');
+    document.getElementById('view-board').classList.remove('active');
+    document.getElementById('view-timeline').classList.remove('active');
+    const board = document.getElementById('view-board');
+    const timeline = document.getElementById('view-timeline');
+
+    if (name === 'table') {
+      document.getElementById('view-table').classList.add('active');
+    } else if (name === 'board') {
+      board.style.display = 'grid';
+      board.classList.add('active');
+    } else if (name === 'timeline') {
+      timeline.style.display = 'block';
+      timeline.classList.add('active');
+    }
+  }
+
+  // Command palette
+  function openPalette() {
+    document.getElementById('palette').classList.add('open');
+    setTimeout(() => document.getElementById('palette-input').focus(), 50);
+  }
+
+  function closePalette() {
+    document.getElementById('palette').classList.remove('open');
+  }
+
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openPalette(); }
+    if (e.key === 'Escape') closePalette();
+  });
+
+  // Checkbox multi-select
+  function updateSelection() {
+    const checked = document.querySelectorAll('.row-cb-input:checked').length;
+    const bar = document.getElementById('bulk-bar');
+    document.getElementById('bulk-text').textContent = checked + ' selected';
+    bar.classList.toggle('visible', checked > 0);
+  }
+
+  function toggleAll(cb) {
+    document.querySelectorAll('.row-cb-input').forEach(el => el.checked = cb.checked);
+    updateSelection();
+  }
+
+  function clearSelection() {
+    document.querySelectorAll('.row-cb-input').forEach(el => el.checked = false);
+    document.getElementById('select-all').checked = false;
+    document.getElementById('bulk-bar').classList.remove('visible');
+  }
+
+  // Sidebar toggles
+  function toggleChildren(item) {
+    const children = item.nextElementSibling;
+    if (children && children.classList.contains('sidebar-children')) {
+      const chevron = item.querySelector('.sidebar-chevron');
+      if (children.style.display === 'none') {
+        children.style.display = 'block';
+        if (chevron) chevron.textContent = '▾';
+      } else {
+        children.style.display = 'none';
+        if (chevron) chevron.textContent = '▶';
+      }
+    }
+  }
+
+  // Sidebar item active
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', function() {
+      if (!this.querySelector('.sidebar-chevron')) {
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      }
+    });
+  });
+
+  // Countdown timer
+  let countdownSecs = 2 * 3600 + 45 * 60;
+  setInterval(() => {
+    countdownSecs = Math.max(0, countdownSecs - 1);
+    const h = Math.floor(countdownSecs / 3600);
+    const m = Math.floor((countdownSecs % 3600) / 60);
+    const s = countdownSecs % 60;
+    const el = document.getElementById('countdown');
+    if (el) el.textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+
+  // Filter chips
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Page tabs
+  document.querySelectorAll('.page-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
