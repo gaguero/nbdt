@@ -38,8 +38,13 @@ function getField(row: Record<string, string>, ...keys: string[]): string {
   return '';
 }
 
+function normalizeLegacyId(raw: string): string {
+  return (raw || '').trim();
+}
+
 function buildCompositeKey(name: string, legacyVendorId: string): string {
-  return `${name}|||${legacyVendorId || 'NO_VENDOR'}`;
+  const normalizedVendorId = normalizeLegacyId(legacyVendorId);
+  return `${name}|||${normalizedVendorId || 'NO_VENDOR'}`;
 }
 
 /**
@@ -68,16 +73,16 @@ export async function POST(request: NextRequest) {
     const allVendorLegacyIds = Array.from(
       new Set(
         rows
-          .map((row) => getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor'))
+          .map((row) => normalizeLegacyId(getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor')))
           .filter(Boolean)
       )
     );
     const vendorByLegacyId = new Map<string, { id: string; name: string }>();
     if (allVendorLegacyIds.length > 0) {
       const vendorRes = await query(
-        `SELECT id, name, legacy_appsheet_id
+        `SELECT id, name, BTRIM(legacy_appsheet_id) AS legacy_appsheet_id
          FROM vendors
-         WHERE legacy_appsheet_id = ANY($1::text[])`,
+         WHERE BTRIM(legacy_appsheet_id) = ANY($1::text[])`,
         [allVendorLegacyIds]
       );
       for (const vendor of vendorRes.rows as { id: string; name: string; legacy_appsheet_id: string }[]) {

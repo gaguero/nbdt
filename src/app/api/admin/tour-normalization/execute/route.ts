@@ -47,8 +47,13 @@ function getField(row: Record<string, string>, ...keys: string[]): string {
   return '';
 }
 
+function normalizeLegacyId(raw: string): string {
+  return (raw || '').trim();
+}
+
 function buildCompositeKey(name: string, legacyVendorId: string): string {
-  return `${name}|||${legacyVendorId || 'NO_VENDOR'}`;
+  const normalizedVendorId = normalizeLegacyId(legacyVendorId);
+  return `${name}|||${normalizedVendorId || 'NO_VENDOR'}`;
 }
 
 function parseTime(val: string): string | null {
@@ -173,14 +178,16 @@ export async function POST(request: NextRequest) {
     const allLegacyVendorIds = Array.from(
       new Set(
         allGroupKeys
-          .map((key) => (key.includes('|||') ? key.split('|||')[1] : ''))
+          .map((key) => normalizeLegacyId(key.includes('|||') ? key.split('|||')[1] : ''))
           .filter((id) => id && id !== 'NO_VENDOR')
       )
     );
     const vendorIdByLegacyId = new Map<string, string>();
     if (allLegacyVendorIds.length > 0) {
       const vendorsRes = await query(
-        `SELECT id, legacy_appsheet_id FROM vendors WHERE legacy_appsheet_id = ANY($1::text[])`,
+        `SELECT id, BTRIM(legacy_appsheet_id) AS legacy_appsheet_id
+         FROM vendors
+         WHERE BTRIM(legacy_appsheet_id) = ANY($1::text[])`,
         [allLegacyVendorIds]
       );
       for (const vendor of vendorsRes.rows as { id: string; legacy_appsheet_id: string }[]) {
@@ -196,7 +203,7 @@ export async function POST(request: NextRequest) {
 
       if (group.action === 'create' && group.name_en) {
         const fallbackLegacyVendorId = csvKeys
-          .map((key) => (key.includes('|||') ? key.split('|||')[1] : ''))
+          .map((key) => normalizeLegacyId(key.includes('|||') ? key.split('|||')[1] : ''))
           .find((id) => id && id !== 'NO_VENDOR');
         const prelinkedVendorId =
           group.vendor_id ||
@@ -254,6 +261,7 @@ export async function POST(request: NextRequest) {
         'nombre_actividad'
       );
       const legacyVendorId = getField(row, 'id_vendedor', 'vendor_id', 'id_proveedor');
+      const normalizedLegacyVendorId = normalizeLegacyId(legacyVendorId);
       const compositeKey = buildCompositeKey(csvName, legacyVendorId);
 
       const legacyId = getField(row, 'id', 'row_id', 'id_actividad', '_rownum', 'row_number');
@@ -269,6 +277,9 @@ export async function POST(request: NextRequest) {
         result.skipped++;
         continue;
       }
+      const resolvedVendorId = normalizedLegacyVendorId
+        ? vendorIdByLegacyId.get(normalizedLegacyVendorId) ?? null
+        : null;
 
       const guestName = getField(row, 'guest', 'guest_name', 'huesped', 'nombre_completo');
       const guestLegacyId = getField(row, 'guest_id', 'id_huesped');
@@ -312,6 +323,14 @@ export async function POST(request: NextRequest) {
             : { rows: [] };
 
           if (existingBooking.rows.length > 0) {
+            if (resolvedVendorId) {
+              await client.query(
+                `UPDATE tour_products
+                 SET vendor_id = COALESCE(vendor_id, $1)
+                 WHERE id = $2`,
+                [resolvedVendorId, productId]
+              );
+            }
             await client.query(
               `UPDATE tour_bookings
                SET guest_id=$1, product_id=$2, num_guests=$3, booking_mode=$4,
@@ -334,7 +353,7 @@ export async function POST(request: NextRequest) {
                 paidDate,
                 activityDate,
                 startTime,
-                legacyVendorId || null,
+                normalizedLegacyVendorId || null,
                 legacyActivityName,
                 existingBooking.rows[0].id,
                 guestLegacyId || null,
@@ -342,6 +361,14 @@ export async function POST(request: NextRequest) {
             );
             result.updated++;
           } else {
+            if (resolvedVendorId) {
+              await client.query(
+                `UPDATE tour_products
+                 SET vendor_id = COALESCE(vendor_id, $1)
+                 WHERE id = $2`,
+                [resolvedVendorId, productId]
+              );
+            }
             await client.query(
               `INSERT INTO tour_bookings
                (guest_id, product_id, num_guests, booking_mode, total_price,
@@ -362,7 +389,7 @@ export async function POST(request: NextRequest) {
                 paidDate,
                 activityDate,
                 startTime,
-                legacyVendorId || null,
+                normalizedLegacyVendorId || null,
                 legacyActivityName,
                 legacyId || null,
                 guestLegacyId || null,
