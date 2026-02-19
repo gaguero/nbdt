@@ -13,7 +13,7 @@ interface TransferModalProps {
   isOpen: boolean;
   onClose: () => void;
   transfer?: any;
-  onSuccess: () => void;
+  onSuccess: (transfer?: any) => void;
 }
 
 export function TransferModal({ isOpen, onClose, transfer, onSuccess }: TransferModalProps) {
@@ -84,7 +84,8 @@ export function TransferModal({ isOpen, onClose, transfer, onSuccess }: Transfer
       });
 
       if (res.ok) {
-        onSuccess();
+        const data = await res.json();
+        onSuccess(data.transfer);
         onClose();
       }
     } catch (err) {

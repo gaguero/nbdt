@@ -12,7 +12,7 @@ interface TourBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   booking?: any;
-  onSuccess: () => void;
+  onSuccess: (booking?: any) => void;
 }
 
 export function TourBookingModal({ isOpen, onClose, booking, onSuccess }: TourBookingModalProps) {
@@ -63,13 +63,16 @@ export function TourBookingModal({ isOpen, onClose, booking, onSuccess }: TourBo
 
   useEffect(() => {
     if (form.product_id) {
-      fetch(`/api/tour-schedules?product_id=${form.product_id}&available=true`)
+      const scheduleQuery = booking
+        ? `/api/tour-schedules?product_id=${form.product_id}`
+        : `/api/tour-schedules?product_id=${form.product_id}&available=true`;
+      fetch(scheduleQuery)
         .then(r => r.json())
         .then(data => setSchedules(data.tour_schedules ?? []));
     } else {
       setSchedules([]);
     }
-  }, [form.product_id]);
+  }, [form.product_id, booking]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +88,8 @@ export function TourBookingModal({ isOpen, onClose, booking, onSuccess }: TourBo
       });
 
       if (res.ok) {
-        onSuccess();
+        const data = await res.json();
+        onSuccess(data.booking);
         onClose();
       }
     } catch (err) {

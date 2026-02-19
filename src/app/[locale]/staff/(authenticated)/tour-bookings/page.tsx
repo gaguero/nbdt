@@ -64,6 +64,21 @@ function TourBookingsContent() {
     setIsModalOpen(true);
   };
 
+  const handleModalSuccess = (savedBooking?: any) => {
+    if (!savedBooking?.id) {
+      fetchBookings();
+      return;
+    }
+
+    setBookings(prev => {
+      const exists = prev.some(b => b.id === savedBooking.id);
+      if (!exists) return [savedBooking, ...prev];
+      return prev.map(b => (b.id === savedBooking.id ? savedBooking : b));
+    });
+
+    setEditingBooking((prev: any) => (prev?.id === savedBooking.id ? savedBooking : prev));
+  };
+
   const searchLower = search.toLowerCase();
   const displayed = search
     ? bookings.filter(b =>
@@ -212,7 +227,7 @@ function TourBookingsContent() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         booking={editingBooking}
-        onSuccess={fetchBookings}
+        onSuccess={handleModalSuccess}
       />
     </div>
   );

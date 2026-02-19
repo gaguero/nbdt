@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
             `SELECT id, name, legacy_appsheet_id
              FROM vendors
              WHERE legacy_appsheet_id = ANY($1::text[])
-                OR LOWER(name) ILIKE ANY($2::text[])`,
+                OR LOWER(name) = ANY($2::text[])`,
             [allVendorLegacyIds, allVendorNames]
           )
         : Promise.resolve([])

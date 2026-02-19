@@ -136,7 +136,16 @@ export async function PUT(request: NextRequest) {
       params
     );
 
-    return NextResponse.json({ transfer });
+    const hydratedTransfer = await queryOne(
+      `SELECT t.*, g.full_name as guest_name, v.name as vendor_name
+       FROM transfers t
+       LEFT JOIN guests g ON t.guest_id = g.id
+       LEFT JOIN vendors v ON t.vendor_id = v.id
+       WHERE t.id = $1`,
+      [transfer.id]
+    );
+
+    return NextResponse.json({ transfer: hydratedTransfer ?? transfer });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

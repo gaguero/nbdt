@@ -168,7 +168,24 @@ export async function PUT(request: NextRequest) {
       params
     );
 
-    return NextResponse.json({ booking });
+    const hydratedBooking = await queryOne(
+      `SELECT tb.*, g.full_name as guest_name, tp.name_en, tp.name_es,
+              COALESCE(ts.date, tb.activity_date) as schedule_date,
+              COALESCE(ts.start_time, tb.start_time) as start_time,
+              tp.vendor_id,
+              v.name as vendor_name,
+              lv.name AS legacy_vendor_name
+       FROM tour_bookings tb
+       LEFT JOIN guests g ON tb.guest_id = g.id
+       LEFT JOIN tour_products tp ON tb.product_id = tp.id
+       LEFT JOIN tour_schedules ts ON tb.schedule_id = ts.id
+       LEFT JOIN vendors v ON tp.vendor_id = v.id
+       LEFT JOIN vendors lv ON lv.legacy_appsheet_id = tb.legacy_vendor_id
+       WHERE tb.id = $1`,
+      [booking.id]
+    );
+
+    return NextResponse.json({ booking: hydratedBooking ?? booking });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

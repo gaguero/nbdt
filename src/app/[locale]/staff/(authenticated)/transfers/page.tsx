@@ -74,6 +74,21 @@ function TransfersContent() {
     setIsModalOpen(true);
   };
 
+  const handleModalSuccess = (savedTransfer?: any) => {
+    if (!savedTransfer?.id) {
+      fetchTransfers();
+      return;
+    }
+
+    setTransfers(prev => {
+      const exists = prev.some(t => t.id === savedTransfer.id);
+      if (!exists) return [savedTransfer, ...prev];
+      return prev.map(t => (t.id === savedTransfer.id ? savedTransfer : t));
+    });
+
+    setEditingTransfer((prev: any) => (prev?.id === savedTransfer.id ? savedTransfer : prev));
+  };
+
   const searchLower = search.toLowerCase();
   const displayed = search
     ? transfers.filter(t =>
@@ -226,7 +241,7 @@ function TransfersContent() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         transfer={editingTransfer}
-        onSuccess={fetchTransfers}
+        onSuccess={handleModalSuccess}
       />
     </div>
   );

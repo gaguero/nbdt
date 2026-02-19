@@ -29,6 +29,12 @@ function splitName(fullName: string): { firstName: string; lastName: string } {
   };
 }
 
+function cleanLegacyId(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 /**
  * POST /api/admin/transfer-execution
  *
@@ -109,21 +115,34 @@ export async function POST(request: NextRequest) {
 
         // ── Resolve vendor_id ─────────────────────────────────────────────────
         let vendorId: string | null = null;
+        const vendorLegacyId = cleanLegacyId(csv?.vendorLegacyId);
+        const vendorName = typeof csv?.vendorName === 'string' ? csv.vendorName.trim() : '';
 
-        if (csv?.vendorLegacyId) {
+        if (vendorLegacyId) {
           const byLegacy = await query(
-            `SELECT id FROM vendors WHERE legacy_appsheet_id = $1 LIMIT 1`,
-            [csv.vendorLegacyId]
+            `SELECT id FROM vendors WHERE BTRIM(legacy_appsheet_id) = BTRIM($1) LIMIT 1`,
+            [vendorLegacyId]
           );
           if (byLegacy.rows.length > 0) vendorId = byLegacy.rows[0].id;
         }
 
-        if (!vendorId && csv?.vendorName) {
+        if (!vendorId && vendorName) {
           const byName = await query(
             `SELECT id FROM vendors WHERE name ILIKE $1 LIMIT 1`,
-            [csv.vendorName]
+            [vendorName]
           );
           if (byName.rows.length > 0) vendorId = byName.rows[0].id;
+        }
+
+        // If no existing vendor was found, create one so transfer stays linked.
+        if (!vendorId && (vendorName || vendorLegacyId)) {
+          const insertedVendor = await query(
+            `INSERT INTO vendors (name, type, color_code, is_active, legacy_appsheet_id)
+             VALUES ($1, 'transfer', '#6B7280', true, $2)
+             RETURNING id`,
+            [vendorName || `Legacy Vendor ${vendorLegacyId}`, vendorLegacyId]
+          );
+          if (insertedVendor.rows.length > 0) vendorId = insertedVendor.rows[0].id;
         }
 
         // ── Normalize statuses ────────────────────────────────────────────────
@@ -160,7 +179,7 @@ export async function POST(request: NextRequest) {
               vendorStatus,
               csv?.notes || null,
               csv?.guestLegacyId || '',
-              csv?.vendorLegacyId || '',
+              vendorLegacyId || '',
               csv?.legacyId || '',
               match.id,
             ]
@@ -188,7 +207,7 @@ export async function POST(request: NextRequest) {
               csv?.notes || null,
               csv?.legacyId || null,
               csv?.guestLegacyId || null,
-              csv?.vendorLegacyId || null,
+              vendorLegacyId || null,
             ]
           );
           result.created++;
