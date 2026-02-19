@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import {
   TrashIcon, ServerIcon, ExclamationTriangleIcon, ArrowPathIcon,
   CheckCircleIcon, LockClosedIcon, ChevronDownIcon, ChevronRightIcon,
-  ArrowTopRightOnSquareIcon
+  ArrowTopRightOnSquareIcon, Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
 interface DbStat {
@@ -308,11 +308,20 @@ export default function SettingsPage() {
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-4">
       {/* Header */}
-      <div className="mb-2">
-        <h1 className="text-2xl font-bold text-gray-900">Data Curation Center</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Guided pipeline for importing, syncing, and normalizing all operational data. Follow the steps in order for best results.
-        </p>
+      <div className="mb-2 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Data Curation Center</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Guided pipeline for importing, syncing, and normalizing all operational data. Follow the steps in order for best results.
+          </p>
+        </div>
+        <Link
+          href={staffHref('data-curation-settings')}
+          className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+        >
+          <Cog6ToothIcon className="h-4 w-4" />
+          Settings
+        </Link>
       </div>
 
       {/* Loading indicator */}
