@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nayara Bocas del Toro — Staff Dashboard</title>
+<title>Nayara Bocas del Toro — V10 Sage Cream</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11,41 +11,42 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --sand: #F5EBD7;
-    --sand-light: #FEFCF7;
+    --cream: #FDFAF4;
+    --parchment: #F5EBD7;
+    --sage: #7C8E67;
+    --sage-light: rgba(124,142,103,0.12);
+    --sage-border: rgba(124,142,103,0.20);
+    --sage-glow: rgba(124,142,103,0.25);
     --charcoal: #4A4A4A;
     --gold: #AA8E67;
-    --gold-light: #C4A882;
-    --gold-pale: rgba(170,142,103,0.10);
-    --gold-border: rgba(170,142,103,0.20);
-    --forest: #7C8E67;
     --teal: #A4C4C8;
-    --terracotta: #EC6C4B;
-    --sidebar-bg: #2D2520;
+    --terra: #EC6C4B;
+    --sidebar-bg: #1E2B18;
+    --card-bg: #FFFFFF;
+    --separator: rgba(124,142,103,0.10);
     --sidebar-width: 72px;
     --card-radius: 16px;
-    --card-shadow: 0 4px 24px rgba(170,142,103,0.08), 0 1px 4px rgba(74,74,74,0.06);
-    --card-shadow-hover: 0 8px 40px rgba(170,142,103,0.16), 0 2px 8px rgba(74,74,74,0.08);
-    --transition-spring: cubic-bezier(0.34,1.56,0.64,1);
+    --card-shadow: 0 4px 24px rgba(124,142,103,0.08), 0 1px 4px rgba(74,74,74,0.05);
+    --card-shadow-hover: 0 8px 40px rgba(124,142,103,0.16), 0 2px 8px rgba(74,74,74,0.07);
+    --spring: cubic-bezier(0.34,1.56,0.64,1);
   }
 
   html, body {
     height: 100%;
-    background: var(--sand);
+    background: var(--cream);
     color: var(--charcoal);
     font-family: 'Jost', sans-serif;
     font-size: 14px;
     overflow: hidden;
   }
 
-  /* ── APP SHELL ─────────────────────────────────────────────── */
   .app {
     display: flex;
     height: 100vh;
     overflow: hidden;
   }
 
-  /* ── SIDEBAR ─────────────────────────────────────────────────── */
+  /* ── SIDEBAR ─────────────────────────────────────────────── */
   .sidebar {
     width: var(--sidebar-width);
     background: var(--sidebar-bg);
@@ -56,34 +57,51 @@
     flex-shrink: 0;
     position: relative;
     z-index: 10;
-    /* grain texture */
     isolation: isolate;
+    overflow: hidden;
   }
+
+  /* grain texture */
   .sidebar::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
     background-repeat: repeat;
     pointer-events: none;
     z-index: -1;
-    opacity: 0.6;
+    opacity: 0.5;
+  }
+
+  /* botanical watermark leaf */
+  .sidebar-leaf {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 80px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
   }
 
   .sidebar-logo {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     overflow: hidden;
-    border: 1.5px solid rgba(170,142,103,0.35);
+    border: 1.5px solid rgba(124,142,103,0.35);
     margin-bottom: 28px;
     flex-shrink: 0;
     cursor: pointer;
+    position: relative;
+    z-index: 1;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
   }
   .sidebar-logo:hover {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(170,142,103,0.15);
+    border-color: var(--sage);
+    box-shadow: 0 0 0 3px rgba(124,142,103,0.2);
   }
   .sidebar-logo img {
     width: 100%;
@@ -99,6 +117,8 @@
     gap: 4px;
     flex: 1;
     width: 100%;
+    position: relative;
+    z-index: 1;
   }
 
   .nav-item {
@@ -120,22 +140,38 @@
     transform: translateY(-50%) scaleY(0);
     width: 3px;
     height: 24px;
-    background: var(--gold);
+    background: var(--sage);
     border-radius: 0 3px 3px 0;
-    transition: transform 0.3s var(--transition-spring);
+    transition: transform 0.3s var(--spring);
+  }
+  .nav-item::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(124,142,103,0.3);
+    opacity: 0;
+    transition: opacity 0.25s ease;
   }
   .nav-item:hover { color: rgba(255,255,255,0.75); }
   .nav-item.active {
-    color: var(--gold);
+    color: var(--sage);
   }
   .nav-item.active::before {
     transform: translateY(-50%) scaleY(1);
+  }
+  .nav-item.active::after {
+    opacity: 1;
   }
   .nav-item svg {
     width: 20px;
     height: 20px;
     stroke-width: 1.6;
     flex-shrink: 0;
+    position: relative;
+    z-index: 1;
   }
 
   .nav-tooltip {
@@ -143,7 +179,7 @@
     left: calc(100% + 12px);
     top: 50%;
     transform: translateY(-50%);
-    background: #1A1410;
+    background: #0E1A0B;
     color: rgba(255,255,255,0.9);
     font-family: 'Jost', sans-serif;
     font-size: 11px;
@@ -165,15 +201,26 @@
     top: 50%;
     transform: translateY(-50%);
     border: 4px solid transparent;
-    border-right-color: #1A1410;
+    border-right-color: #0E1A0B;
   }
   .nav-item:hover .nav-tooltip { opacity: 1; }
+
+  .sidebar-divider {
+    width: 32px;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 8px 0;
+    position: relative;
+    z-index: 1;
+  }
 
   .sidebar-footer {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
+    position: relative;
+    z-index: 1;
   }
 
   /* ── MAIN ─────────────────────────────────────────────────── */
@@ -187,31 +234,28 @@
 
   /* ── TOPBAR ─────────────────────────────────────────────────── */
   .topbar {
-    background: var(--sand-light);
-    border-bottom: 1px solid var(--gold-border);
+    background: #FFFFFF;
+    border-bottom: 1px solid rgba(124,142,103,0.15);
     padding: 0 28px;
     height: 64px;
     display: flex;
     align-items: center;
-    gap: 0;
     flex-shrink: 0;
     position: relative;
   }
 
-  .topbar-left {
-    flex: 1;
-  }
+  .topbar-left { flex: 1; }
 
   .topbar-breadcrumb {
     font-family: 'Jost', sans-serif;
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.1em;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--sage);
     margin-bottom: 2px;
   }
-  .topbar-breadcrumb span { color: rgba(74,74,74,0.4); margin: 0 6px; }
+  .topbar-breadcrumb span { color: rgba(74,74,74,0.35); margin: 0 5px; }
 
   .topbar-title {
     font-family: 'Cormorant Garamond', serif;
@@ -234,19 +278,19 @@
 
   .live-clock {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 300;
-    color: var(--charcoal);
-    letter-spacing: 0.04em;
+    color: var(--sage);
+    letter-spacing: 0.06em;
     line-height: 1;
   }
   .live-date {
     font-family: 'Jost', sans-serif;
     font-size: 10px;
     font-weight: 400;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: rgba(74,74,74,0.45);
     margin-top: 2px;
     text-align: center;
   }
@@ -254,7 +298,7 @@
   .topbar-right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
   }
 
   .topbar-notif {
@@ -262,8 +306,8 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: var(--sand);
-    border: 1px solid var(--gold-border);
+    background: var(--cream);
+    border: 1px solid var(--sage-border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -271,24 +315,25 @@
     color: var(--charcoal);
     transition: background 0.2s ease, border-color 0.2s ease;
   }
-  .topbar-notif:hover { background: rgba(170,142,103,0.12); border-color: var(--gold); }
+  .topbar-notif:hover { background: var(--sage-light); border-color: var(--sage); }
+  .topbar-notif:active { transform: scale(0.95); }
   .topbar-notif svg { width: 16px; height: 16px; stroke-width: 1.8; }
   .notif-badge {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: 7px;
+    right: 7px;
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--terracotta);
-    border: 1.5px solid var(--sand-light);
+    background: var(--terra);
+    border: 1.5px solid #FFFFFF;
   }
 
   .topbar-avatar {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--gold) 0%, #8B6E48 100%);
+    background: linear-gradient(135deg, var(--sage) 0%, #4A6338 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -297,13 +342,14 @@
     font-weight: 600;
     color: white;
     cursor: pointer;
-    border: 2px solid rgba(170,142,103,0.3);
+    border: 2px solid rgba(124,142,103,0.3);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .topbar-avatar:hover {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(170,142,103,0.15);
+    border-color: var(--sage);
+    box-shadow: 0 0 0 3px var(--sage-glow);
   }
+  .topbar-avatar:active { transform: scale(0.95); }
 
   /* ── SCROLL AREA ─────────────────────────────────────────────── */
   .scroll-area {
@@ -311,11 +357,11 @@
     overflow-y: auto;
     padding: 24px 28px 28px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(170,142,103,0.25) transparent;
+    scrollbar-color: rgba(124,142,103,0.25) transparent;
   }
   .scroll-area::-webkit-scrollbar { width: 5px; }
   .scroll-area::-webkit-scrollbar-track { background: transparent; }
-  .scroll-area::-webkit-scrollbar-thumb { background: rgba(170,142,103,0.25); border-radius: 3px; }
+  .scroll-area::-webkit-scrollbar-thumb { background: rgba(124,142,103,0.25); border-radius: 3px; }
 
   /* ── KPI STRIP ─────────────────────────────────────────────── */
   .kpi-strip {
@@ -326,13 +372,13 @@
   }
 
   .kpi-tile {
-    background: var(--sand-light);
+    background: var(--card-bg);
     border-radius: var(--card-radius);
     padding: 18px 18px 14px;
     box-shadow: var(--card-shadow);
-    border: 1px solid transparent;
+    border: 1px solid rgba(124,142,103,0.08);
     cursor: pointer;
-    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s var(--transition-spring);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s var(--spring);
     animation: fadeUp 0.5s ease both;
     animation-delay: calc(var(--i) * 80ms);
     position: relative;
@@ -345,18 +391,19 @@
     top: 16px;
     bottom: 16px;
     width: 3px;
-    background: var(--gold);
+    background: var(--sage);
     border-radius: 0 3px 3px 0;
     opacity: 0;
     transform: scaleY(0.4);
-    transition: opacity 0.3s ease, transform 0.3s var(--transition-spring);
+    transition: opacity 0.3s ease, transform 0.3s var(--spring);
   }
   .kpi-tile:hover {
     box-shadow: var(--card-shadow-hover);
-    border-color: var(--gold-border);
+    border-color: var(--sage-border);
     transform: translateY(-2px);
   }
   .kpi-tile:hover::after { opacity: 1; transform: scaleY(1); }
+  .kpi-tile:active { transform: translateY(0) scale(0.99); }
 
   .kpi-label {
     font-family: 'Jost', sans-serif;
@@ -364,7 +411,7 @@
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--sage);
     margin-bottom: 8px;
     white-space: nowrap;
     overflow: hidden;
@@ -375,7 +422,7 @@
     font-family: 'Cormorant Garamond', serif;
     font-size: 44px;
     font-weight: 300;
-    color: var(--charcoal);
+    color: var(--gold);
     line-height: 1;
     letter-spacing: -0.02em;
     margin-bottom: 8px;
@@ -396,9 +443,9 @@
     align-items: center;
     gap: 3px;
   }
-  .kpi-change.up { color: var(--forest); }
-  .kpi-change.down { color: var(--terracotta); }
-  .kpi-change.neutral { color: var(--gold); }
+  .kpi-change.up { color: var(--sage); }
+  .kpi-change.down { color: var(--terra); }
+  .kpi-change.neutral { color: rgba(74,74,74,0.5); }
 
   .kpi-sparkline { flex-shrink: 0; }
 
@@ -412,11 +459,11 @@
 
   /* ── CARDS ─────────────────────────────────────────────────── */
   .card {
-    background: var(--sand-light);
+    background: var(--card-bg);
     border-radius: var(--card-radius);
     box-shadow: var(--card-shadow);
     padding: 24px;
-    border: 1px solid rgba(170,142,103,0.08);
+    border: 1px solid rgba(124,142,103,0.08);
     animation: fadeUp 0.6s ease both;
   }
 
@@ -442,7 +489,7 @@
     font-weight: 400;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--sage);
     margin-top: 3px;
   }
 
@@ -454,9 +501,9 @@
     text-transform: uppercase;
     padding: 4px 10px;
     border-radius: 20px;
-    background: var(--gold-pale);
-    color: var(--gold);
-    border: 1px solid var(--gold-border);
+    background: var(--sage-light);
+    color: var(--sage);
+    border: 1px solid var(--sage-border);
     flex-shrink: 0;
   }
 
@@ -471,20 +518,20 @@
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(74,74,74,0.45);
+    color: var(--sage);
     text-align: left;
     padding: 0 8px 10px;
-    border-bottom: 1px solid rgba(170,142,103,0.12);
+    border-bottom: 1px solid var(--separator);
   }
   .data-table thead th:first-child { padding-left: 0; }
   .data-table tbody tr {
     cursor: pointer;
     transition: background 0.2s ease;
   }
-  .data-table tbody tr:hover { background: rgba(170,142,103,0.04); }
+  .data-table tbody tr:hover { background: rgba(124,142,103,0.04); }
   .data-table tbody td {
     padding: 10px 8px;
-    border-bottom: 1px solid rgba(170,142,103,0.06);
+    border-bottom: 1px solid rgba(124,142,103,0.06);
     vertical-align: middle;
   }
   .data-table tbody td:first-child { padding-left: 0; }
@@ -546,35 +593,42 @@
     flex-shrink: 0;
   }
   .pill-confirmed {
-    background: rgba(170,142,103,0.12);
-    color: #8B6E48;
-    border: 1px solid rgba(170,142,103,0.25);
+    background: rgba(124,142,103,0.12);
+    color: #5A7248;
+    border: 1px solid rgba(124,142,103,0.25);
   }
-  .pill-confirmed::before { background: var(--gold); }
+  .pill-confirmed::before { background: var(--sage); }
   .pill-enroute {
     background: rgba(164,196,200,0.18);
-    color: #5A8E94;
+    color: #4A8A90;
     border: 1px solid rgba(164,196,200,0.35);
+    animation: blink 1.2s ease-in-out infinite;
   }
   .pill-enroute::before { background: var(--teal); }
   .pill-completed {
-    background: rgba(124,142,103,0.12);
-    color: #5A6E47;
-    border: 1px solid rgba(124,142,103,0.25);
+    background: rgba(74,74,74,0.07);
+    color: rgba(74,74,74,0.55);
+    border: 1px solid rgba(74,74,74,0.14);
   }
-  .pill-completed::before { background: var(--forest); }
+  .pill-completed::before { background: rgba(74,74,74,0.4); }
   .pill-pending {
     background: rgba(236,108,75,0.10);
     color: #C0502A;
     border: 1px solid rgba(236,108,75,0.22);
+    position: relative;
+    overflow: visible;
   }
-  .pill-pending::before { background: var(--terracotta); }
+  .pill-pending::before {
+    background: var(--terra);
+    box-shadow: 0 0 0 0 rgba(236,108,75,0.4);
+    animation: pulseRing 1.5s ease-out infinite;
+  }
 
-  /* ── COL CENTER STACK ─────────────────────────────────────────── */
+  /* ── COL STACKS ─────────────────────────────────────────────── */
   .col-center { display: flex; flex-direction: column; gap: 16px; }
   .col-right { display: flex; flex-direction: column; gap: 16px; }
 
-  /* ── IN-HOUSE GUESTS CARD ─────────────────────────────────────── */
+  /* ── IN-HOUSE GUESTS ─────────────────────────────────────────── */
   .guests-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -582,19 +636,20 @@
     margin-top: 4px;
   }
   .guest-stat {
-    background: var(--sand);
+    background: var(--cream);
     border-radius: 10px;
     padding: 14px 16px;
-    border: 1px solid rgba(170,142,103,0.10);
+    border: 1px solid rgba(124,142,103,0.10);
     transition: border-color 0.2s ease;
     cursor: pointer;
   }
-  .guest-stat:hover { border-color: var(--gold-border); }
+  .guest-stat:hover { border-color: var(--sage-border); }
+  .guest-stat:active { transform: scale(0.98); }
   .guest-stat-value {
     font-family: 'Cormorant Garamond', serif;
     font-size: 32px;
     font-weight: 300;
-    color: var(--charcoal);
+    color: var(--gold);
     line-height: 1;
     letter-spacing: -0.02em;
   }
@@ -604,14 +659,14 @@
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--sage);
     margin-top: 5px;
   }
 
   /* ── ROMANTIC DINNERS ─────────────────────────────────────────── */
   .dinner-item {
     padding: 14px 0;
-    border-bottom: 1px solid rgba(170,142,103,0.08);
+    border-bottom: 1px solid rgba(124,142,103,0.08);
     cursor: pointer;
     transition: background 0.2s ease;
     display: flex;
@@ -619,18 +674,20 @@
     gap: 12px;
   }
   .dinner-item:last-child { border-bottom: none; }
+  .dinner-item:active { opacity: 0.8; }
   .dinner-icon {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: linear-gradient(135deg, rgba(236,108,75,0.12) 0%, rgba(170,142,103,0.12) 100%);
+    background: linear-gradient(135deg, rgba(124,142,103,0.12) 0%, rgba(124,142,103,0.06) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: var(--terracotta);
+    color: var(--sage);
+    border: 1px solid rgba(124,142,103,0.15);
   }
-  .dinner-icon svg { width: 16px; height: 16px; stroke-width: 1.6; }
+  .dinner-icon svg { width: 20px; height: 20px; }
   .dinner-info { flex: 1; min-width: 0; }
   .dinner-name {
     font-family: 'Jost', sans-serif;
@@ -661,24 +718,26 @@
     display: flex;
     gap: 10px;
     padding: 10px 0;
-    border-bottom: 1px solid rgba(170,142,103,0.08);
+    border-bottom: 1px solid rgba(124,142,103,0.08);
     cursor: pointer;
     align-items: flex-start;
+    transition: background 0.2s ease;
   }
   .conv-item:last-child { border-bottom: none; }
+  .conv-item:hover { background: rgba(124,142,103,0.03); }
   .conv-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--sand) 0%, var(--gold-pale) 100%);
-    border: 1.5px solid var(--gold-border);
+    background: linear-gradient(135deg, var(--parchment) 0%, var(--sage-light) 100%);
+    border: 1.5px solid var(--sage-border);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Cormorant Garamond', serif;
     font-size: 13px;
     font-weight: 600;
-    color: var(--gold);
+    color: var(--sage);
     flex-shrink: 0;
     margin-top: 1px;
   }
@@ -718,7 +777,7 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: var(--terracotta);
+    background: var(--terra);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -727,50 +786,63 @@
     color: white;
   }
 
+  /* ── TABLE SCROLL ─────────────────────────────────────────────── */
+  .table-scroll { overflow-x: auto; }
+
   /* ── KEYFRAMES ─────────────────────────────────────────────────── */
   @keyframes fadeUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── DIVIDER ─────────────────────────────────────────────────── */
-  .sidebar-divider {
-    width: 32px;
-    height: 1px;
-    background: rgba(255,255,255,0.08);
-    margin: 8px 0;
+  @keyframes sparkDraw {
+    to { stroke-dashoffset: 0; }
   }
 
-  /* ── TABLE WRAPPER SCROLL ─────────────────────────────────────── */
-  .table-scroll {
-    overflow-x: auto;
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.55; }
   }
 
+  @keyframes pulseRing {
+    0%   { box-shadow: 0 0 0 0 rgba(236,108,75,0.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(236,108,75,0); }
+    100% { box-shadow: 0 0 0 0 rgba(236,108,75,0); }
+  }
+
+  /* ── VERSION NAV ─────────────────────────────────────────────── */
   .version-nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 32px; margin-top: 32px;
-    background: #2D2520; border-top: 1px solid rgba(170,142,103,0.2);
-    flex-wrap: wrap; gap: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    margin-top: 32px;
+    background: #1E2B18;
+    border-top: 1px solid rgba(124,142,103,0.2);
+    flex-wrap: wrap;
+    gap: 12px;
   }
   .version-nav-label {
-    font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: rgba(255,255,255,0.4);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.38);
   }
   .version-nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
   .version-btn {
-    font-family: 'Jost', sans-serif; font-size: 12px; padding: 7px 14px;
-    border-radius: 6px; border: 1px solid rgba(170,142,103,0.3);
-    color: rgba(255,255,255,0.6); text-decoration: none;
-    transition: border-color 200ms, color 200ms, background 200ms;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(124,142,103,0.3);
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
     cursor: pointer;
   }
-  .version-btn:hover { border-color: #AA8E67; color: #AA8E67; background: rgba(170,142,103,0.08); }
+  .version-btn:hover { border-color: #7C8E67; color: #7C8E67; background: rgba(124,142,103,0.1); }
+  .version-btn:focus-visible { outline: 2px solid #7C8E67; outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -779,6 +851,17 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
+
+    <!-- Botanical leaf watermark SVG -->
+    <svg class="sidebar-leaf" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M30 78 C30 78 4 55 4 32 C4 15 15 4 30 4 C45 4 56 15 56 32 C56 55 30 78 30 78Z" stroke="#7C8E67" stroke-width="1.2" fill="none"/>
+      <path d="M30 78 L30 4" stroke="#7C8E67" stroke-width="0.8" stroke-dasharray="3 3"/>
+      <path d="M30 28 C24 22 12 22 8 26" stroke="#7C8E67" stroke-width="0.7" fill="none"/>
+      <path d="M30 38 C36 30 50 30 54 34" stroke="#7C8E67" stroke-width="0.7" fill="none"/>
+      <path d="M30 48 C22 40 10 42 7 48" stroke="#7C8E67" stroke-width="0.7" fill="none"/>
+      <path d="M30 58 C38 50 52 52 54 58" stroke="#7C8E67" stroke-width="0.7" fill="none"/>
+    </svg>
+
     <div class="sidebar-logo">
       <img src="brand_assets/Nayara-Bocas-Del-Toro-Logo-White-Colour round.png" alt="Nayara Logo">
     </div>
@@ -786,7 +869,7 @@
     <nav class="sidebar-nav">
       <!-- Dashboard -->
       <div class="nav-item active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <rect x="3" y="3" width="8" height="8" rx="1.5"/>
           <rect x="13" y="3" width="8" height="8" rx="1.5"/>
           <rect x="3" y="13" width="8" height="8" rx="1.5"/>
@@ -797,7 +880,7 @@
 
       <!-- Transfers -->
       <div class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
         </svg>
         <span class="nav-tooltip">Transfers</span>
@@ -805,7 +888,7 @@
 
       <!-- Tours -->
       <div class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="12" cy="12" r="9"/>
           <path d="M12 3v1m0 16v1M3 12h1m16 0h1"/>
           <circle cx="12" cy="12" r="2"/>
@@ -816,7 +899,7 @@
 
       <!-- Guests -->
       <div class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
           <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -829,7 +912,7 @@
 
       <!-- Dinners -->
       <div class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
         <span class="nav-tooltip">Romantic Dinners</span>
@@ -837,7 +920,7 @@
 
       <!-- Conversations -->
       <div class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
         <span class="nav-tooltip">Conversations</span>
@@ -845,7 +928,7 @@
 
       <!-- Reports -->
       <div class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <line x1="18" y1="20" x2="18" y2="10"/>
           <line x1="12" y1="20" x2="12" y2="4"/>
           <line x1="6" y1="20" x2="6" y2="14"/>
@@ -856,9 +939,8 @@
     </nav>
 
     <div class="sidebar-footer">
-      <!-- Settings -->
       <div class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
@@ -873,7 +955,7 @@
     <!-- TOPBAR -->
     <header class="topbar">
       <div class="topbar-left">
-        <div class="topbar-breadcrumb">Nayara Bocas del Toro <span>/</span> Operations</div>
+        <div class="topbar-breadcrumb">NAYARA <span>/</span> OPERATIONS</div>
         <div class="topbar-title">Staff Command Center</div>
       </div>
 
@@ -883,14 +965,14 @@
       </div>
 
       <div class="topbar-right">
-        <div class="topbar-notif">
+        <div class="topbar-notif" role="button" tabindex="0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
           <span class="notif-badge"></span>
         </div>
-        <div class="topbar-avatar">MG</div>
+        <div class="topbar-avatar" role="button" tabindex="0">MA</div>
       </div>
     </header>
 
@@ -909,8 +991,8 @@
               +3 today
             </span>
             <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
-              <polyline points="0,16 8,14 16,12 24,10 32,13 40,8 48,6" fill="none" stroke="rgba(170,142,103,0.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <polyline points="0,16 8,14 16,12 24,10 32,13 40,8 48,6" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.4s ease forwards;"/>
+              <polyline points="0,16 8,14 16,12 24,10 32,13 40,8 48,6" fill="none" stroke="rgba(124,142,103,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,16 8,14 16,12 24,10 32,13 40,8 48,6" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.4s ease forwards;"/>
             </svg>
           </div>
         </div>
@@ -921,8 +1003,8 @@
           <div class="kpi-meta">
             <span class="kpi-change neutral">of 24 total</span>
             <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
-              <polyline points="0,12 8,10 16,14 24,9 32,11 40,7 48,8" fill="none" stroke="rgba(170,142,103,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <polyline points="0,12 8,10 16,14 24,9 32,11 40,7 48,8" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.5s ease forwards;"/>
+              <polyline points="0,12 8,10 16,14 24,9 32,11 40,7 48,8" fill="none" stroke="rgba(124,142,103,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,12 8,10 16,14 24,9 32,11 40,7 48,8" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.5s ease forwards;"/>
             </svg>
           </div>
         </div>
@@ -936,8 +1018,8 @@
               on schedule
             </span>
             <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
-              <polyline points="0,18 8,15 16,16 24,12 32,14 40,10 48,8" fill="none" stroke="rgba(124,142,103,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <polyline points="0,18 8,15 16,16 24,12 32,14 40,10 48,8" fill="none" stroke="var(--forest)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.6s ease forwards;"/>
+              <polyline points="0,18 8,15 16,16 24,12 32,14 40,10 48,8" fill="none" stroke="rgba(124,142,103,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,18 8,15 16,16 24,12 32,14 40,10 48,8" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.6s ease forwards;"/>
             </svg>
           </div>
         </div>
@@ -952,7 +1034,7 @@
             </span>
             <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
               <polyline points="0,8 8,11 16,9 24,13 32,10 40,14 48,12" fill="none" stroke="rgba(236,108,75,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <polyline points="0,8 8,11 16,9 24,13 32,10 40,14 48,12" fill="none" stroke="var(--terracotta)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.7s ease forwards;"/>
+              <polyline points="0,8 8,11 16,9 24,13 32,10 40,14 48,12" fill="none" stroke="var(--terra)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.7s ease forwards;"/>
             </svg>
           </div>
         </div>
@@ -978,8 +1060,8 @@
               38 guests
             </span>
             <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
-              <polyline points="0,16 8,14 16,10 24,12 32,8 40,6 48,4" fill="none" stroke="rgba(170,142,103,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <polyline points="0,16 8,14 16,10 24,12 32,8 40,6 48,4" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.9s ease forwards;"/>
+              <polyline points="0,16 8,14 16,10 24,12 32,8 40,6 48,4" fill="none" stroke="rgba(124,142,103,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,16 8,14 16,10 24,12 32,8 40,6 48,4" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 0.9s ease forwards;"/>
             </svg>
           </div>
         </div>
@@ -990,11 +1072,11 @@
           <div class="kpi-meta">
             <span class="kpi-change up">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2L8 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-              all set up
+              all confirmed
             </span>
             <svg class="kpi-sparkline" width="48" height="20" viewBox="0 0 48 20">
-              <polyline points="0,18 8,16 16,18 24,14 32,16 40,12 48,10" fill="none" stroke="rgba(236,108,75,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <polyline points="0,18 8,16 16,18 24,14 32,16 40,12 48,10" fill="none" stroke="var(--terracotta)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 1.0s ease forwards;"/>
+              <polyline points="0,18 8,16 16,18 24,14 32,16 40,12 48,10" fill="none" stroke="rgba(124,142,103,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,18 8,16 16,18 24,14 32,16 40,12 48,10" fill="none" stroke="var(--sage)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100" style="animation: sparkDraw 1.2s 1.0s ease forwards;"/>
             </svg>
           </div>
         </div>
@@ -1006,7 +1088,7 @@
       <div class="bento">
 
         <!-- COL 1: TRANSFERS -->
-        <div class="col col-transfers">
+        <div>
           <div class="card" style="animation-delay: 0.15s">
             <div class="card-header">
               <div>
@@ -1039,7 +1121,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <div class="td-name">Dr. & Mrs. Chen</div>
+                      <div class="td-name">Dr. &amp; Mrs. Chen</div>
                       <div class="td-sub">Villa 7</div>
                     </td>
                     <td><div class="td-route">Airport → Resort</div></td>
@@ -1059,7 +1141,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <div class="td-name">Sophia & James Webb</div>
+                      <div class="td-name">Sophia &amp; James Webb</div>
                       <div class="td-sub">Villa 15</div>
                     </td>
                     <td><div class="td-route">Marina → Resort</div></td>
@@ -1099,7 +1181,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <div class="td-name">Mr. & Mrs. Delacroix</div>
+                      <div class="td-name">Mr. &amp; Mrs. Delacroix</div>
                       <div class="td-sub">Villa 6</div>
                     </td>
                     <td><div class="td-route">Resort → Airport</div></td>
@@ -1113,14 +1195,14 @@
           </div>
         </div>
 
-        <!-- COL 2: TOURS + GUESTS -->
-        <div class="col col-center">
+        <!-- COL 2: TOURS + IN-HOUSE GUESTS -->
+        <div class="col-center">
 
           <!-- Tours Card -->
           <div class="card" style="animation-delay: 0.22s">
             <div class="card-header">
               <div>
-                <div class="card-title">Excursions & Tours</div>
+                <div class="card-title">Excursions &amp; Tours</div>
                 <div class="card-subtitle">Active Today</div>
               </div>
               <span class="card-badge">6 Tours</span>
@@ -1197,11 +1279,11 @@
               </div>
               <div class="guest-stat">
                 <div class="guest-stat-value" data-target="18">0</div>
-                <div class="guest-stat-label">Villas Occupied</div>
+                <div class="guest-stat-label">Villas Active</div>
               </div>
               <div class="guest-stat">
                 <div class="guest-stat-value" data-target="6">0</div>
-                <div class="guest-stat-label">Arrivals Today</div>
+                <div class="guest-stat-label">Arrivals</div>
               </div>
               <div class="guest-stat">
                 <div class="guest-stat-value" data-target="4">0</div>
@@ -1211,57 +1293,71 @@
           </div>
 
         </div>
+        <!-- /COL 2 -->
 
-        <!-- COL 3: DINNERS + CONVERSATIONS -->
-        <div class="col col-right">
+        <!-- COL 3: ROMANTIC DINNERS + CONVERSATIONS -->
+        <div class="col-right">
 
           <!-- Romantic Dinners Card -->
           <div class="card" style="animation-delay: 0.28s">
             <div class="card-header">
               <div>
                 <div class="card-title">Romantic Dinners</div>
-                <div class="card-subtitle">Special Arrangements</div>
+                <div class="card-subtitle">This Evening</div>
               </div>
-              <span class="card-badge">3</span>
+              <span class="card-badge">3 Set</span>
             </div>
 
+            <!-- Dinner: The Harrington Family -->
             <div class="dinner-item">
               <div class="dinner-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                <!-- Botanical leaf SVG icon -->
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 18 C10 18 3 13 3 8 C3 4.5 6 2 10 2 C14 2 17 4.5 17 8 C17 13 10 18 10 18Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+                  <path d="M10 18 L10 2" stroke="currentColor" stroke-width="0.9" stroke-dasharray="2 2"/>
+                  <path d="M10 8 C8 6 5 6.5 4 8" stroke="currentColor" stroke-width="0.9" fill="none"/>
+                  <path d="M10 11 C12 9 15.5 9.5 16 11" stroke="currentColor" stroke-width="0.9" fill="none"/>
                 </svg>
               </div>
               <div class="dinner-info">
-                <div class="dinner-name">Harrington Anniversary</div>
-                <div class="dinner-detail">Villa 12 · Overwater Setup</div>
+                <div class="dinner-name">The Harrington Family</div>
+                <div class="dinner-detail">Villa 12 · Overwater Deck</div>
               </div>
               <div class="dinner-time">19:30</div>
             </div>
 
+            <!-- Dinner: Dr. & Mrs. Chen -->
             <div class="dinner-item">
               <div class="dinner-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 18 C10 18 3 13 3 8 C3 4.5 6 2 10 2 C14 2 17 4.5 17 8 C17 13 10 18 10 18Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+                  <path d="M10 18 L10 2" stroke="currentColor" stroke-width="0.9" stroke-dasharray="2 2"/>
+                  <path d="M10 8 C8 6 5 6.5 4 8" stroke="currentColor" stroke-width="0.9" fill="none"/>
+                  <path d="M10 11 C12 9 15.5 9.5 16 11" stroke="currentColor" stroke-width="0.9" fill="none"/>
                 </svg>
               </div>
               <div class="dinner-info">
-                <div class="dinner-name">Chen Proposal Dinner</div>
-                <div class="dinner-detail">Villa 7 · Beach Torches</div>
+                <div class="dinner-name">Dr. &amp; Mrs. Chen</div>
+                <div class="dinner-detail">Villa 7 · Jungle Terrace</div>
               </div>
               <div class="dinner-time">20:00</div>
             </div>
 
+            <!-- Dinner: Sophia & James Webb -->
             <div class="dinner-item">
-              <div class="dinner-icon" style="background: linear-gradient(135deg, rgba(170,142,103,0.14) 0%, rgba(124,142,103,0.14) 100%); color: var(--forest);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              <div class="dinner-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 18 C10 18 3 13 3 8 C3 4.5 6 2 10 2 C14 2 17 4.5 17 8 C17 13 10 18 10 18Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+                  <path d="M10 18 L10 2" stroke="currentColor" stroke-width="0.9" stroke-dasharray="2 2"/>
+                  <path d="M10 8 C8 6 5 6.5 4 8" stroke="currentColor" stroke-width="0.9" fill="none"/>
+                  <path d="M10 11 C12 9 15.5 9.5 16 11" stroke="currentColor" stroke-width="0.9" fill="none"/>
                 </svg>
               </div>
               <div class="dinner-info">
-                <div class="dinner-name">Webb Honeymoon</div>
-                <div class="dinner-detail">Villa 15 · Garden Pavilion</div>
+                <div class="dinner-name">Sophia &amp; James Webb</div>
+                <div class="dinner-detail">Villa 15 · Beach Pavilion</div>
               </div>
-              <div class="dinner-time" style="color: rgba(74,74,74,0.5); font-size: 12px; font-family: 'Jost'; font-weight: 500;">Tomorrow<br>19:00</div>
+              <div class="dinner-time">20:30</div>
             </div>
 
           </div>
@@ -1270,155 +1366,154 @@
           <div class="card" style="animation-delay: 0.36s">
             <div class="card-header">
               <div>
-                <div class="card-title">Guest Messages</div>
-                <div class="card-subtitle">Recent Conversations</div>
+                <div class="card-title">Conversations</div>
+                <div class="card-subtitle">Recent Messages</div>
               </div>
-              <span class="card-badge" style="background: rgba(236,108,75,0.10); color: var(--terracotta); border-color: rgba(236,108,75,0.22);">3 New</span>
+              <span class="card-badge">5 Active</span>
             </div>
 
             <div class="conv-item">
-              <div class="conv-avatar">H</div>
+              <div class="conv-avatar">HF</div>
               <div class="conv-body">
                 <div class="conv-name">The Harrington Family</div>
-                <div class="conv-snippet">Could we arrange a late check-out on Sunday? The children…</div>
+                <div class="conv-snippet">Could we arrange an extra kayak for tomorrow morning?</div>
               </div>
               <div class="conv-meta">
-                <span class="conv-time">9:41 AM</span>
-                <span class="conv-unread">2</span>
+                <div class="conv-time">09:14</div>
+                <div class="conv-unread">2</div>
               </div>
             </div>
 
             <div class="conv-item">
-              <div class="conv-avatar">C</div>
+              <div class="conv-avatar">DC</div>
               <div class="conv-body">
-                <div class="conv-name">Dr. Chen</div>
-                <div class="conv-snippet">Please ensure the beach setup has extra candles, she loves…</div>
+                <div class="conv-name">Dr. &amp; Mrs. Chen</div>
+                <div class="conv-snippet">Our flight lands at 15:40 — will the transfer be ready?</div>
               </div>
               <div class="conv-meta">
-                <span class="conv-time">8:55 AM</span>
-                <span class="conv-unread">1</span>
+                <div class="conv-time">11:02</div>
+                <div class="conv-unread">1</div>
               </div>
             </div>
 
             <div class="conv-item">
-              <div class="conv-avatar">N</div>
+              <div class="conv-avatar">SW</div>
               <div class="conv-body">
-                <div class="conv-name">Nakamura Family</div>
-                <div class="conv-snippet">Thank you for the wonderful stay — the sunset tour was…</div>
+                <div class="conv-name">Sophia &amp; James Webb</div>
+                <div class="conv-snippet">The welcome flowers were absolutely stunning, thank you!</div>
               </div>
               <div class="conv-meta">
-                <span class="conv-time">7:30 AM</span>
+                <div class="conv-time">12:30</div>
               </div>
             </div>
 
             <div class="conv-item">
-              <div class="conv-avatar">W</div>
-              <div class="conv-body">
-                <div class="conv-name">James Webb</div>
-                <div class="conv-snippet">We would love a bottle of champagne chilled by 18:30…</div>
-              </div>
-              <div class="conv-meta">
-                <span class="conv-time">Yesterday</span>
-              </div>
-            </div>
-
-            <div class="conv-item">
-              <div class="conv-avatar">R</div>
+              <div class="conv-avatar">IR</div>
               <div class="conv-body">
                 <div class="conv-name">Isabella Rodriguez</div>
-                <div class="conv-snippet">Is there a spa availability for tomorrow morning? Ideally…</div>
+                <div class="conv-snippet">Is the chocolate farm tour suitable for children?</div>
               </div>
               <div class="conv-meta">
-                <span class="conv-time">Yesterday</span>
+                <div class="conv-time">13:45</div>
+                <div class="conv-unread">3</div>
+              </div>
+            </div>
+
+            <div class="conv-item">
+              <div class="conv-avatar">NF</div>
+              <div class="conv-body">
+                <div class="conv-name">The Nakamura Family</div>
+                <div class="conv-snippet">Gracias! The snorkeling was incredible — 10/10.</div>
+              </div>
+              <div class="conv-meta">
+                <div class="conv-time">14:20</div>
               </div>
             </div>
 
           </div>
 
         </div>
+        <!-- /COL 3 -->
+
       </div>
       <!-- /BENTO -->
+
+      <!-- VERSION NAV -->
+      <div class="version-nav">
+        <span class="version-nav-label">Design Concepts</span>
+        <div class="version-nav-links">
+          <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand &amp; Gold</a>
+          <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
+          <a href="ui-v8-sand-dusk.html" class="version-btn">V8 · Sand Dusk</a>
+          <a href="ui-v9-noir-gold.html" class="version-btn">V9 · Noir Gold</a>
+          <a href="ui-v10-sage-cream.html" class="version-btn">V10 · Sage Cream</a>
+          <a href="ui-v11-bronze-slate.html" class="version-btn">V11 · Bronze Slate</a>
+          <a href="ui-v12-dusk-split.html" class="version-btn">V12 · Dusk Split</a>
+        </div>
+      </div>
 
     </div>
     <!-- /SCROLL AREA -->
 
   </div>
-</div>
+  <!-- /MAIN -->
 
-<style>
-@keyframes sparkDraw {
-  to { stroke-dashoffset: 0; }
-}
-</style>
+</div>
+<!-- /APP -->
 
 <script>
-  // ── LIVE CLOCK ──────────────────────────────────────────────
+  /* ── LIVE CLOCK ─────────────────────────────────────────────── */
   function updateClock() {
     const now = new Date();
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
-    const ss = String(now.getSeconds()).padStart(2, '0');
-    document.getElementById('live-clock').textContent = `${hh}:${mm}:${ss}`;
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('live-clock').textContent = `${h}:${m}:${s}`;
 
     const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-    document.getElementById('live-date').textContent = dateStr;
+    document.getElementById('live-date').textContent =
+      `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
   }
   updateClock();
   setInterval(updateClock, 1000);
 
-  // ── KPI COUNTER ANIMATION ────────────────────────────────────
-  function animateCounter(el, target, duration) {
-    const start = performance.now();
-    const from = 0;
-    function step(now) {
-      const elapsed = now - start;
+  /* ── KPI COUNTER ANIMATION ─────────────────────────────────── */
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target, 10);
+    const duration = 900;
+    const startTime = performance.now();
+
+    function tick(now) {
+      const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // ease out quart
-      const eased = 1 - Math.pow(1 - progress, 4);
-      el.textContent = Math.round(from + (target - from) * eased);
-      if (progress < 1) requestAnimationFrame(step);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(tick);
     }
-    requestAnimationFrame(step);
+    requestAnimationFrame(tick);
   }
 
-  // Run counters after a short delay to let fadeUp animations start
-  setTimeout(() => {
-    document.querySelectorAll('[data-target]').forEach((el, i) => {
-      const target = parseInt(el.getAttribute('data-target'), 10);
-      const delay = i * 60;
-      setTimeout(() => animateCounter(el, target, 900), delay);
+  // Observe and trigger counter when in view
+  const counters = document.querySelectorAll('[data-target]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target);
+        observer.unobserve(entry.target);
+      }
     });
-  }, 200);
+  }, { threshold: 0.3 });
+  counters.forEach(c => observer.observe(c));
 
-  // ── NAV ACTIVE STATE ─────────────────────────────────────────
+  /* ── NAV ITEM CLICK ─────────────────────────────────────────── */
   document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function() {
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      this.classList.add('active');
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
     });
-  });
-
-  // ── INTERACTIVE RIPPLE ON TABLE ROWS ─────────────────────────
-  document.querySelectorAll('tbody tr').forEach(row => {
-    row.style.cursor = 'pointer';
   });
 </script>
-
-<!-- Version Navigator -->
-<div class="version-nav">
-  <span class="version-nav-label">Design Concepts</span>
-  <div class="version-nav-links">
-    <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand &amp; Gold</a>
-    <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
-    <a href="ui-v8-sand-dusk.html" class="version-btn">V8 · Sand Dusk</a>
-    <a href="ui-v9-noir-gold.html" class="version-btn">V9 · Noir Gold</a>
-    <a href="ui-v10-sage-cream.html" class="version-btn">V10 · Sage Cream</a>
-    <a href="ui-v11-bronze-slate.html" class="version-btn">V11 · Bronze Slate</a>
-    <a href="ui-v12-dusk-split.html" class="version-btn">V12 · Dusk Split</a>
-  </div>
-</div>
-
 </body>
 </html>

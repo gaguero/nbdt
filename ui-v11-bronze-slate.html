@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nayara Bocas del Toro — Staff Dashboard</title>
+<title>Nayara Bocas del Toro — Staff Dashboard · V11 Bronze Slate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --gold: #AA8E67;
-    --gold-dim: rgba(170,142,103,0.6);
-    --gold-faint: rgba(170,142,103,0.12);
-    --gold-glow: rgba(170,142,103,0.3);
-    --sand: #F5EBD7;
-    --charcoal: #4A4A4A;
-    --forest: #7C8E67;
-    --teal: #A4C4C8;
-    --terra: #EC6C4B;
-    --bg: #1C1510;
-    --surface: #261E17;
-    --elevated: #30261D;
-    --sidebar-bg: #150F0A;
-    --muted: rgba(245,235,215,0.55);
-    --muted-dim: rgba(245,235,215,0.35);
-    --separator: rgba(170,142,103,0.08);
-    --card-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(170,142,103,0.08);
-    --sidebar-w: 88px;
+    --bg:           #131820;
+    --surface:      #1A2130;
+    --elevated:     #212A3C;
+    --gold:         #AA8E67;
+    --gold-faint:   rgba(170,142,103,0.10);
+    --gold-glow:    rgba(170,142,103,0.22);
+    --teal:         #A4C4C8;
+    --teal-faint:   rgba(164,196,200,0.12);
+    --teal-glow:    rgba(164,196,200,0.25);
+    --sand:         #F5EBD7;
+    --muted:        rgba(245,235,215,0.5);
+    --muted-dim:    rgba(245,235,215,0.3);
+    --forest:       #7C8E67;
+    --terra:        #EC6C4B;
+    --sidebar-bg:   #0D1117;
+    --separator:    rgba(164,196,200,0.08);
+    --card-shadow:  0 2px 8px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(164,196,200,0.05);
+    --sidebar-w:    80px;
   }
 
   html, body {
@@ -39,29 +39,32 @@
     overflow: hidden;
   }
 
-  /* Grain overlay */
+  /* ── Grain overlay ── */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     z-index: 9999;
     pointer-events: none;
-    opacity: 0.04;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
     background-repeat: repeat;
   }
 
-  /* Sunset vignette */
+  /* ── Blueprint grid ── */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background: radial-gradient(ellipse at 100% 0%, rgba(170,142,103,0.15) 0%, transparent 60%);
+    background-image:
+      linear-gradient(rgba(164,196,200,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(164,196,200,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 
-  /* Layout */
+  /* ── Layout ── */
   .app {
     display: flex;
     height: 100vh;
@@ -69,7 +72,9 @@
     z-index: 1;
   }
 
-  /* ─── SIDEBAR ─── */
+  /* ────────────────────────
+     SIDEBAR
+  ──────────────────────── */
   .sidebar {
     width: var(--sidebar-w);
     min-width: var(--sidebar-w);
@@ -78,17 +83,31 @@
     flex-direction: column;
     align-items: center;
     padding: 0 0 24px;
-    border-right: 1px solid var(--gold-faint);
+    border-right: 1px solid var(--separator);
     position: relative;
     z-index: 10;
-    box-shadow: 2px 0 24px rgba(0,0,0,0.4);
+    box-shadow: 2px 0 28px rgba(0,0,0,0.5);
+  }
+
+  /* Sidebar grain */
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    z-index: 0;
   }
 
   .sidebar-logo {
-    padding: 24px 0 28px;
+    padding: 24px 0 24px;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
   }
 
   .sidebar-logo img {
@@ -96,28 +115,32 @@
     height: 48px;
     object-fit: contain;
     border-radius: 50%;
-    filter: drop-shadow(0 0 8px rgba(170,142,103,0.4));
+    filter: drop-shadow(0 0 10px rgba(164,196,200,0.2));
   }
 
   .sidebar-divider {
-    width: 40px;
+    width: 36px;
     height: 1px;
-    background: var(--gold-faint);
+    background: var(--separator);
     margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
   }
 
   .nav {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     flex: 1;
     width: 100%;
+    position: relative;
+    z-index: 1;
   }
 
   .nav-item {
     width: 100%;
-    height: 56px;
+    height: 54px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -126,19 +149,19 @@
     transition: background 200ms ease-in-out;
   }
 
-  .nav-item:hover {
-    background: rgba(170,142,103,0.06);
-  }
+  .nav-item:hover { background: var(--teal-faint); }
 
   .nav-item svg {
-    stroke: rgba(245,235,215,0.4);
-    transition: stroke 200ms ease-in-out;
+    stroke: rgba(245,235,215,0.35);
+    transition: stroke 200ms ease-in-out, filter 200ms ease-in-out;
   }
 
   .nav-item.active svg {
-    stroke: var(--gold);
-    filter: drop-shadow(0 0 6px rgba(170,142,103,0.6));
+    stroke: var(--teal);
+    filter: drop-shadow(0 0 6px rgba(164,196,200,0.5));
   }
+
+  .nav-item:hover:not(.active) svg { stroke: rgba(245,235,215,0.65); }
 
   .nav-item.active::before {
     content: '';
@@ -147,18 +170,10 @@
     top: 50%;
     transform: translateY(-50%);
     width: 3px;
-    height: 32px;
-    background: var(--gold);
+    height: 30px;
+    background: var(--teal);
     border-radius: 0 2px 2px 0;
-    box-shadow: 0 0 16px rgba(170,142,103,0.3);
-  }
-
-  .nav-item:hover svg {
-    stroke: rgba(245,235,215,0.7);
-  }
-
-  .nav-item.active:hover svg {
-    stroke: var(--gold);
+    box-shadow: 0 0 14px rgba(164,196,200,0.25);
   }
 
   .nav-tooltip {
@@ -176,16 +191,16 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 150ms ease-in-out;
-    border: 1px solid var(--gold-faint);
+    border: 1px solid var(--separator);
     z-index: 100;
     box-shadow: var(--card-shadow);
   }
 
-  .nav-item:hover .nav-tooltip {
-    opacity: 1;
-  }
+  .nav-item:hover .nav-tooltip { opacity: 1; }
 
-  /* ─── MAIN ─── */
+  /* ────────────────────────
+     MAIN
+  ──────────────────────── */
   .main {
     flex: 1;
     display: flex;
@@ -194,10 +209,12 @@
     min-width: 0;
   }
 
-  /* ─── HEADER ─── */
+  /* ────────────────────────
+     HEADER
+  ──────────────────────── */
   .header {
     background: var(--bg);
-    border-bottom: 1px solid rgba(170,142,103,0.15);
+    border-bottom: 1px solid rgba(164,196,200,0.08);
     padding: 0 28px;
     height: 72px;
     display: flex;
@@ -208,57 +225,46 @@
     z-index: 5;
   }
 
-  .header-left {}
-
   .header-greeting {
     font-family: 'Playfair Display', serif;
     font-style: italic;
-    font-size: 24px;
+    font-size: 22px;
     color: var(--gold);
     line-height: 1.2;
     letter-spacing: -0.01em;
   }
 
-  .header-subtitle {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 1px;
-    letter-spacing: 0.04em;
+  .header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .live-clock {
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 20px rgba(164,196,200,0.35);
   }
 
   .header-right {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 16px;
   }
 
-  .live-clock {
-    font-family: 'DM Mono', 'Courier New', monospace;
-    font-size: 26px;
-    font-weight: 600;
-    color: var(--gold);
-    letter-spacing: 0.06em;
-    text-shadow: 0 0 20px rgba(170,142,103,0.4);
-  }
-
-  .staff-badge {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
-
-  .staff-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--sand);
-    letter-spacing: 0.01em;
-  }
-
-  .staff-role {
+  .brand-label {
     font-size: 11px;
+    font-weight: 400;
     color: var(--muted);
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
+    text-align: right;
   }
 
   .staff-avatar {
@@ -270,26 +276,39 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--gold);
     flex-shrink: 0;
+    cursor: pointer;
+    transition: box-shadow 200ms ease-in-out, background 200ms ease-in-out;
   }
 
-  /* ─── CONTENT ─── */
+  .staff-avatar:hover {
+    background: rgba(170,142,103,0.18);
+    box-shadow: 0 0 14px rgba(170,142,103,0.3);
+  }
+
+  /* ────────────────────────
+     CONTENT
+  ──────────────────────── */
   .content {
     flex: 1;
     overflow-y: auto;
     padding: 24px 28px;
     scrollbar-width: thin;
-    scrollbar-color: var(--gold-faint) transparent;
+    scrollbar-color: var(--teal-faint) transparent;
+    position: relative;
+    z-index: 1;
   }
 
   .content::-webkit-scrollbar { width: 4px; }
   .content::-webkit-scrollbar-track { background: transparent; }
-  .content::-webkit-scrollbar-thumb { background: var(--gold-faint); border-radius: 2px; }
+  .content::-webkit-scrollbar-thumb { background: var(--teal-faint); border-radius: 2px; }
 
-  /* ─── KPI STRIP ─── */
+  /* ────────────────────────
+     KPI STRIP
+  ──────────────────────── */
   .kpi-strip {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -299,11 +318,14 @@
 
   .kpi-tile {
     background: var(--surface);
-    border: 1px solid var(--gold-faint);
+    border: 1px solid rgba(164,196,200,0.08);
     border-radius: 12px;
-    padding: 18px 16px 14px;
+    padding: 16px 14px 12px;
     cursor: pointer;
-    transition: border-color 200ms ease-in-out, box-shadow 200ms ease-in-out, transform 200ms ease-in-out;
+    transition:
+      border-color 200ms cubic-bezier(0.34,1.56,0.64,1),
+      box-shadow 200ms cubic-bezier(0.34,1.56,0.64,1),
+      transform 200ms cubic-bezier(0.34,1.56,0.64,1);
     box-shadow: var(--card-shadow);
     position: relative;
     overflow: hidden;
@@ -314,18 +336,18 @@
   }
 
   .kpi-tile:hover {
-    border-color: rgba(170,142,103,0.3);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.3), 0 0 20px rgba(170,142,103,0.15), 0 0 0 1px rgba(170,142,103,0.08);
+    border-color: rgba(164,196,200,0.25);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.3), 0 0 20px rgba(164,196,200,0.08), 0 0 0 1px rgba(164,196,200,0.1);
     transform: translateY(-2px);
   }
 
   .kpi-number {
     font-family: 'Playfair Display', serif;
-    font-size: 46px;
+    font-size: 48px;
     font-weight: 700;
     color: var(--gold);
     line-height: 1;
-    text-shadow: 0 0 24px rgba(170,142,103,0.35);
+    text-shadow: 0 0 24px rgba(170,142,103,0.3);
     letter-spacing: -0.02em;
   }
 
@@ -334,28 +356,31 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: var(--muted);
+    color: var(--muted-dim);
     margin-top: 6px;
-    line-height: 1.3;
+    line-height: 1.35;
   }
 
   .kpi-sparkline {
     margin-top: 10px;
     width: 100%;
-    height: 28px;
+    height: 26px;
   }
 
   .kpi-sparkline path {
     stroke: var(--gold);
     stroke-width: 1.5;
     fill: none;
-    stroke-dasharray: 100;
-    stroke-dashoffset: 100;
+    stroke-dasharray: 120;
+    stroke-dashoffset: 120;
     animation: drawLine 2s ease forwards;
     animation-delay: calc(var(--i) * 80ms + 400ms);
+    opacity: 0.7;
   }
 
-  /* ─── BENTO ─── */
+  /* ────────────────────────
+     BENTO
+  ──────────────────────── */
   .bento {
     display: grid;
     grid-template-columns: 38fr 37fr 25fr;
@@ -369,10 +394,12 @@
     gap: 16px;
   }
 
-  /* ─── CARD ─── */
+  /* ────────────────────────
+     CARD
+  ──────────────────────── */
   .card {
     background: var(--surface);
-    border: 1px solid var(--gold-faint);
+    border: 1px solid rgba(164,196,200,0.07);
     border-radius: 16px;
     padding: 24px;
     box-shadow: var(--card-shadow);
@@ -388,11 +415,12 @@
     margin-bottom: 18px;
   }
 
+  /* Card titles: TEAL (differentiator from V7 which used gold) */
   .card-title {
     font-family: 'Playfair Display', serif;
     font-style: italic;
     font-size: 18px;
-    color: var(--gold);
+    color: var(--teal);
     letter-spacing: -0.01em;
   }
 
@@ -400,13 +428,15 @@
     font-size: 11px;
     font-weight: 500;
     color: var(--muted);
-    background: var(--gold-faint);
+    background: var(--teal-faint);
     padding: 3px 9px;
     border-radius: 20px;
-    border: 1px solid var(--gold-faint);
+    border: 1px solid rgba(164,196,200,0.12);
   }
 
-  /* ─── TABLE ─── */
+  /* ────────────────────────
+     TABLE
+  ──────────────────────── */
   .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -417,7 +447,8 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--muted-dim);
+    color: var(--teal);
+    opacity: 0.6;
     padding: 0 8px 10px 0;
     text-align: left;
     border-bottom: 1px solid var(--separator);
@@ -432,8 +463,7 @@
   }
 
   .data-table tbody tr:last-child { border-bottom: none; }
-
-  .data-table tbody tr:hover { background: rgba(170,142,103,0.05); }
+  .data-table tbody tr:hover { background: rgba(164,196,200,0.04); }
 
   .data-table tbody td {
     padding: 10px 8px 10px 0;
@@ -464,11 +494,12 @@
     white-space: nowrap;
   }
 
+  /* Time badge: teal in V11 */
   .time-badge {
     font-size: 11px;
-    font-weight: 600;
-    color: var(--gold);
-    background: rgba(170,142,103,0.1);
+    font-weight: 500;
+    color: var(--teal);
+    background: rgba(164,196,200,0.10);
     padding: 3px 7px;
     border-radius: 6px;
     white-space: nowrap;
@@ -481,7 +512,9 @@
     white-space: nowrap;
   }
 
-  /* Status */
+  /* ────────────────────────
+     STATUS DOTS
+  ──────────────────────── */
   .status {
     display: flex;
     align-items: center;
@@ -490,22 +523,17 @@
   }
 
   .status-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
     position: relative;
   }
 
-  .status-dot.confirmed { background: var(--teal); }
-  .status-dot.completed { background: var(--forest); }
-  .status-dot.en-route {
-    background: var(--gold);
-    animation: blink 1.2s ease-in-out infinite;
-  }
-  .status-dot.pending {
-    background: var(--terra);
-  }
+  .status-dot.confirmed  { background: var(--teal); }
+  .status-dot.completed  { background: var(--forest); }
+  .status-dot.en-route   { background: var(--gold); animation: blink 1.2s ease-in-out infinite; }
+  .status-dot.pending    { background: var(--terra); }
   .status-dot.pending::after {
     content: '';
     position: absolute;
@@ -525,17 +553,19 @@
 
   .status-label.confirmed { color: var(--teal); }
   .status-label.completed { color: var(--forest); }
-  .status-label.en-route { color: var(--gold); }
-  .status-label.pending { color: var(--terra); }
+  .status-label.en-route  { color: var(--gold); }
+  .status-label.pending   { color: var(--terra); }
 
-  /* ─── IN-HOUSE GUESTS ─── */
+  /* ────────────────────────
+     IN-HOUSE GUESTS
+  ──────────────────────── */
   .inhouse-big {
     font-family: 'Playfair Display', serif;
     font-size: 64px;
     font-weight: 700;
     color: var(--gold);
     line-height: 1;
-    text-shadow: 0 0 32px rgba(170,142,103,0.4);
+    text-shadow: 0 0 32px rgba(170,142,103,0.35);
     letter-spacing: -0.03em;
   }
 
@@ -547,10 +577,7 @@
     letter-spacing: 0.02em;
   }
 
-  .inhouse-sub span {
-    color: rgba(245,235,215,0.7);
-    font-weight: 500;
-  }
+  .inhouse-sub span { color: rgba(245,235,215,0.75); font-weight: 500; }
 
   .occupancy-row {
     display: flex;
@@ -558,11 +585,7 @@
     gap: 10px;
   }
 
-  .occ-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
+  .occ-item { display: flex; flex-direction: column; gap: 4px; }
 
   .occ-header {
     display: flex;
@@ -570,45 +593,39 @@
     align-items: center;
   }
 
-  .occ-label {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.02em;
-  }
-
-  .occ-value {
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(245,235,215,0.7);
-  }
+  .occ-label { font-size: 11px; color: var(--muted); letter-spacing: 0.02em; }
+  .occ-value { font-size: 11px; font-weight: 600; color: rgba(245,235,215,0.7); }
 
   .occ-bar-track {
     height: 3px;
-    background: rgba(170,142,103,0.12);
+    background: rgba(164,196,200,0.08);
     border-radius: 2px;
     overflow: hidden;
   }
 
+  /* Teal gradient bars in V11 */
   .occ-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--gold), rgba(170,142,103,0.7));
+    background: linear-gradient(90deg, #A4C4C8, rgba(164,196,200,0.5));
     border-radius: 2px;
     transition: width 1.2s cubic-bezier(0.34,1.56,0.64,1);
   }
 
-  /* ─── DINNERS ─── */
+  /* ────────────────────────
+     ROMANTIC DINNERS
+  ──────────────────────── */
   .dinner-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .dinner-item {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 12px;
-    background: rgba(170,142,103,0.05);
+    gap: 11px;
+    padding: 11px;
+    background: rgba(164,196,200,0.04);
     border-radius: 10px;
     border: 1px solid var(--separator);
     cursor: pointer;
@@ -616,19 +633,13 @@
   }
 
   .dinner-item:hover {
-    border-color: rgba(170,142,103,0.2);
-    background: rgba(170,142,103,0.08);
+    border-color: rgba(164,196,200,0.18);
+    background: rgba(164,196,200,0.08);
   }
 
-  .candle-icon {
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
+  .candle-icon { flex-shrink: 0; margin-top: 2px; }
 
-  .dinner-info {
-    flex: 1;
-    min-width: 0;
-  }
+  .dinner-info { flex: 1; min-width: 0; }
 
   .dinner-villa {
     font-size: 13px;
@@ -645,19 +656,24 @@
     margin-top: 2px;
   }
 
+  /* Dinner time badge: gold in V11 to maintain warm accent against cool bg */
   .dinner-time {
     font-size: 10.5px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--gold);
     font-family: 'DM Mono', 'Courier New', monospace;
-    background: rgba(170,142,103,0.1);
+    background: var(--gold-faint);
     padding: 3px 7px;
     border-radius: 6px;
     white-space: nowrap;
     flex-shrink: 0;
+    text-align: center;
+    line-height: 1.5;
   }
 
-  /* ─── CONVERSATIONS ─── */
+  /* ────────────────────────
+     CONVERSATIONS
+  ──────────────────────── */
   .conv-list {
     display: flex;
     flex-direction: column;
@@ -667,45 +683,42 @@
   .conv-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 8px;
-    border-radius: 10px;
+    gap: 11px;
+    padding: 9px 7px;
+    border-radius: 9px;
     cursor: pointer;
     transition: background 150ms ease-in-out;
     position: relative;
   }
 
-  .conv-item:hover { background: rgba(170,142,103,0.06); }
+  .conv-item:hover { background: rgba(164,196,200,0.06); }
 
   .conv-item + .conv-item::before {
     content: '';
     position: absolute;
     top: 0;
-    left: 48px;
+    left: 46px;
     right: 0;
     height: 1px;
     background: var(--separator);
   }
 
   .conv-avatar {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: rgba(170,142,103,0.15);
-    border: 1.5px solid rgba(170,142,103,0.3);
+    background: rgba(164,196,200,0.08);
+    border: 1.5px solid rgba(164,196,200,0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    color: var(--gold);
+    color: var(--teal);
     flex-shrink: 0;
   }
 
-  .conv-body {
-    flex: 1;
-    min-width: 0;
-  }
+  .conv-body { flex: 1; min-width: 0; }
 
   .conv-name {
     font-size: 12.5px;
@@ -732,15 +745,17 @@
   }
 
   .conv-unread {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: var(--gold);
+    background: var(--teal);
     flex-shrink: 0;
-    box-shadow: 0 0 8px rgba(170,142,103,0.5);
+    box-shadow: 0 0 8px rgba(164,196,200,0.5);
   }
 
-  /* ─── ANIMATIONS ─── */
+  /* ────────────────────────
+     ANIMATIONS
+  ──────────────────────── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -752,18 +767,18 @@
 
   @keyframes blink {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.25; }
+    50%       { opacity: 0.2; }
   }
 
   @keyframes pulseRing {
-    0%   { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(2.2); opacity: 0; }
+    0%   { transform: scale(1);   opacity: 0.8; }
+    100% { transform: scale(2.4); opacity: 0; }
   }
 
   @keyframes flameDance {
-    0%, 100% { transform: scaleY(1) rotate(-1deg); }
-    33%  { transform: scaleY(1.08) rotate(1.5deg); }
-    66%  { transform: scaleY(0.95) rotate(-0.5deg); }
+    0%, 100% { transform: scaleY(1)    rotate(-1deg); }
+    33%       { transform: scaleY(1.08) rotate(1.5deg); }
+    66%       { transform: scaleY(0.95) rotate(-0.5deg); }
   }
 
   .flame-anim {
@@ -772,101 +787,128 @@
   }
 
   /* Card animation delays */
-  .bento-col:nth-child(1) .card { animation-delay: 0.35s; }
-  .bento-col:nth-child(2) .card:first-child { animation-delay: 0.45s; }
-  .bento-col:nth-child(2) .card:last-child { animation-delay: 0.52s; }
-  .bento-col:nth-child(3) .card:first-child { animation-delay: 0.55s; }
-  .bento-col:nth-child(3) .card:last-child { animation-delay: 0.62s; }
+  .bento-col:nth-child(1) .card                  { animation-delay: 0.35s; }
+  .bento-col:nth-child(2) .card:first-child       { animation-delay: 0.45s; }
+  .bento-col:nth-child(2) .card:last-child        { animation-delay: 0.52s; }
+  .bento-col:nth-child(3) .card:first-child       { animation-delay: 0.55s; }
+  .bento-col:nth-child(3) .card:last-child        { animation-delay: 0.62s; }
 
-  /* Section label */
-  .section-label {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--muted-dim);
-    margin-bottom: 12px;
+  /* ────────────────────────
+     VERSION NAV
+  ──────────────────────── */
+  .version-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    margin-top: 32px;
+    background: #0D1117;
+    border-top: 1px solid rgba(164,196,200,0.08);
+    flex-wrap: wrap;
+    gap: 12px;
   }
-.version-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 32px; margin-top: 32px;
-  background: #150F0A; border-top: 1px solid rgba(170,142,103,0.15);
-  flex-wrap: wrap; gap: 12px;
-}
-.version-nav-label {
-  font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 0.12em;
-  text-transform: uppercase; color: rgba(170,142,103,0.3);
-}
-.version-nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
-.version-btn {
-  font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 7px 14px;
-  border-radius: 6px; border: 1px solid rgba(170,142,103,0.2);
-  color: rgba(170,142,103,0.5); text-decoration: none;
-  transition: border-color 200ms, color 200ms, background 200ms; cursor: pointer;
-}
-.version-btn:hover { border-color: #AA8E67; color: #AA8E67; background: rgba(170,142,103,0.08); }
+
+  .version-nav-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(164,196,200,0.3);
+  }
+
+  .version-nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .version-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 6px 13px;
+    border-radius: 6px;
+    border: 1px solid rgba(164,196,200,0.15);
+    color: rgba(164,196,200,0.45);
+    text-decoration: none;
+    transition: border-color 200ms ease-in-out, color 200ms ease-in-out, background 200ms ease-in-out;
+    cursor: pointer;
+  }
+
+  .version-btn:hover {
+    border-color: var(--teal);
+    color: var(--teal);
+    background: rgba(164,196,200,0.07);
+  }
+
+  .version-btn.current {
+    border-color: rgba(164,196,200,0.35);
+    color: var(--teal);
+    background: rgba(164,196,200,0.08);
+  }
 </style>
 </head>
 <body>
 
 <div class="app">
 
-  <!-- ─── SIDEBAR ─── -->
+  <!-- ─────────── SIDEBAR ─────────── -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <img src="brand_assets/Nayara-Bocas-Del-Toro-Logo-White-Colour round.png" alt="Nayara Logo">
+      <img src="brand_assets/Nayara-Bocas-Del-Toro-Logo-White-Colour round.png" alt="Nayara Bocas del Toro">
     </div>
     <div class="sidebar-divider"></div>
     <nav class="nav" id="mainNav">
 
       <div class="nav-item active" data-nav="dashboard">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
         </svg>
         <span class="nav-tooltip">Dashboard</span>
       </div>
 
       <div class="nav-item" data-nav="transfers">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 16V4m0 0L3 8m4-4l4 4"/>
+          <path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
         </svg>
         <span class="nav-tooltip">Transfers</span>
       </div>
 
       <div class="nav-item" data-nav="tours">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>
           <path d="M12 12l-3-3"/>
         </svg>
         <span class="nav-tooltip">Tours</span>
       </div>
 
       <div class="nav-item" data-nav="guests">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
         <span class="nav-tooltip">Guests</span>
       </div>
 
       <div class="nav-item" data-nav="dinners">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
         <span class="nav-tooltip">Dinners</span>
       </div>
 
       <div class="nav-item" data-nav="conversations">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
         <span class="nav-tooltip">Conversations</span>
       </div>
 
       <div class="nav-item" data-nav="reports">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
           <line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
         <span class="nav-tooltip">Reports</span>
@@ -875,21 +917,21 @@
     </nav>
   </aside>
 
-  <!-- ─── MAIN ─── -->
+  <!-- ─────────── MAIN ─────────── -->
   <div class="main">
 
     <!-- Header -->
     <header class="header">
       <div class="header-left">
         <div class="header-greeting">Good Evening, Maria</div>
-        <div class="header-subtitle">Nayara Bocas del Toro</div>
       </div>
+
+      <div class="header-center">
+        <div class="live-clock" id="liveClock">--:--:--</div>
+      </div>
+
       <div class="header-right">
-        <div class="live-clock" id="liveClock">--:--</div>
-        <div class="staff-badge">
-          <div class="staff-name">Maria A.</div>
-          <div class="staff-role">Front Desk</div>
-        </div>
+        <div class="brand-label">Nayara Bocas del Toro</div>
         <div class="staff-avatar">MA</div>
       </div>
     </header>
@@ -897,13 +939,13 @@
     <!-- Content -->
     <div class="content">
 
-      <!-- KPI Strip -->
+      <!-- ── KPI STRIP ── -->
       <div class="kpi-strip">
 
         <div class="kpi-tile" style="--i:0">
           <div class="kpi-number" data-target="34">0</div>
           <div class="kpi-label">Guests<br>In-House</div>
-          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" style="--i:0">
+          <svg class="kpi-sparkline" viewBox="0 0 80 26" preserveAspectRatio="none" style="--i:0">
             <path d="M0,22 C8,20 16,14 24,16 C32,18 40,10 48,8 C56,6 64,12 72,6 L80,4"/>
           </svg>
         </div>
@@ -911,7 +953,7 @@
         <div class="kpi-tile" style="--i:1">
           <div class="kpi-number" data-target="18">0</div>
           <div class="kpi-label">Villas<br>Occupied</div>
-          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" style="--i:1">
+          <svg class="kpi-sparkline" viewBox="0 0 80 26" preserveAspectRatio="none" style="--i:1">
             <path d="M0,18 C10,16 20,20 30,14 C40,8 50,12 60,10 C68,8 74,6 80,4"/>
           </svg>
         </div>
@@ -919,7 +961,7 @@
         <div class="kpi-tile" style="--i:2">
           <div class="kpi-number" data-target="8">0</div>
           <div class="kpi-label">Transfers<br>Today</div>
-          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" style="--i:2">
+          <svg class="kpi-sparkline" viewBox="0 0 80 26" preserveAspectRatio="none" style="--i:2">
             <path d="M0,24 C12,22 20,16 30,12 C40,8 50,14 60,8 C68,4 76,6 80,4"/>
           </svg>
         </div>
@@ -927,7 +969,7 @@
         <div class="kpi-tile" style="--i:3">
           <div class="kpi-number" data-target="6">0</div>
           <div class="kpi-label">Tours<br>Active</div>
-          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" style="--i:3">
+          <svg class="kpi-sparkline" viewBox="0 0 80 26" preserveAspectRatio="none" style="--i:3">
             <path d="M0,20 C10,18 18,22 28,16 C38,10 48,6 58,8 C66,10 74,4 80,2"/>
           </svg>
         </div>
@@ -935,7 +977,7 @@
         <div class="kpi-tile" style="--i:4">
           <div class="kpi-number" data-target="3">0</div>
           <div class="kpi-label">Romantic<br>Dinners</div>
-          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" style="--i:4">
+          <svg class="kpi-sparkline" viewBox="0 0 80 26" preserveAspectRatio="none" style="--i:4">
             <path d="M0,26 C16,24 24,18 36,14 C48,10 56,16 68,10 C72,8 76,6 80,4"/>
           </svg>
         </div>
@@ -943,7 +985,7 @@
         <div class="kpi-tile" style="--i:5">
           <div class="kpi-number" data-target="12">0</div>
           <div class="kpi-label">Unread<br>Messages</div>
-          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" style="--i:5">
+          <svg class="kpi-sparkline" viewBox="0 0 80 26" preserveAspectRatio="none" style="--i:5">
             <path d="M0,16 C8,14 16,20 26,14 C36,8 44,12 54,6 C62,2 72,8 80,4"/>
           </svg>
         </div>
@@ -951,14 +993,14 @@
         <div class="kpi-tile" style="--i:6">
           <div class="kpi-number" data-target="94">0</div>
           <div class="kpi-label">Satisfaction<br>Score %</div>
-          <svg class="kpi-sparkline" viewBox="0 0 80 28" preserveAspectRatio="none" style="--i:6">
+          <svg class="kpi-sparkline" viewBox="0 0 80 26" preserveAspectRatio="none" style="--i:6">
             <path d="M0,20 C10,18 18,16 28,12 C38,8 46,10 56,6 C66,2 74,4 80,2"/>
           </svg>
         </div>
 
       </div>
 
-      <!-- Bento Grid -->
+      <!-- ── BENTO GRID ── -->
       <div class="bento">
 
         <!-- Col 1: Transfers -->
@@ -987,7 +1029,7 @@
                   <td><div class="status"><div class="status-dot confirmed"></div><span class="status-label confirmed">Confirmed</span></div></td>
                 </tr>
                 <tr>
-                  <td><div class="guest-name">Dr. & Mrs. Chen</div><div class="guest-villa">Villa 7</div></td>
+                  <td><div class="guest-name">Dr. &amp; Mrs. Chen</div><div class="guest-villa">Villa 7</div></td>
                   <td><div class="route-text">Airport → Resort</div></td>
                   <td><span class="time-badge">16:00</span></td>
                   <td><div class="driver-text">Luis R.</div></td>
@@ -1001,7 +1043,7 @@
                   <td><div class="status"><div class="status-dot completed"></div><span class="status-label completed">Completed</span></div></td>
                 </tr>
                 <tr>
-                  <td><div class="guest-name">S. & J. Webb</div><div class="guest-villa">Villa 15</div></td>
+                  <td><div class="guest-name">Sophia &amp; James Webb</div><div class="guest-villa">Villa 15</div></td>
                   <td><div class="route-text">Marina → Resort</div></td>
                   <td><span class="time-badge">17:30</span></td>
                   <td><div class="driver-text">Carlos M.</div></td>
@@ -1022,14 +1064,14 @@
                   <td><div class="status"><div class="status-dot confirmed"></div><span class="status-label confirmed">Confirmed</span></div></td>
                 </tr>
                 <tr>
-                  <td><div class="guest-name">O'Brien Party</div><div class="guest-villa">Villa 11</div></td>
+                  <td><div class="guest-name">The O'Brien Party</div><div class="guest-villa">Villa 11</div></td>
                   <td><div class="route-text">Marina → Resort</div></td>
                   <td><span class="time-badge">20:00</span></td>
                   <td><div class="driver-text">Carlos M.</div></td>
                   <td><div class="status"><div class="status-dot pending"></div><span class="status-label pending">Pending</span></div></td>
                 </tr>
                 <tr>
-                  <td><div class="guest-name">Mr. & Mrs. Delacroix</div><div class="guest-villa">Villa 6</div></td>
+                  <td><div class="guest-name">Mr. &amp; Mrs. Delacroix</div><div class="guest-villa">Villa 6</div></td>
                   <td><div class="route-text">Resort → Airport</div></td>
                   <td><span class="time-badge">07:30</span></td>
                   <td><div class="driver-text">Luis R.</div></td>
@@ -1040,8 +1082,9 @@
           </div>
         </div>
 
-        <!-- Col 2: Tours + In-House -->
+        <!-- Col 2: Tours + In-House Guests -->
         <div class="bento-col">
+
           <div class="card">
             <div class="card-header">
               <div class="card-title">Tours</div>
@@ -1112,7 +1155,9 @@
             </div>
             <div class="inhouse-big" data-target="34" id="inhouseCount">0</div>
             <div class="inhouse-sub">
-              <span>18</span> Villas &nbsp;·&nbsp; <span style="color:var(--forest)">+6</span> Arriving &nbsp;·&nbsp; <span style="color:var(--terra)">−4</span> Departing
+              <span>18</span> Villas &nbsp;·&nbsp;
+              <span style="color:#7C8E67">+6</span> Arriving &nbsp;·&nbsp;
+              <span style="color:#EC6C4B">−4</span> Departing
             </div>
             <div class="occupancy-row">
               <div class="occ-item">
@@ -1145,10 +1190,12 @@
               </div>
             </div>
           </div>
+
         </div>
 
-        <!-- Col 3: Dinners + Conversations -->
+        <!-- Col 3: Romantic Dinners + Conversations -->
         <div class="bento-col">
+
           <div class="card">
             <div class="card-header">
               <div class="card-title">Romantic Dinners</div>
@@ -1159,9 +1206,9 @@
               <div class="dinner-item">
                 <div class="candle-icon">
                   <svg width="16" height="22" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="10" width="6" height="10" rx="2" fill="rgba(170,142,103,0.3)" stroke="#AA8E67" stroke-width="1"/>
+                    <rect x="5" y="10" width="6" height="10" rx="2" fill="rgba(170,142,103,0.25)" stroke="#AA8E67" stroke-width="1"/>
                     <path class="flame-anim" d="M8 10 C8,10 5,7 5.5,4.5 C6,2 7,1 8,0.5 C9,1 10,2 10.5,4.5 C11,7 8,10 8,10Z" fill="#AA8E67" opacity="0.9"/>
-                    <path class="flame-anim" d="M8 10 C8,10 6.2,8 6.4,5.5 C6.6,4 7.2,3 8,2.5 C8.8,3 9.4,4 9.6,5.5 C9.8,8 8,10 8,10Z" fill="#F5EBD7" opacity="0.7" style="animation-delay:0.3s"/>
+                    <path class="flame-anim" d="M8 10 C8,10 6.2,8 6.4,5.5 C6.6,4 7.2,3 8,2.5 C8.8,3 9.4,4 9.6,5.5 C9.8,8 8,10 8,10Z" fill="#F5EBD7" opacity="0.65" style="animation-delay:0.3s"/>
                   </svg>
                 </div>
                 <div class="dinner-info">
@@ -1174,9 +1221,9 @@
               <div class="dinner-item">
                 <div class="candle-icon">
                   <svg width="16" height="22" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="10" width="6" height="10" rx="2" fill="rgba(170,142,103,0.3)" stroke="#AA8E67" stroke-width="1"/>
+                    <rect x="5" y="10" width="6" height="10" rx="2" fill="rgba(170,142,103,0.25)" stroke="#AA8E67" stroke-width="1"/>
                     <path class="flame-anim" d="M8 10 C8,10 5,7 5.5,4.5 C6,2 7,1 8,0.5 C9,1 10,2 10.5,4.5 C11,7 8,10 8,10Z" fill="#AA8E67" opacity="0.9" style="animation-delay:0.6s"/>
-                    <path class="flame-anim" d="M8 10 C8,10 6.2,8 6.4,5.5 C6.6,4 7.2,3 8,2.5 C8.8,3 9.4,4 9.6,5.5 C9.8,8 8,10 8,10Z" fill="#F5EBD7" opacity="0.7" style="animation-delay:0.9s"/>
+                    <path class="flame-anim" d="M8 10 C8,10 6.2,8 6.4,5.5 C6.6,4 7.2,3 8,2.5 C8.8,3 9.4,4 9.6,5.5 C9.8,8 8,10 8,10Z" fill="#F5EBD7" opacity="0.65" style="animation-delay:0.9s"/>
                   </svg>
                 </div>
                 <div class="dinner-info">
@@ -1189,16 +1236,16 @@
               <div class="dinner-item">
                 <div class="candle-icon">
                   <svg width="16" height="22" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="10" width="6" height="10" rx="2" fill="rgba(170,142,103,0.3)" stroke="#AA8E67" stroke-width="1"/>
+                    <rect x="5" y="10" width="6" height="10" rx="2" fill="rgba(170,142,103,0.25)" stroke="#AA8E67" stroke-width="1"/>
                     <path class="flame-anim" d="M8 10 C8,10 5,7 5.5,4.5 C6,2 7,1 8,0.5 C9,1 10,2 10.5,4.5 C11,7 8,10 8,10Z" fill="#AA8E67" opacity="0.9" style="animation-delay:1.1s"/>
-                    <path class="flame-anim" d="M8 10 C8,10 6.2,8 6.4,5.5 C6.6,4 7.2,3 8,2.5 C8.8,3 9.4,4 9.6,5.5 C9.8,8 8,10 8,10Z" fill="#F5EBD7" opacity="0.7" style="animation-delay:1.4s"/>
+                    <path class="flame-anim" d="M8 10 C8,10 6.2,8 6.4,5.5 C6.6,4 7.2,3 8,2.5 C8.8,3 9.4,4 9.6,5.5 C9.8,8 8,10 8,10Z" fill="#F5EBD7" opacity="0.65" style="animation-delay:1.4s"/>
                   </svg>
                 </div>
                 <div class="dinner-info">
                   <div class="dinner-villa">Villa 15 · Webb</div>
                   <div class="dinner-setup">Honeymoon · Garden Pavilion</div>
                 </div>
-                <div class="dinner-time">Tomorrow<br>19:00</div>
+                <div class="dinner-time">Tmrw<br>19:00</div>
               </div>
 
             </div>
@@ -1262,25 +1309,43 @@
 
             </div>
           </div>
-        </div>
 
+        </div><!-- /col 3 -->
+
+      </div><!-- /bento -->
+
+      <!-- Version Nav -->
+      <div class="version-nav">
+        <span class="version-nav-label">Design Concepts</span>
+        <div class="version-nav-links">
+          <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand &amp; Gold</a>
+          <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
+          <a href="ui-v8-sand-dusk.html" class="version-btn">V8 · Sand Dusk</a>
+          <a href="ui-v9-noir-gold.html" class="version-btn">V9 · Noir Gold</a>
+          <a href="ui-v10-sage-cream.html" class="version-btn">V10 · Sage Cream</a>
+          <a href="ui-v11-bronze-slate.html" class="version-btn current">V11 · Bronze Slate</a>
+          <a href="ui-v12-dusk-split.html" class="version-btn">V12 · Dusk Split</a>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+</div><!-- /app -->
 
 <script>
-  // ─── CLOCK ───
+  // ── CLOCK (HH:MM:SS) ──
   function updateClock() {
     const now = new Date();
     const h = String(now.getHours()).padStart(2, '0');
     const m = String(now.getMinutes()).padStart(2, '0');
-    document.getElementById('liveClock').textContent = h + ':' + m;
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('liveClock').textContent = h + ':' + m + ':' + s;
   }
   updateClock();
-  setInterval(updateClock, 60000);
+  setInterval(updateClock, 1000);
 
-  // ─── COUNTER UP ───
+  // ── COUNTER ANIMATION ──
   function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
   function animateCounter(el, target, duration) {
@@ -1288,53 +1353,44 @@
     function tick(now) {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
-      const value = Math.round(easeOut(progress) * target);
-      el.textContent = value;
+      el.textContent = Math.round(easeOut(progress) * target);
       if (progress < 1) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
   }
 
-  // KPI counters
-  document.querySelectorAll('.kpi-number[data-target]').forEach((el, i) => {
-    const target = parseInt(el.dataset.target);
-    setTimeout(() => animateCounter(el, target, 1200), i * 80 + 300);
+  // KPI tiles
+  document.querySelectorAll('.kpi-number[data-target]').forEach(function(el, i) {
+    const target = parseInt(el.dataset.target, 10);
+    setTimeout(function() { animateCounter(el, target, 1200); }, i * 80 + 300);
   });
 
   // In-house big number
-  const inhouse = document.getElementById('inhouseCount');
-  if (inhouse) {
-    setTimeout(() => animateCounter(inhouse, 34, 1400), 600);
+  var inhouseEl = document.getElementById('inhouseCount');
+  if (inhouseEl) {
+    setTimeout(function() { animateCounter(inhouseEl, 34, 1400); }, 600);
   }
 
-  // ─── OCCUPANCY BARS ───
-  setTimeout(() => {
-    document.querySelectorAll('.occ-bar-fill[data-width]').forEach(bar => {
+  // ── OCCUPANCY BARS ──
+  setTimeout(function() {
+    document.querySelectorAll('.occ-bar-fill[data-width]').forEach(function(bar) {
       bar.style.width = bar.dataset.width;
     });
   }, 700);
 
-  // ─── NAV ACTIVE ───
-  document.getElementById('mainNav').querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  // ── NAV ACTIVE STATE ──
+  document.getElementById('mainNav').querySelectorAll('.nav-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
       item.classList.add('active');
     });
   });
+
+  // ── ALL INTERACTIVE ELEMENTS GET CURSOR POINTER ──
+  document.querySelectorAll('.nav-item, .kpi-tile, .dinner-item, .conv-item, .data-table tbody tr, .staff-avatar, .version-btn').forEach(function(el) {
+    el.style.cursor = 'pointer';
+  });
 </script>
 
-<!-- Version Navigator -->
-<div class="version-nav">
-  <span class="version-nav-label">Design Concepts</span>
-  <div class="version-nav-links">
-    <a href="ui-v3-sand-gold.html" class="version-btn">V3 · Sand &amp; Gold</a>
-    <a href="ui-v7-gold-dusk.html" class="version-btn">V7 · Gold Dusk</a>
-    <a href="ui-v8-sand-dusk.html" class="version-btn">V8 · Sand Dusk</a>
-    <a href="ui-v9-noir-gold.html" class="version-btn">V9 · Noir Gold</a>
-    <a href="ui-v10-sage-cream.html" class="version-btn">V10 · Sage Cream</a>
-    <a href="ui-v11-bronze-slate.html" class="version-btn">V11 · Bronze Slate</a>
-    <a href="ui-v12-dusk-split.html" class="version-btn">V12 · Dusk Split</a>
-  </div>
-</div>
 </body>
 </html>
