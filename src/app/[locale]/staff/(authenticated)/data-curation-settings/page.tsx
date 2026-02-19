@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { DataCurationNav } from '@/components/staff/DataCurationNav';
 
 type Settings = {
   pipeline: {
@@ -121,6 +122,7 @@ export default function DataCurationSettingsPage() {
   if (loading || !settings) {
     return (
       <div className="p-6 max-w-5xl mx-auto">
+        <DataCurationNav />
         <p className="text-sm text-gray-500">Loading Data Curation settings...</p>
       </div>
     );
@@ -128,6 +130,7 @@ export default function DataCurationSettingsPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-5">
+      <DataCurationNav />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Data Curation Settings</h1>

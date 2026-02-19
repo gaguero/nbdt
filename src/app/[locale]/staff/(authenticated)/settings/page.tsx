@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import { DataCurationNav } from '@/components/staff/DataCurationNav';
 import {
   TrashIcon, ServerIcon, ExclamationTriangleIcon, ArrowPathIcon,
   CheckCircleIcon, LockClosedIcon, ChevronDownIcon, ChevronRightIcon,
@@ -307,6 +308,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-4">
+      <DataCurationNav />
       {/* Header */}
       <div className="mb-2 flex items-start justify-between gap-4">
         <div>

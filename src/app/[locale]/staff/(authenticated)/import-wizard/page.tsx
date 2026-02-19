@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useLocale } from 'next-intl';
+import { DataCurationNav } from '@/components/staff/DataCurationNav';
 import {
   CloudArrowUpIcon,
   CheckCircleIcon,
@@ -127,6 +128,7 @@ export default function ImportWizardPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <DataCurationNav />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight">{ls('Guest Import Wizard', 'Asistente de Importación')}</h1>

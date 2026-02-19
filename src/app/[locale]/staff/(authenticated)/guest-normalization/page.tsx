@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
+import { DataCurationNav } from '@/components/staff/DataCurationNav';
 import { 
   UserGroupIcon, 
   LinkIcon, 
@@ -153,6 +154,7 @@ export default function GuestNormalizationPage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <DataCurationNav />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{ls('Guest Normalization Wizard', 'Mago de Normalización de Huéspedes')}</h1>

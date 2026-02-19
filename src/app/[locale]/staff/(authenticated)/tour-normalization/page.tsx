@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { DataCurationNav } from '@/components/staff/DataCurationNav';
 
 interface UniqueNameEntry {
   key: string;
@@ -393,6 +394,7 @@ export default function TourNormalizationPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <DataCurationNav />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Tour Bookings Import</h1>

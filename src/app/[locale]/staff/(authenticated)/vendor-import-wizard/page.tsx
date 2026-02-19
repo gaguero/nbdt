@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
+import { DataCurationNav } from '@/components/staff/DataCurationNav';
 import {
   CloudArrowUpIcon,
   CheckCircleIcon,
@@ -165,6 +166,7 @@ export default function VendorImportWizardPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <DataCurationNav />
       <div>
         <h1 className="text-2xl font-black text-gray-900 tracking-tight">
           {ls('Vendor Import Wizard', 'Asistente de Importacion de Vendedores')}
