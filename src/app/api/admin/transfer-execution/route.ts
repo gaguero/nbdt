@@ -136,15 +136,18 @@ export async function POST(request: NextRequest) {
             `UPDATE transfers
              SET date = $1,
                  time = $2,
-                 guest_id = $3,
-                 vendor_id = $4,
+                 guest_id = COALESCE($3, guest_id),
+                 vendor_id = COALESCE($4, vendor_id),
                  origin = $5,
                  destination = $6,
                  num_passengers = $7,
                  guest_status = $8,
                  vendor_status = $9,
-                 notes = $10
-             WHERE id = $11`,
+                 notes = $10,
+                 legacy_guest_id = COALESCE(legacy_guest_id, NULLIF($11, '')),
+                 legacy_vendor_id = COALESCE(legacy_vendor_id, NULLIF($12, '')),
+                 legacy_appsheet_id = COALESCE(legacy_appsheet_id, NULLIF($13, ''))
+             WHERE id = $14`,
             [
               transferDate,
               csv?.time || null,
@@ -156,6 +159,9 @@ export async function POST(request: NextRequest) {
               guestStatus,
               vendorStatus,
               csv?.notes || null,
+              csv?.guestLegacyId || '',
+              csv?.vendorLegacyId || '',
+              csv?.legacyId || '',
               match.id,
             ]
           );
@@ -167,8 +173,8 @@ export async function POST(request: NextRequest) {
             `INSERT INTO transfers
                (date, time, guest_id, vendor_id, origin, destination,
                 num_passengers, guest_status, vendor_status, notes,
-                legacy_appsheet_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                legacy_appsheet_id, legacy_guest_id, legacy_vendor_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
             [
               transferDate,
               csv?.time || null,
@@ -180,7 +186,9 @@ export async function POST(request: NextRequest) {
               guestStatus,
               vendorStatus,
               csv?.notes || null,
-              csv?.legacyAppsheetId || null,
+              csv?.legacyId || null,
+              csv?.guestLegacyId || null,
+              csv?.vendorLegacyId || null,
             ]
           );
           result.created++;
