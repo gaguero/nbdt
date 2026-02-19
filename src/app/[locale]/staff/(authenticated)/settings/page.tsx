@@ -126,6 +126,7 @@ export default function SettingsPage() {
   const [showReset, setShowReset] = useState(false);
   const [clearingAll, setClearingAll] = useState(false);
   const [showSystemInfo, setShowSystemInfo] = useState(false);
+  const [activeModule, setActiveModule] = useState<string>('import-wizard');
 
   const fetchDbStats = useCallback(async () => {
     setLoadingDb(true);
@@ -152,6 +153,18 @@ export default function SettingsPage() {
   const latestSyncRun = syncLogs[0]?.synced_at
     ? new Date(syncLogs[0].synced_at).toLocaleString()
     : undefined;
+
+  const moduleCatalog = [
+    { key: 'import-wizard', label: 'Guest Import' },
+    { key: 'vendor-import-wizard', label: 'Vendor Import' },
+    { key: 'transfer-wizard', label: 'Transfer Import' },
+    { key: 'tour-normalization', label: 'Tour Import' },
+    { key: 'guest-normalization', label: 'Guest Normalization' },
+    { key: 'vendor-normalization', label: 'Vendor Normalization' },
+    { key: 'data-curation-settings', label: 'Configuration' },
+  ] as const;
+
+  const activeModuleLabel = moduleCatalog.find(m => m.key === activeModule)?.label ?? 'Workspace';
 
   const handleManualSync = async () => {
     setSyncing(true);
@@ -314,17 +327,59 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Data Curation Center</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Guided pipeline for importing, syncing, and normalizing all operational data. Follow the steps in order for best results.
+            Unified workspace: run every import, sync, and normalization module without leaving this page.
           </p>
         </div>
-        <Link
-          href={staffHref('data-curation-settings')}
+        <button
+          type="button"
+          onClick={() => setActiveModule('data-curation-settings')}
           className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
         >
           <Cog6ToothIcon className="h-4 w-4" />
-          Settings
-        </Link>
+          Open Configuration
+        </button>
       </div>
+
+      <section className="rounded-2xl border border-gray-200 bg-gradient-to-r from-emerald-50 via-white to-amber-50 p-4 space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-700 font-semibold">Unified Module Runner</p>
+            <h2 className="text-lg font-semibold text-gray-900">{activeModuleLabel}</h2>
+            <p className="text-xs text-gray-500">All tools run in this page. Use step cards below to jump modules instantly.</p>
+          </div>
+          <Link
+            href={staffHref(activeModule)}
+            target="_blank"
+            className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50"
+          >
+            <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+            Open module in new tab
+          </Link>
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-1">
+          {moduleCatalog.map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              onClick={() => setActiveModule(m.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                activeModule === m.key
+                  ? 'bg-emerald-700 text-white'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <div className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-inner">
+          <iframe
+            title={activeModuleLabel}
+            src={staffHref(activeModule)}
+            className="w-full h-[860px] bg-white"
+          />
+        </div>
+      </section>
 
       {/* Loading indicator */}
       {loadingDb && (
@@ -421,13 +476,14 @@ export default function SettingsPage() {
                 locked={false}
                 fileRef="Concierge - Huespedes.csv"
               >
-                <Link
-                  href={staffHref('import-wizard')}
+                <button
+                  type="button"
+                  onClick={() => setActiveModule('import-wizard')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Open Guest Import Wizard
-                </Link>
+                  Open in Workspace
+                </button>
               </StepCard>
 
               {/* Step 2 — Opera PMS Sync */}
@@ -505,13 +561,14 @@ export default function SettingsPage() {
                 locked={false}
                 fileRef="Concierge - Vendedores.csv"
               >
-                <Link
-                  href={staffHref('vendor-import-wizard')}
+                <button
+                  type="button"
+                  onClick={() => setActiveModule('vendor-import-wizard')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Open Vendor Import Wizard
-                </Link>
+                  Open in Workspace
+                </button>
                 <p className="text-xs text-gray-400 mt-2">
                   After import, use the Vendors page to edit contact info or activate vendor users.
                 </p>
@@ -528,13 +585,14 @@ export default function SettingsPage() {
                 lockReason="Requires guests"
                 fileRef="Concierge - Traslados Llegadas y Salidas.csv"
               >
-                <Link
-                  href={staffHref('transfer-wizard')}
+                <button
+                  type="button"
+                  onClick={() => setActiveModule('transfer-wizard')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Open Transfer Import Wizard
-                </Link>
+                  Open in Workspace
+                </button>
               </StepCard>
 
               {/* Step 5 — Tour Normalization */}
@@ -547,13 +605,14 @@ export default function SettingsPage() {
                 locked={false}
                 fileRef="Concierge - Actividades.csv"
               >
-                <Link
-                  href={staffHref('tour-normalization')}
+                <button
+                  type="button"
+                  onClick={() => setActiveModule('tour-normalization')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Open Tour Normalization Wizard
-                </Link>
+                  Open in Workspace
+                </button>
               </StepCard>
 
               {/* Step 6 — Guest Normalization */}
@@ -566,13 +625,14 @@ export default function SettingsPage() {
                 locked={getCount('guests') === 0 && getCount('reservations') === 0}
                 lockReason="Requires guests or reservations"
               >
-                <Link
-                  href={staffHref('guest-normalization')}
+                <button
+                  type="button"
+                  onClick={() => setActiveModule('guest-normalization')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Open Guest Normalization Tool
-                </Link>
+                  Open in Workspace
+                </button>
               </StepCard>
 
               {/* Step 7 — Vendor Normalization */}
@@ -585,13 +645,14 @@ export default function SettingsPage() {
                 locked={getCount('vendors') < 2}
                 lockReason="Requires 2+ vendors"
               >
-                <Link
-                  href={staffHref('vendor-normalization')}
+                <button
+                  type="button"
+                  onClick={() => setActiveModule('vendor-normalization')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  Open Vendor Normalization Tool
-                </Link>
+                  Open in Workspace
+                </button>
               </StepCard>
 
             </div>
