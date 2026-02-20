@@ -62,7 +62,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
 
   const allNavigation: NavItem[] = [
     // Overview
-    { name: ls('Dashboard', 'Panel'), href: `/${locale}/staff/dashboard`, icon: HomeIcon, group: ls('Overview', 'Vista General') },
+    { name: ls('Dashboard', 'Panel'), href: `/dashboard.html`, icon: HomeIcon, group: ls('Overview', 'Vista General') },
     { name: ls('My Profile', 'Mi Perfil'), href: `/${locale}/staff/profiles/me`, icon: UserCircleIcon, group: ls('Overview', 'Vista General') },
     { name: ls('Reservations', 'Reservaciones'), href: `/${locale}/staff/reservations`, icon: CalendarDaysIcon, group: ls('Overview', 'Vista General'), permission: 'reservations:read' },
     { name: ls('Guests', 'Huéspedes'), href: `/${locale}/staff/guests`, icon: UsersIcon, group: ls('Overview', 'Vista General'), permission: 'guests:read' },
