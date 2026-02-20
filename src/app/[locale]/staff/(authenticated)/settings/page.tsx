@@ -26,6 +26,7 @@ type ModuleKey =
   | 'guestImport'
   | 'opera'
   | 'vendorImport'
+  | 'appsheetImport'
   | 'transferImport'
   | 'tourImport'
   | 'guestCleanup'
@@ -374,6 +375,7 @@ export default function SettingsPage() {
       { key: 'guestImport' as ModuleKey, label: 'Guest Import', icon: UserPlusIcon, note: `${getCount('guests')} guests` },
       { key: 'opera' as ModuleKey, label: 'Opera Sync', icon: ArrowPathIcon, note: `${getCount('reservations')} reservations` },
       { key: 'vendorImport' as ModuleKey, label: 'Vendor Import', icon: UserGroupIcon, note: `${getCount('vendors')} vendors` },
+      { key: 'appsheetImport' as ModuleKey, label: 'AppSheet Import', icon: CloudArrowUpIcon, note: 'Legacy table ingestion' },
       {
         key: 'transferImport' as ModuleKey,
         label: 'Transfer Import',
@@ -1256,10 +1258,11 @@ export default function SettingsPage() {
       { step: 1, module: 'guestImport' as ModuleKey, title: 'Guest Import', desc: 'Import full profiles first.', source: 'Concierge - Huespedes.csv', count: `${getCount('guests')} guests` },
       { step: 2, module: 'opera' as ModuleKey, title: 'Opera PMS Sync', desc: 'Sync reservations from Opera.', source: 'Opera XML', count: `${getCount('reservations')} reservations`, warning: activeSettings.pipeline.requireGuestImportBeforeOpera && getCount('guests') === 0 ? 'Recommended: import guests first.' : '' },
       { step: 3, module: 'vendorImport' as ModuleKey, title: 'Vendor Import', desc: 'Build canonical vendor base.', source: 'Concierge - Vendedores.csv', count: `${getCount('vendors')} vendors` },
-      { step: 4, module: 'transferImport' as ModuleKey, title: 'Transfer Import', desc: 'Link vendors by legacy vendor ID.', source: 'Concierge - Traslados Llegadas y Salidas.csv', count: `${getCount('transfers')} transfers`, locked: transferLocked, lockReason: 'Requires guests first.' },
-      { step: 5, module: 'tourImport' as ModuleKey, title: 'Tour Import', desc: 'Group and map tours by vendor context.', source: 'Concierge - Actividades.csv', count: `${getCount('tour_bookings')} bookings` },
-      { step: 6, module: 'guestCleanup' as ModuleKey, title: 'Guest Normalization', desc: 'Merge duplicates and relink orphans.', source: 'N/A', count: `${getCount('guests')} guests`, locked: guestNormLocked, lockReason: 'Needs guests or reservations.' },
-      { step: 7, module: 'vendorCleanup' as ModuleKey, title: 'Vendor Normalization', desc: 'Merge duplicate vendors.', source: 'N/A', count: `${getCount('vendors')} vendors`, locked: vendorNormLocked, lockReason: `Requires ${activeSettings.pipeline.vendorNormalizationMinVendors}+ vendors.` },
+      { step: 4, module: 'appsheetImport' as ModuleKey, title: 'AppSheet Import', desc: 'Direct legacy table ingestion.', source: 'Various AppSheet CSVs', count: 'Multiple tables' },
+      { step: 5, module: 'transferImport' as ModuleKey, title: 'Transfer Import', desc: 'Link vendors by legacy vendor ID.', source: 'Concierge - Traslados Llegadas y Salidas.csv', count: `${getCount('transfers')} transfers`, locked: transferLocked, lockReason: 'Requires guests first.' },
+      { step: 6, module: 'tourImport' as ModuleKey, title: 'Tour Import', desc: 'Group and map tours by vendor context.', source: 'Concierge - Actividades.csv', count: `${getCount('tour_bookings')} bookings` },
+      { step: 7, module: 'guestCleanup' as ModuleKey, title: 'Guest Normalization', desc: 'Merge duplicates and relink orphans.', source: 'N/A', count: `${getCount('guests')} guests`, locked: guestNormLocked, lockReason: 'Needs guests or reservations.' },
+      { step: 8, module: 'vendorCleanup' as ModuleKey, title: 'Vendor Normalization', desc: 'Merge duplicate vendors.', source: 'N/A', count: `${getCount('vendors')} vendors`, locked: vendorNormLocked, lockReason: `Requires ${activeSettings.pipeline.vendorNormalizationMinVendors}+ vendors.` },
     ];
 
     return (
@@ -2033,6 +2036,23 @@ export default function SettingsPage() {
         return renderOperaModule();
       case 'vendorImport':
         return renderVendorImportModule();
+      case 'appsheetImport':
+        return (
+          <div className="space-y-4">
+            <SectionTitle title="AppSheet Legacy Import" subtitle="Directly ingest CSV exports from legacy AppSheet tables." />
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center space-y-4">
+              <CloudArrowUpIcon className="h-12 w-12 mx-auto text-slate-400" />
+              <p className="text-slate-600 max-w-md mx-auto">Use the specialized AppSheet Import tool to migrate data from your legacy spreadsheets with column mapping and validation.</p>
+              <button 
+                type="button" 
+                onClick={() => window.location.href = `/${window.location.pathname.split('/')[1]}/staff/appsheet-import`}
+                className="rounded-lg bg-slate-900 text-white px-6 py-2.5 text-sm font-semibold hover:bg-slate-800"
+              >
+                Open AppSheet Importer
+              </button>
+            </div>
+          </div>
+        );
       case 'transferImport':
         return renderTransferModule();
       case 'tourImport':

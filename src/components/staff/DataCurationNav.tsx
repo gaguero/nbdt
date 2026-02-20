@@ -16,6 +16,7 @@ const ITEMS: NavItem[] = [
   { key: 'center', label: 'Center', href: '/staff/settings', detail: 'Overview and orchestration' },
   { key: 'guests', label: 'Guest Import', href: '/staff/import-wizard', detail: 'Create complete guest profiles' },
   { key: 'vendors', label: 'Vendor Import', href: '/staff/vendor-import-wizard', detail: 'Sync vendors with legacy IDs' },
+  { key: 'appsheet', label: 'AppSheet Import', href: '/staff/appsheet-import', detail: 'Direct legacy table ingestion' },
   { key: 'transfers', label: 'Transfer Import', href: '/staff/transfer-wizard', detail: 'Import and resolve transfer rows' },
   { key: 'tours', label: 'Tour Import', href: '/staff/tour-normalization', detail: 'Normalize activities and vendors' },
   { key: 'guest_norm', label: 'Guest Normalization', href: '/staff/guest-normalization', detail: 'Merge duplicates and relink' },
