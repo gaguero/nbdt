@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryOne } from '@/lib/db';
 import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { getRolePermissions } from '@/lib/roles';
 
 // ============================================================================
 // TYPES
@@ -11,7 +12,7 @@ interface StaffUserRow {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'admin' | 'manager' | 'staff' | 'kitchen' | 'front_desk';
+  role: string;
   property_id: string;
   permissions: string[];
   is_active: boolean;
@@ -80,6 +81,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Compute effective permissions: Role Defaults + DB Custom Permissions
+    const rolePermissions = getRolePermissions(user.role);
+    const dbPermissions = user.permissions || [];
+    const effectivePermissions = Array.from(new Set([...rolePermissions, ...dbPermissions]));
+
     // Prepare user data response
     const userData = {
       id: user.id,
@@ -89,7 +95,7 @@ export async function GET(request: NextRequest) {
       fullName: `${user.first_name} ${user.last_name}`,
       role: user.role,
       propertyId: user.property_id,
-      permissions: user.permissions,
+      permissions: effectivePermissions,
       isActive: user.is_active,
       lastLoginAt: user.last_login_at,
       createdAt: user.created_at,

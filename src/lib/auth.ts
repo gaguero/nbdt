@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { getRolePermissions } from './roles';
+import { Permission } from './permissions';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -10,17 +12,24 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'manager' | 'staff' | 'kitchen' | 'front_desk';
+  role: string;
   propertyId: string;
-  permissions: string[];
+  permissions: Permission[];
   isActive: boolean;
 }
 
 export interface TokenPayload {
   userId: string;
   email: string;
-  role: 'admin' | 'manager' | 'staff' | 'kitchen' | 'front_desk';
+  role: string;
   propertyId: string;
+  // Permissions are not typically stored in the token to keep it small and allow immediate revocation/changes,
+  // but for statelessness we can compute them on verify or verify against DB.
+  // Here, verifyToken will return an EnhancedTokenPayload that includes permissions.
+}
+
+export interface EnhancedTokenPayload extends TokenPayload {
+  permissions: Permission[];
 }
 
 // ============================================================================
@@ -38,7 +47,7 @@ export interface TokenPayload {
 export function generateToken(
   userId: string,
   email: string,
-  role: 'admin' | 'manager' | 'staff' | 'kitchen' | 'front_desk',
+  role: string,
   propertyId: string
 ): string {
   const secret = process.env.JWT_SECRET;
@@ -60,12 +69,12 @@ export function generateToken(
 }
 
 /**
- * Verifies and decodes a JWT token
+ * Verifies and decodes a JWT token, and augments it with permissions based on Role.
  * @param token - JWT token string to verify
- * @returns Decoded token payload
+ * @returns Decoded token payload with Permissions
  * @throws Error if token is invalid or expired
  */
-export function verifyToken(token: string): TokenPayload {
+export function verifyToken(token: string): EnhancedTokenPayload {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
@@ -74,7 +83,14 @@ export function verifyToken(token: string): TokenPayload {
 
   try {
     const decoded = jwt.verify(token, secret) as TokenPayload;
-    return decoded;
+    
+    // Compute permissions based on Role (and later, custom DB permissions)
+    const permissions = getRolePermissions(decoded.role);
+
+    return {
+      ...decoded,
+      permissions
+    };
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
       throw new Error('Invalid token');
