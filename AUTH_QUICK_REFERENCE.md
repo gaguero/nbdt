@@ -268,62 +268,103 @@ NODE_ENV=development npm run dev
 
 ---
 
-## 📝 User Roles
+## 📝 User Roles & Matrix
 
-| Role | Description | Typical Permissions |
-|------|-------------|---------------------|
-| `admin` | Full system access | All permissions |
-| `manager` | Property management | Manage orders, menu, bookings |
-| `staff` | Front desk staff | View orders, create bookings |
-| `kitchen` | Kitchen staff | View/update kitchen orders |
-| `front_desk` | Reception | Guest check-in, room management |
+The system uses a **Role-Based Access Control (RBAC)** model. Permissions are granular (`resource:action`) and roles provide a default set of these permissions.
 
----
+### Available Roles
+- `admin`: Full system access (overrides all checks).
+- `manager`: Full operational management + staff management.
+- `concierge`: Guest experience, tours, and transfers.
+- `front_desk`: Reservations and basic guest handling.
+- `kitchen`: KDS access and order updates.
+- `bar`: Bar KDS and order management.
+- `waiter`: Room service ordering and delivery.
+- `logistics`: Fleet and transfer assignment.
+- `captain`: Boat operations and assigned transfers.
+- `housekeeping`: Occupancy view and request handling.
+- `maintenance`: Technical requests and room status.
 
-## 🔄 Auth Flow Diagram
-
-```
-1. User visits /staff/dashboard
-   ↓
-2. Middleware checks for auth cookie
-   ↓
-3a. Cookie exists & valid → Allow access
-3b. No cookie or invalid → Redirect to /staff/login?redirect=/staff/dashboard
-   ↓
-4. User enters credentials → POST /api/auth/login
-   ↓
-5. Server validates → Sets cookie → Returns user data
-   ↓
-6. Client redirects to /staff/dashboard (from redirect param)
-   ↓
-7. Middleware allows access (cookie is now valid)
-```
+### Permissions Dictionary
+- `guests:read`, `guests:create`, `guests:update`, `guests:delete`, `guests:merge`
+- `reservations:read`, `reservations:import`, `reservations:manage`
+- `transfers:read`, `transfers:create`, `transfers:update`, `transfers:delete`, `transfers:assign`
+- `tours:read`, `tours:create`, `tours:update`, `tours:delete`, `tours:products:manage`
+- `orders:read`, `orders:create`, `orders:update`, `orders:void`
+- `staff:read`, `staff:manage`, `settings:manage`, `reports:view`
 
 ---
 
-## 📚 Available Utilities
+## ⚛️ Using RBAC in React Components
 
-### From `@/lib/auth`
+### usePermissions Hook
+The easiest way to check capabilities in any client component.
+
 ```typescript
-import {
-  generateToken,
-  verifyToken,
-  hashPassword,
-  comparePassword,
-  AUTH_COOKIE_NAME,
-  COOKIE_OPTIONS
-} from '@/lib/auth';
+import { usePermissions } from '@/hooks/usePermissions';
+
+export default function MyComponent() {
+  const { can, is, role } = usePermissions();
+
+  if (can('guests:delete')) {
+    return <button>Delete Guest</button>;
+  }
+  
+  if (is('captain')) {
+    return <p>Welcome, Captain!</p>;
+  }
+}
 ```
 
-### From `@/hooks/useAuth`
-```typescript
-import {
-  useAuth,
-  hasPermission,
-  hasRole,
-  hasAnyRole
-} from '@/hooks/useAuth';
+### PermissionGuard Component
+Declaratively hide UI elements.
+
+```tsx
+import { PermissionGuard } from '@/components/auth/PermissionGuard';
+
+<PermissionGuard permission="staff:manage">
+  <Link href="/staff/users">Manage Staff</Link>
+</PermissionGuard>
+
+<PermissionGuard permissions={['orders:void', 'orders:update']} requireAll={false}>
+  <AdminOrderControls />
+</PermissionGuard>
 ```
+
+---
+
+## 🛡️ Server-Side Enforcement
+
+Use `protectRoute` in API handlers to ensure only authorized staff can access data.
+
+```typescript
+// src/app/api/your-route/route.ts
+import { protectRoute } from '@/lib/auth-guards';
+
+export async function POST(request: NextRequest) {
+  const auth = await protectRoute(request, 'guests:create');
+  if (auth instanceof NextResponse) return auth; // Handles 401/403 automatically
+
+  // User is authorized, proceed...
+  const user = auth; 
+}
+```
+
+---
+
+## 🌐 API Endpoints
+
+### User Management (Requires staff:manage)
+- `GET /api/staff-users`: List all staff.
+- `POST /api/staff-users`: Create new staff member (auto-creates staff profile).
+- `PUT /api/staff-users`: Update role, station, or custom permissions.
+- `PATCH /api/staff-users`: Administrative password reset.
+
+### Self-Service
+- `GET /api/auth/me`: Get current user + effective permissions.
+- `PUT /api/auth/profile`: Update own name/details.
+- `PUT /api/auth/change-password`: Securely change own password.
+
 
 ---
 

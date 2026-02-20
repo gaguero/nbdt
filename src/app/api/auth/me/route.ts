@@ -18,6 +18,7 @@ interface StaffUserRow {
   is_active: boolean;
   last_login_at: string | null;
   created_at: string;
+  station: string | null;
 }
 
 // ============================================================================
@@ -59,7 +60,8 @@ export async function GET(request: NextRequest) {
         permissions,
         is_active,
         last_login_at,
-        created_at
+        created_at,
+        station
       FROM staff_users
       WHERE id = $1`,
       [tokenPayload.userId]
@@ -99,6 +101,7 @@ export async function GET(request: NextRequest) {
       isActive: user.is_active,
       lastLoginAt: user.last_login_at,
       createdAt: user.created_at,
+      station: user.station,
     };
 
     return NextResponse.json(

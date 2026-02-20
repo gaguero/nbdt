@@ -63,6 +63,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
   const allNavigation: NavItem[] = [
     // Overview
     { name: ls('Dashboard', 'Panel'), href: `/${locale}/staff/dashboard`, icon: HomeIcon, group: ls('Overview', 'Vista General') },
+    { name: ls('My Profile', 'Mi Perfil'), href: `/${locale}/staff/profiles/me`, icon: UserCircleIcon, group: ls('Overview', 'Vista General') },
     { name: ls('Reservations', 'Reservaciones'), href: `/${locale}/staff/reservations`, icon: CalendarDaysIcon, group: ls('Overview', 'Vista General'), permission: 'reservations:read' },
     { name: ls('Guests', 'Huéspedes'), href: `/${locale}/staff/guests`, icon: UsersIcon, group: ls('Overview', 'Vista General'), permission: 'guests:read' },
     { name: ls('Profiles', 'Perfiles'), href: `/${locale}/staff/profiles`, icon: UserGroupIcon, group: ls('Overview', 'Vista General'), permission: 'guests:read' },
@@ -83,6 +84,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     { name: ls('Messages', 'Mensajes'), href: `/${locale}/staff/messages`, icon: ChatBubbleLeftRightIcon, group: ls('Communications', 'Comunicaciones') }, // Open to all staff usually
 
     // Admin
+    { name: ls('User Management', 'Gestión de Usuarios'), href: `/${locale}/staff/users`, icon: UsersIcon, group: ls('Admin', 'Admin'), permission: 'staff:manage' },
     { name: ls('Vendors', 'Vendedores'), href: `/${locale}/staff/vendors`, icon: UserGroupIcon, group: ls('Admin', 'Admin'), permission: 'settings:manage' },
     { name: ls('Vendor Import', 'Importar Vendedores'), href: `/${locale}/staff/vendor-import-wizard`, icon: CloudArrowUpIcon, group: ls('Admin', 'Admin'), permission: 'settings:manage' },
     { name: ls('Tour Products', 'Productos de Tours'), href: `/${locale}/staff/tour-products`, icon: MapIcon, group: ls('Admin', 'Admin'), permission: 'tours:products:manage' },

@@ -4,13 +4,28 @@ A Next.js 15.3.3 multilingual guest ordering system for Nayara Bocas del Toro.
 
 ## Features
 
-- Next.js 15.3.3 with App Router
-- TypeScript support
-- Tailwind CSS for styling
-- Internationalization with next-intl
-- PostgreSQL database
-- JWT authentication
-- Guest and staff interfaces
+### 🏨 Hospitality Operations
+- **Opera PMS Sync**: Hourly XML import for reservations and guest data.
+- **Concierge Modules**: Complete CRUD for Transfers, Tours, and Special Requests.
+- **Data Curation Center**: Smart deduplication and normalization tools for legacy imports.
+- **Multilingual**: Full support for English and Spanish (next-intl).
+
+### 🔐 Security & Access Control
+- **Granular RBAC**: Permission-based access (`resource:action`) for 11 distinct roles.
+- **User Management**: Admin tools for staff creation, deactivation, and password resets.
+- **Self-Service**: Dedicated staff profile management and secure password change.
+
+### 🍽️ Guest Experience
+- **Digital Concierge**: Guest-facing landing pages and order tracking.
+- **Room Service**: F&B ordering system with KDS integration (Coming Soon).
+
+## Tech Stack
+- **Framework**: Next.js 15.3.3 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: PostgreSQL (pg)
+- **Auth**: JWT (jose) + Bcrypt
+- **Deployment**: Railway (Nixpacks)
 
 ## Getting Started
 
@@ -30,15 +45,15 @@ cp .env.example .env.local
 npm run db:migrate
 ```
 
-4. Seed the database:
-```bash
-npm run db:seed
-```
-
-5. Run the development server:
+4. Run the development server:
 ```bash
 npm run dev
 ```
+
+## Branch Strategy
+- `master`: Production-ready code.
+- `dev2`: Current development branch for User/Profile modules.
+
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
