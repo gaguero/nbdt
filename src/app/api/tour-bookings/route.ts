@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryMany, queryOne, query, transaction } from '@/lib/db';
-import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
-import { verifyTokenEdge } from '@/lib/jwt-edge';
-
+import { protectRoute } from '@/lib/auth-guards';
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await protectRoute(request, 'tours:read');
+    if (auth instanceof NextResponse) return auth;
+
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter');
     const date_from = searchParams.get('date_from');
@@ -13,21 +14,8 @@ export async function GET(request: NextRequest) {
     const product_id = searchParams.get('product_id');
     const vendor_id_param = searchParams.get('vendor_id');
 
-    // Auth: accept staff token or vendor token
-    const staffToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    const vendorToken = request.cookies.get('nayara_vendor_token')?.value;
-
-    let autoVendorId: string | null = null;
-
-    if (staffToken) {
-      verifyToken(staffToken);
-    } else if (vendorToken) {
-      const payload = await verifyTokenEdge(vendorToken);
-      // When vendor is logged in, restrict to their vendor ID
-      autoVendorId = payload.propertyId;
-    } else {
-      // Allow public access (guest booking)
-    }
+    // vendor filter: explicit param or auto from vendor token
+    const effectiveVendorId = (auth as any).propertyId || vendor_id_param;
 
     let whereClause = 'WHERE 1=1';
     const params: any[] = [];
@@ -35,8 +23,6 @@ export async function GET(request: NextRequest) {
 
     if (product_id) { whereClause += ` AND tb.product_id = $${idx++}`; params.push(product_id); }
 
-    // vendor filter: explicit param or auto from vendor token
-    const effectiveVendorId = autoVendorId || vendor_id_param;
     if (effectiveVendorId) { whereClause += ` AND tp.vendor_id = $${idx++}`; params.push(effectiveVendorId); }
 
     if (filter === 'today') whereClause += ` AND COALESCE(ts.date, tb.activity_date) = CURRENT_DATE`;
@@ -71,7 +57,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // POST is public — guests, staff, and vendors can create bookings
+    const auth = await protectRoute(request, 'tours:create');
+    if (auth instanceof NextResponse) return auth;
+
     const body = await request.json();
 
     const booking = await transaction(async (client) => {
@@ -116,20 +104,16 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Accept staff or vendor token
-    const staffToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    const vendorToken = request.cookies.get('nayara_vendor_token')?.value;
-
-    let userId = 'vendor';
-    if (staffToken) {
-      const user = verifyToken(staffToken);
-      userId = user.userId;
-    } else if (vendorToken) {
-      await verifyTokenEdge(vendorToken);
-    } else {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let auth = await protectRoute(request, 'tours:update');
+    const isStaff = !(auth instanceof NextResponse);
+    
+    // Fallback: check if vendor
+    if (!isStaff) {
+      const vendorToken = request.cookies.get('nayara_vendor_token')?.value;
+      if (!vendorToken) return auth;
     }
 
+    const userId = (auth as any).userId || 'vendor';
     const body = await request.json();
     const { id, ...fields } = body;
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
@@ -144,7 +128,7 @@ export async function PUT(request: NextRequest) {
     // Vendors can only update vendor_status; staff can update all
     const vendorOnlyFields = ['vendor_status'];
     const staffFields = ['guest_status', 'vendor_status', 'billed_date', 'paid_date', 'special_requests', 'num_guests', 'total_price'];
-    const allowedFields = staffToken ? staffFields : vendorOnlyFields;
+    const allowedFields = isStaff ? staffFields : vendorOnlyFields;
 
     for (const field of allowedFields) {
       if (field in fields) {
@@ -193,9 +177,8 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'tours:delete');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

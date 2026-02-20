@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryMany, queryOne } from '@/lib/db';
-import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { protectRoute } from '@/lib/auth-guards';
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:read');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter');
@@ -39,9 +38,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
     const dinner = await queryOne(
@@ -58,9 +56,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
     const { id, ...fields } = body;
@@ -87,9 +84,8 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

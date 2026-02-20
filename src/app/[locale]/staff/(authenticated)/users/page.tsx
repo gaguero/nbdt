@@ -6,7 +6,7 @@ import { RolesSelect } from '@/components/staff/RolesSelect';
 import { PermissionsPicker } from '@/components/staff/PermissionsPicker';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
 import Modal from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
 import { UserGroupIcon, PencilIcon } from '@heroicons/react/24/outline';
 
 interface StaffUser {

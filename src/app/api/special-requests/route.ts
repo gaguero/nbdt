@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryMany, queryOne } from '@/lib/db';
-import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { protectRoute } from '@/lib/auth-guards';
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:read');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter');
@@ -19,8 +18,8 @@ export async function GET(request: NextRequest) {
     let idx = 1;
 
     if (filter === 'today') whereClause += ` AND sr.date = CURRENT_DATE`;
-    if (status) { whereClause += ` AND sr.status = $${idx++}`; params.push(status); }
-    if (department && department !== 'all') { whereClause += ` AND sr.department = $${idx++}`; params.push(department); }
+    if (status) { whereClause += ` AND sr.status = ${idx++}`; params.push(status); }
+    if (department && department !== 'all') { whereClause += ` AND sr.department = ${idx++}`; params.push(department); }
 
     if (countOnly) {
       const result = await queryOne(
@@ -49,14 +48,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
     const result = await queryOne(
       `INSERT INTO special_requests (date, time, guest_id, reservation_id, request, department, status, check_in, check_out, notes, priority, assigned_to, internal_notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+       VALUES (,$2,$3,$4,$5,$6,$7,$8,$9,0,1,2,3) RETURNING *`,
       [body.date, body.time, body.guest_id, body.reservation_id, body.request, body.department, body.status || 'pending', body.check_in, body.check_out, body.notes, body.priority || 'normal', body.assigned_to || null, body.internal_notes || null]
     );
 
@@ -68,9 +66,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
     const { id, ...fields } = body;
@@ -82,12 +79,12 @@ export async function PUT(request: NextRequest) {
 
     const allowedFields = ['date', 'time', 'guest_id', 'request', 'department', 'status', 'check_in', 'check_out', 'notes', 'priority', 'assigned_to', 'internal_notes'];
     for (const field of allowedFields) {
-      if (field in fields) { setClauses.push(`${field} = $${idx++}`); params.push(fields[field]); }
+      if (field in fields) { setClauses.push(`${field} = ${idx++}`); params.push(fields[field]); }
     }
 
     if (setClauses.length === 0) return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     params.push(id);
-    const result = await queryOne(`UPDATE special_requests SET ${setClauses.join(', ')} WHERE id = $${idx} RETURNING *`, params);
+    const result = await queryOne(`UPDATE special_requests SET ${setClauses.join(', ')} WHERE id = ${idx} RETURNING *`, params);
 
     return NextResponse.json({ request: result });
   } catch (error: any) {
@@ -97,16 +94,15 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
     const result = await queryOne(
-      `UPDATE special_requests SET status = 'resolved' WHERE id = $1 RETURNING id`,
+      `UPDATE special_requests SET status = 'resolved' WHERE id =  RETURNING id`,
       [id]
     );
     if (!result) return NextResponse.json({ error: 'Not found' }, { status: 404 });

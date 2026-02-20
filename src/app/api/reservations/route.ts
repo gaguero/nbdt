@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryMany, queryOne } from '@/lib/db';
-import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { protectRoute } from '@/lib/auth-guards';
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'reservations:read');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -30,7 +29,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (filter === 'arriving_today' || filter === 'arrivals') {
-      const targetDate = date || 'CURRENT_DATE';
       if (date) {
         whereClause += ` AND r.arrival = $${paramIdx++}`;
         params.push(date);
