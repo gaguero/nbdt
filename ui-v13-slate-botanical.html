@@ -894,40 +894,6 @@
     setTimeout(() => { $$('.occ-fill').forEach(b => { b.style.width = b.dataset.width; }); }, 100);
   }
 
-  // ── APPLY DATE CHANGE ──
-  function applyDateChange() {
-    updateDateLabel();
-    if (activePanelId) {
-      renderDetailPanel(activePanelId, currentDateOffset);
-    } else {
-      renderDayBrief(currentDateOffset);
-    }
-  }
-
-  // ── MODE TOGGLE ──
-  $$('.mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      $$('.mode-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const mode = btn.dataset.mode;
-      if (mode === 'date') {
-        $('#viewDate').classList.add('active');
-        $('#viewService').classList.remove('active');
-        $('#dateNav').style.display = 'flex';
-        $('#serviceTabs').style.display = 'none';
-        // always land on day brief
-        closePanelShowBrief();
-        renderDayBrief(currentDateOffset);
-      } else {
-        $('#viewDate').classList.remove('active');
-        $('#viewService').classList.add('active');
-        $('#dateNav').style.display = 'none';
-        $('#serviceTabs').style.display = 'flex';
-        renderServiceView($('.service-tab.active')?.dataset.svc || 'transfers');
-      }
-    });
-  });
-
   // ── DATE NAV ──
   $$('.date-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -945,16 +911,7 @@
     applyDateChange();
   });
 
-  // ── SERVICE TAB CLICK ──
-  $$('.service-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      $$('.service-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      renderServiceView(tab.dataset.svc);
-    });
-  });
-
-  // ── SERVICE DATA ──
+  // ── SERVICE DATA (cache — populated by live fetch) ──
   const serviceData = {
     transfers: {
       headers: ['Guest / Villa', 'Route', 'Time', 'Driver', 'Status'],
@@ -1418,8 +1375,473 @@
     });
   }
 
-  // ── INITIAL RENDER (after all data/functions defined) ──
-  renderDayBrief(0);
+  // ══════════════════════════════════════════════════════════
+  // ── REAL API INTEGRATION ──
+  // ══════════════════════════════════════════════════════════
+
+  // ── DATE STRING HELPER ──
+  function getDateStr(offset) {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return d.toISOString().split('T')[0]; // YYYY-MM-DD
+  }
+
+  // ── STATUS NORMALIZER (API → dashboard CSS class) ──
+  function mapStatus(s) {
+    const m = {
+      confirmed: 'confirmed', approved: 'confirmed', checked_in: 'confirmed',
+      pending: 'pending', requested: 'pending', new: 'pending',
+      completed: 'completed', done: 'completed', resolved: 'completed', delivered: 'completed',
+      en_route: 'en-route', 'en-route': 'en-route', active: 'en-route', in_progress: 'en-route',
+      cancelled: 'pending', high: 'high', normal: 'low', low: 'low', medium: 'medium',
+    };
+    return m[(s||'').toLowerCase()] || 'pending';
+  }
+
+  // ── ROW NORMALIZER (API row → dashboard array format) ──
+  function normalizeRow(svc, r) {
+    const gv = (name, room) => room
+      ? `${name||'—'}<br><small>${room}</small>`
+      : (name || '—');
+    switch (svc) {
+      case 'transfers':
+        return [
+          gv(r.guest_name, r.room || r.room_number),
+          `${r.origin||'—'} → ${r.destination||'—'}`,
+          r.time || '—',
+          r.vendor_name || r.driver_name || '—',
+          mapStatus(r.guest_status || r.status),
+        ];
+      case 'tours':
+        return [
+          r.name_en || r.tour_name || r.name || '—',
+          r.start_time || r.time || '—',
+          r.vendor_name || r.guide_name || '—',
+          r.num_guests != null ? String(r.num_guests) : '—',
+          mapStatus(r.guest_status || r.status),
+        ];
+      case 'arrivals':
+        return [
+          gv(r.guest_name || `${r.first_name||''} ${r.last_name||''}`.trim(), r.room),
+          r.arrival_time || r.arrival || '—',
+          mapStatus(r.transfer_booked ? 'confirmed' : (r.status || 'pending')),
+          r.notes || r.special_requests || '',
+        ];
+      case 'departures':
+        return [
+          gv(r.guest_name || `${r.first_name||''} ${r.last_name||''}`.trim(), r.room),
+          r.departure_time || r.departure || '—',
+          mapStatus(r.transfer_booked ? 'confirmed' : 'completed'),
+          mapStatus(r.billing_status || r.status || 'pending'),
+        ];
+      case 'dinners':
+        return [
+          gv(r.guest_name, r.location || r.room),
+          r.time || '—',
+          r.location || '—',
+          r.vendor_name || 'In-house',
+          mapStatus(r.status),
+        ];
+      case 'requests':
+        return [
+          r.request || r.title || '—',
+          r.guest_name || '—',
+          r.department || '—',
+          mapStatus(r.priority || 'normal'),
+          r.status || 'pending',
+        ];
+      case 'conversations':
+        return [
+          r.guest_name || '—',
+          r.channel_label_en || r.channel || '—',
+          r.last_message || r.snippet || '—',
+          String(r.unread_count || r.unread || '0'),
+        ];
+      case 'orders':
+        return [
+          r.order_number || r.id?.slice(0,8) || '—',
+          r.room || r.room_id || '—',
+          (r.items||[]).map(i=>`${i.quantity||1}x ${i.name_en||i.name||''}`).join(', ') || '—',
+          mapStatus(r.status),
+        ];
+      default:
+        return Object.values(r).slice(0, 5).map(v => String(v||'—'));
+    }
+  }
+
+  // ── HEADERS PER SERVICE ──
+  const svcHeaders = {
+    transfers:     ['Guest / Villa', 'Route', 'Time', 'Driver', 'Status'],
+    tours:         ['Tour Name', 'Time', 'Guide', 'Guests', 'Status'],
+    arrivals:      ['Guest / Villa', 'ETA', 'Transfer', 'Notes'],
+    departures:    ['Guest / Villa', 'Checkout', 'Transfer', 'Billing'],
+    dinners:       ['Villa / Guest', 'Time', 'Location', 'Vendor', 'Status'],
+    requests:      ['Request', 'Guest', 'Dept', 'Priority', 'Status'],
+    conversations: ['Guest', 'Channel', 'Last Message', 'Unread'],
+    orders:        ['#', 'Villa', 'Items', 'Status'],
+  };
+
+  // ── LOADING STATE ──
+  function showCardLoading(card) {
+    const rowsEl = card.querySelector('.brief-rows');
+    if (rowsEl) rowsEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;flex:1;gap:8px;color:var(--muted-dim);font-size:12px"><span style="width:14px;height:14px;border:2px solid rgba(124,142,103,0.2);border-top-color:var(--sage);border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></span>Loading…</div>`;
+  }
+  function showCardError(card, msg) {
+    const rowsEl = card.querySelector('.brief-rows');
+    if (rowsEl) rowsEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--terra);font-size:12px">${msg}</div>`;
+  }
+
+  // ── API FETCH WITH AUTH CHECK ──
+  async function apiFetch(url) {
+    const res = await fetch(url, { credentials: 'include' });
+    if (res.status === 401) {
+      window.location.href = `/en/staff/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return null;
+    }
+    if (!res.ok) throw new Error(`API ${res.status}: ${url}`);
+    return res.json();
+  }
+
+  // ── FETCH SERVICE DATA FOR A DATE OFFSET ──
+  async function fetchSvcRows(svc, offset) {
+    const date = getDateStr(offset);
+    const p = `date_from=${date}&date_to=${date}`;
+    try {
+      let data, rows;
+      switch (svc) {
+        case 'arrivals': {
+          const f = offset === 0 ? 'arriving_today' : 'arrivals';
+          data = await apiFetch(`/api/reservations?filter=${f}&date=${date}`);
+          rows = data?.reservations || [];
+          break;
+        }
+        case 'departures': {
+          const f = offset === 0 ? 'departing_today' : 'departures';
+          data = await apiFetch(`/api/reservations?filter=${f}&date=${date}`);
+          rows = data?.reservations || [];
+          break;
+        }
+        case 'transfers':
+          data = await apiFetch(`/api/transfers?${p}`);
+          rows = data?.transfers || [];
+          break;
+        case 'tours':
+          data = await apiFetch(`/api/tour-bookings?${p}`);
+          rows = data?.tour_bookings || [];
+          break;
+        case 'dinners':
+          data = await apiFetch(`/api/romantic-dinners?${p}`);
+          rows = data?.romantic_dinners || [];
+          break;
+        case 'requests':
+          data = await apiFetch(`/api/special-requests?${offset === 0 ? 'filter=today' : `date_from=${date}&date_to=${date}`}`);
+          rows = data?.special_requests || [];
+          break;
+        case 'conversations':
+          data = await apiFetch(`/api/conversations`);
+          rows = (data?.conversations || []).filter(r => {
+            if (!r.updated_at) return true;
+            const d = new Date(r.updated_at); d.setHours(0,0,0,0);
+            const target = new Date(); target.setDate(target.getDate() + offset); target.setHours(0,0,0,0);
+            return d.getTime() === target.getTime();
+          });
+          break;
+        case 'orders':
+          data = await apiFetch(`/api/orders`);
+          rows = (data?.orders || []).filter(r => {
+            if (!r.created_at) return true;
+            return r.created_at.startsWith(date);
+          });
+          break;
+        default:
+          rows = [];
+      }
+      // Cache normalized rows into serviceData
+      const key = offsetKey(offset);
+      if (!serviceData[svc]) serviceData[svc] = { headers: svcHeaders[svc] || [], yesterday: [], today: [], tomorrow: [] };
+      serviceData[svc][key] = rows.map(r => normalizeRow(svc, r));
+      serviceData[svc]._raw = serviceData[svc]._raw || {};
+      serviceData[svc]._raw[key] = rows; // preserve originals for CRUD
+      return serviceData[svc][key];
+    } catch (e) {
+      console.warn(`fetchSvcRows(${svc}, ${offset}):`, e);
+      return null; // null = error, [] = empty
+    }
+  }
+
+  // ── ASYNC RENDER DAY BRIEF ──
+  async function renderDayBriefLive(offset) {
+    const key = offsetKey(offset);
+    const d = getDateOffset(offset);
+    const prefixMap = { yesterday:'Yesterday', today:'Today', tomorrow:'Tomorrow' };
+    const prefix = prefixMap[key] || '';
+    const dateStr = d.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    $('#briefDateLabel').textContent = `${prefix} — ${dateStr}`;
+
+    const briefDefs = [
+      { panelId:'panel-arrivals',   svc:'arrivals',      render:'rows',     nameIdx:0, timeIdx:1, statusIdx:2 },
+      { panelId:'panel-departures', svc:'departures',    render:'rows',     nameIdx:0, timeIdx:1, statusIdx:2 },
+      { panelId:'panel-transfers',  svc:'transfers',     render:'rows',     nameIdx:0, timeIdx:2, statusIdx:4 },
+      { panelId:'panel-tours',      svc:'tours',         render:'rows',     nameIdx:0, timeIdx:1, statusIdx:4 },
+      { panelId:'panel-requests',   svc:'requests',      render:'requests' },
+      { panelId:'panel-messages',   svc:'conversations', render:'messages' },
+      { panelId:'panel-dinners',    svc:'dinners',       render:'dinners' },
+    ];
+
+    // Show loading spinners immediately
+    briefDefs.forEach(def => {
+      const card = document.querySelector(`.brief-card[data-panel="${def.panelId}"]`);
+      if (card) showCardLoading(card);
+    });
+
+    // Fetch all in parallel
+    const results = await Promise.allSettled(
+      briefDefs.map(def => fetchSvcRows(def.svc, offset))
+    );
+
+    // Re-render each card with live data
+    briefDefs.forEach((def, idx) => {
+      const card = document.querySelector(`.brief-card[data-panel="${def.panelId}"]`);
+      if (!card) return;
+
+      const result = results[idx];
+      if (result.status === 'rejected' || result.value === null) {
+        showCardError(card, 'Could not load data');
+        return;
+      }
+
+      const rows = result.value;
+      const badge = card.querySelector('.brief-badge');
+      if (badge) badge.textContent = rows.length;
+
+      const rowsEl = card.querySelector('.brief-rows');
+      if (!rowsEl) return;
+
+      function rowHtml(r) {
+        const rid = ++rowIdCounter;
+        rowRegistry.set(rid, { data: r, svc: def.svc, key });
+        const attr = `data-row-id="${rid}"`;
+        if (def.render === 'rows') {
+          const name = (r[def.nameIdx]||'').replace(/<br\s*\/?><small[^>]*>(.*?)<\/small>/gi,' · $1').replace(/<[^>]+>/g,'');
+          const time = def.timeIdx != null ? r[def.timeIdx] : '';
+          const status = def.statusIdx != null ? r[def.statusIdx] : '';
+          return `<div class="brief-row" ${attr}>
+            <span class="brief-row-name">${name}</span>
+            ${time ? `<span class="time-badge" style="font-size:11px;padding:2px 6px">${time}</span>` : ''}
+            ${status ? `<span class="status ${status}" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>${{completed:'Done',confirmed:'Confirmed','en-route':'En Route',pending:'Pending'}[status]||status}</span>` : ''}
+          </div>`;
+        } else if (def.render === 'requests') {
+          const priCls = { high:'priority-high', medium:'priority-medium', low:'priority-low' };
+          return `<div class="brief-row" ${attr}>
+            <span class="brief-row-name">${r[0]}</span>
+            <span class="brief-row-sub">${r[1]}</span>
+            <span class="${priCls[r[3]]||'priority-low'}" style="font-size:11px;flex-shrink:0">${(r[3]||'').charAt(0).toUpperCase()+(r[3]||'').slice(1)}</span>
+          </div>`;
+        } else if (def.render === 'messages') {
+          return `<div class="brief-row" ${attr}>
+            <span class="brief-row-name">${r[0]}</span>
+            <span class="brief-row-sub">${r[1]}</span>
+            ${r[3]&&r[3]!='0'?`<span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">${r[3]}</span>`:''}
+          </div>`;
+        } else if (def.render === 'dinners') {
+          return `<div class="brief-row" ${attr}>
+            <span class="brief-row-name">${r[0]}</span>
+            <span class="time-badge" style="font-size:11px;padding:2px 6px">${r[1]}</span>
+            <span class="brief-row-sub">${r[2]}</span>
+          </div>`;
+        }
+        return '';
+      }
+
+      const useTicker = rows.length > 4;
+      if (useTicker) {
+        const allRowsHtml = rows.map(r => rowHtml(r)).join('');
+        rowsEl.innerHTML = `<div class="brief-ticker-wrap"><div class="brief-ticker-track">${allRowsHtml}</div></div>`;
+      } else if (rows.length === 0) {
+        rowsEl.innerHTML = `<div style="text-align:center;padding:20px 8px;color:var(--muted-dim);font-size:12px;font-style:italic">No records for this date</div>`;
+      } else {
+        rowsEl.innerHTML = rows.map(r => rowHtml(r)).join('');
+      }
+      bindRowInteractions(rowsEl);
+    });
+
+    // Update KPI counts from fetched data
+    const kpiMap = [
+      'arrivals','panel-inhouse','departures','transfers','tours','requests','conversations','dinners'
+    ];
+    $$('.kpi-number[data-target]').forEach((el, i) => {
+      const svc = kpiMap[i];
+      if (svc && svc !== 'panel-inhouse' && serviceData[svc]) {
+        const count = (serviceData[svc][key] || []).length;
+        el.dataset.target = count;
+        animateCounter(el, count, 700);
+      }
+    });
+
+    setTimeout(() => { $$('.occ-fill').forEach(b => { b.style.width = b.dataset.width; }); }, 100);
+  }
+
+  // ── ASYNC RENDER SERVICE VIEW ──
+  async function renderServiceViewLive(svc) {
+    const grid = $('#timeGrid');
+    grid.innerHTML = `<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:60px;gap:10px;color:var(--muted-dim);font-size:13px"><span style="width:18px;height:18px;border:2px solid rgba(124,142,103,0.2);border-top-color:var(--sage);border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></span>Loading ${svc}…</div>`;
+
+    await Promise.all([-1, 0, 1].map(offset => fetchSvcRows(svc, offset)));
+    renderServiceView(svc); // re-uses existing renderer now that serviceData is populated
+  }
+
+  // ── OVERRIDE: applyDateChange uses live fetch ──
+  function applyDateChange() {
+    updateDateLabel();
+    if (activePanelId) {
+      renderDetailPanel(activePanelId, currentDateOffset);
+    } else {
+      renderDayBriefLive(currentDateOffset);
+    }
+  }
+
+  // ── PATCH: mode toggle uses live fetch for service view ──
+  $$('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.mode;
+      if (mode === 'date') {
+        $('#viewDate').classList.add('active');
+        $('#viewService').classList.remove('active');
+        $('#dateNav').style.display = 'flex';
+        $('#serviceTabs').style.display = 'none';
+        closePanelShowBrief();
+        renderDayBriefLive(currentDateOffset);
+      } else {
+        $('#viewDate').classList.remove('active');
+        $('#viewService').classList.add('active');
+        $('#dateNav').style.display = 'none';
+        $('#serviceTabs').style.display = 'flex';
+        renderServiceViewLive($('.service-tab.active')?.dataset.svc || 'transfers');
+      }
+    });
+  });
+
+  // ── PATCH: service tab uses live fetch ──
+  $$('.service-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      $$('.service-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderServiceViewLive(tab.dataset.svc);
+    });
+  });
+
+  // ── CRUD WRITE-BACK ──
+  const svcToEndpoint = {
+    transfers: '/api/transfers', tours: '/api/tour-bookings',
+    dinners: '/api/romantic-dinners', requests: '/api/special-requests',
+    arrivals: '/api/reservations', departures: '/api/reservations',
+    conversations: '/api/conversations', orders: '/api/orders',
+  };
+
+  async function apiWrite(method, svc, body, id) {
+    const base = svcToEndpoint[svc] || `/api/${svc}`;
+    const url = (method === 'PUT' || method === 'DELETE') && id ? `${base}?id=${id}` : base;
+    const res = await fetch(url, {
+      method,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: method !== 'DELETE' ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401) { window.location.href = `/en/staff/login`; return null; }
+    return res.ok ? res.json().catch(() => ({})) : null;
+  }
+
+  // Patch modal save/create/delete to call real API then re-fetch
+  const _origSave = document.getElementById('modalClose'); // placeholder — patch inline below
+
+  function patchModalCRUD() {
+    // Patch renderModalEdit save
+    const origRenderModalEdit = renderModalEdit;
+    window.renderModalEdit = function(entry) {
+      origRenderModalEdit(entry);
+      const saveBtn = document.getElementById('modalSaveBtn');
+      if (!saveBtn) return;
+      saveBtn.replaceWith(saveBtn.cloneNode(true)); // remove old listeners
+      document.getElementById('modalSaveBtn').addEventListener('click', async () => {
+        const updates = {};
+        document.querySelectorAll('#modalBody input[data-idx]').forEach(input => {
+          const header = (svcHeaders[entry.svc] || [])[parseInt(input.dataset.idx)];
+          if (header) updates[header.toLowerCase().replace(/ \//g,'_').replace(/\s+/g,'_')] = input.value;
+        });
+        const rawRows = serviceData[entry.svc]?._raw?.[entry.key] || [];
+        const raw = rawRows[serviceData[entry.svc][entry.key].indexOf(entry.data)];
+        if (raw?.id) await apiWrite('PUT', entry.svc, updates, raw.id);
+        closeModal();
+        await fetchSvcRows(entry.svc, ['yesterday',-1,'today',0,'tomorrow',1].indexOf(entry.key) < 0
+          ? (['yesterday','today','tomorrow'].indexOf(entry.key) - 1)
+          : (['yesterday','today','tomorrow'].indexOf(entry.key) - 1));
+        if ($('#viewService').classList.contains('active')) {
+          renderServiceView($('.service-tab.active')?.dataset.svc || entry.svc);
+        } else {
+          renderDayBriefLive(currentDateOffset);
+        }
+      });
+    };
+
+    // Patch renderModalDelete confirm
+    const origRenderModalDelete = renderModalDelete;
+    window.renderModalDelete = function(entry) {
+      origRenderModalDelete(entry);
+      const delBtn = document.getElementById('modalConfirmDeleteBtn');
+      if (!delBtn) return;
+      delBtn.replaceWith(delBtn.cloneNode(true));
+      document.getElementById('modalConfirmDeleteBtn').addEventListener('click', async () => {
+        const rawRows = serviceData[entry.svc]?._raw?.[entry.key] || [];
+        const raw = rawRows[serviceData[entry.svc][entry.key].indexOf(entry.data)];
+        if (raw?.id) await apiWrite('DELETE', entry.svc, null, raw.id);
+        const arr = serviceData[entry.svc][entry.key];
+        const idx = arr.indexOf(entry.data);
+        if (idx > -1) arr.splice(idx, 1);
+        closeModal();
+        await fetchSvcRows(entry.svc, currentDateOffset);
+        if ($('#viewService').classList.contains('active')) {
+          renderServiceView($('.service-tab.active')?.dataset.svc || entry.svc);
+        } else {
+          renderDayBriefLive(currentDateOffset);
+        }
+      });
+    };
+
+    // Patch renderModalNew create
+    const origRenderModalNew = renderModalNew;
+    window.renderModalNew = function(svc) {
+      origRenderModalNew(svc);
+      const createBtn = document.getElementById('modalCreateBtn');
+      if (!createBtn) return;
+      createBtn.replaceWith(createBtn.cloneNode(true));
+      document.getElementById('modalCreateBtn').addEventListener('click', async () => {
+        const body = {};
+        document.querySelectorAll('#modalBody input[data-idx]').forEach(input => {
+          const header = (svcHeaders[svc] || [])[parseInt(input.dataset.idx)];
+          if (header) body[header.toLowerCase().replace(/ \//g,'_').replace(/\s+/g,'_')] = input.value || '—';
+        });
+        await apiWrite('POST', svc, body);
+        closeModal();
+        await fetchSvcRows(svc, currentDateOffset);
+        if ($('#viewService').classList.contains('active')) {
+          renderServiceViewLive(svc);
+        } else {
+          renderDayBriefLive(currentDateOffset);
+        }
+      });
+    };
+  }
+  patchModalCRUD();
+
+  // ── SPIN ANIMATION (loading spinner) ──
+  const spinStyle = document.createElement('style');
+  spinStyle.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+  document.head.appendChild(spinStyle);
+
+  // ── INITIAL RENDER (live) ──
+  renderDayBriefLive(0);
 </script>
 </body>
 </html>
