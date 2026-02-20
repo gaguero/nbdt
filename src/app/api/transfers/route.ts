@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Check if staff has permission or if it's a vendor (vendors don't have 'transfers:update' but need status update)
-    let auth = await protectRoute(request, 'transfers:update');
+    const auth = await protectRoute(request, 'transfers:update');
     const isStaff = !(auth instanceof NextResponse);
     
     // If not staff, it must be an authenticated vendor

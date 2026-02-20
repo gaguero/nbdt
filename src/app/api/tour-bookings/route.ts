@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    let auth = await protectRoute(request, 'tours:update');
+    const auth = await protectRoute(request, 'tours:update');
     const isStaff = !(auth instanceof NextResponse);
     
     // Fallback: check if vendor
