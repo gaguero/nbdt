@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryMany, queryOne, query } from '@/lib/db';
-import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { protectRoute } from '@/lib/auth-guards';
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'guests:read');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search');
@@ -75,9 +74,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'guests:create');
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
     const { first_name, last_name, email, phone, nationality, notes, profile_type } = body;
@@ -96,9 +94,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'guests:update');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -122,9 +119,8 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'guests:delete');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

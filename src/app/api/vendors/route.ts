@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryMany, queryOne } from '@/lib/db';
-import { verifyToken, AUTH_COOKIE_NAME, hashPassword } from '@/lib/auth';
+import { protectRoute } from '@/lib/auth-guards';
+import { hashPassword } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    verifyToken(token);
+    const auth = await protectRoute(request, 'settings:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -43,12 +43,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const user = verifyToken(token);
-    if (!['admin', 'manager'].includes(user.role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const auth = await protectRoute(request, 'settings:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
 
@@ -75,12 +71,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const user = verifyToken(token);
-    if (!['admin', 'manager'].includes(user.role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const auth = await protectRoute(request, 'settings:manage');
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
     const { id, ...fields } = body;

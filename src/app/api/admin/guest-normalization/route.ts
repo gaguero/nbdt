@@ -61,7 +61,11 @@ export async function GET(request: NextRequest) {
       const orphansWithSuggestions = await Promise.all(orphans.map(async (orphan) => {
         const lastName = (orphan.opera_guest_name || '').split(',')[0].trim();
         const suggestions = await queryMany(`
-          SELECT g.id, g.full_name, g.email, (SELECT COUNT(*) FROM reservations WHERE guest_id = g.id) as res_count
+          SELECT g.id, g.full_name, g.email, 
+            (SELECT COUNT(*) FROM reservations WHERE guest_id = g.id) as res_count,
+            (SELECT COUNT(*) FROM transfers WHERE guest_id = g.id) as trans_count,
+            (SELECT COUNT(*) FROM tour_bookings WHERE guest_id = g.id) as tour_count,
+            (SELECT COUNT(*) FROM special_requests WHERE guest_id = g.id) as req_count
           FROM guests g WHERE g.full_name ILIKE $1 OR g.last_name ILIKE $2 LIMIT 3
         `, [`%${lastName}%`, lastName]);
         return { ...orphan, suggestions };

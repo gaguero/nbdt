@@ -563,6 +563,21 @@ export default function TourNormalizationPage() {
                   {/* Top row: CSV name tags + row count + action toggle */}
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="bg-gray-900 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">
+                          Group #{g.groupId}
+                        </span>
+                        {dec.action === 'create' && dec.name_en && (
+                          <span className="text-xs font-bold text-green-600 truncate max-w-[200px]">
+                            → {dec.name_en}
+                          </span>
+                        )}
+                        {dec.action === 'map' && dec.productId && (
+                          <span className="text-xs font-bold text-blue-600 truncate max-w-[200px]">
+                            → {products.find(p => p.id === dec.productId)?.name_en}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-col gap-1 mb-1">
                         {g.csvKeys.map((key) => {
                           const detail = uniqueNames.find((n) => n.key === key);
@@ -573,7 +588,7 @@ export default function TourNormalizationPage() {
                                 {label}
                               </span>
                               <select
-                                className="text-[11px] border border-gray-300 rounded px-1.5 py-0.5 text-gray-600"
+                                className="text-[11px] border border-gray-300 rounded px-1.5 py-0.5 text-gray-600 max-w-[150px]"
                                 defaultValue=""
                                 onChange={(e) => {
                                   const target = e.target.value;
@@ -585,11 +600,21 @@ export default function TourNormalizationPage() {
                                 <option value="">Move record...</option>
                                 {groups
                                   .filter(other => other.groupId !== g.groupId)
-                                  .map(other => (
-                                    <option key={other.groupId} value={other.groupId}>
-                                      Group {other.groupId}
-                                    </option>
-                                  ))}
+                                  .map(other => {
+                                    const otherDec = decisions[other.groupId];
+                                    let label = `Group ${other.groupId}`;
+                                    if (otherDec?.action === 'create' && otherDec.name_en) {
+                                      label += `: ${otherDec.name_en}`;
+                                    } else if (otherDec?.action === 'map' && otherDec.productId) {
+                                      const p = products.find(prod => prod.id === otherDec.productId);
+                                      if (p) label += `: ${p.name_en}`;
+                                    }
+                                    return (
+                                      <option key={other.groupId} value={other.groupId}>
+                                        {label}
+                                      </option>
+                                    );
+                                  })}
                                 <option value="new">New group</option>
                               </select>
                             </div>

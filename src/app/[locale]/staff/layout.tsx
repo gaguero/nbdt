@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { GuestDrawerProvider } from '@/contexts/GuestDrawerContext';
 import { GuestDrawer } from '@/components/GuestDrawer';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/lib/permissions';
 import {
   HomeIcon,
   CalendarDaysIcon,
@@ -36,6 +38,7 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   group?: string;
+  permission?: Permission;
 }
 
 function StaffLayoutContent({ children }: { children: React.ReactNode }) {
@@ -44,6 +47,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { guestId, closeGuest } = useGuestDrawer();
+  const { can } = usePermissions();
 
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
 
@@ -56,35 +60,36 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const navigation: NavItem[] = [
+  const allNavigation: NavItem[] = [
     // Overview
     { name: ls('Dashboard', 'Panel'), href: `/${locale}/staff/dashboard`, icon: HomeIcon, group: ls('Overview', 'Vista General') },
-    { name: ls('Reservations', 'Reservaciones'), href: `/${locale}/staff/reservations`, icon: CalendarDaysIcon, group: ls('Overview', 'Vista General') },
-    { name: ls('Guests', 'Huéspedes'), href: `/${locale}/staff/guests`, icon: UsersIcon, group: ls('Overview', 'Vista General') },
-    { name: ls('Profiles', 'Perfiles'), href: `/${locale}/staff/profiles`, icon: UserGroupIcon, group: ls('Overview', 'Vista General') },
+    { name: ls('Reservations', 'Reservaciones'), href: `/${locale}/staff/reservations`, icon: CalendarDaysIcon, group: ls('Overview', 'Vista General'), permission: 'reservations:read' },
+    { name: ls('Guests', 'Huéspedes'), href: `/${locale}/staff/guests`, icon: UsersIcon, group: ls('Overview', 'Vista General'), permission: 'guests:read' },
+    { name: ls('Profiles', 'Perfiles'), href: `/${locale}/staff/profiles`, icon: UserGroupIcon, group: ls('Overview', 'Vista General'), permission: 'guests:read' },
 
     // Concierge Operations
-    { name: ls('Transfers', 'Traslados'), href: `/${locale}/staff/transfers`, icon: TruckIcon, group: ls('Concierge', 'Concierge') },
-    { name: ls('Tours & Activities', 'Tours y Actividades'), href: `/${locale}/staff/tour-bookings`, icon: MapIcon, group: ls('Concierge', 'Concierge') },
-    { name: ls('Special Requests', 'Solicitudes'), href: `/${locale}/staff/special-requests`, icon: SparklesIcon, group: ls('Concierge', 'Concierge') },
-    { name: ls('Hotel Bookings', 'Hoteles'), href: `/${locale}/staff/hotel-bookings`, icon: BuildingOfficeIcon, group: ls('Concierge', 'Concierge') },
-    { name: ls('Romantic Dinners', 'Cenas Románticas'), href: `/${locale}/staff/romantic-dinners`, icon: HeartIcon, group: ls('Concierge', 'Concierge') },
-    { name: ls('Billing', 'Facturación'), href: `/${locale}/staff/billing`, icon: CurrencyDollarIcon, group: ls('Concierge', 'Concierge') },
-    { name: ls('Daily Sheet', 'Hoja Diaria'), href: `/${locale}/staff/daily-sheet`, icon: PrinterIcon, group: ls('Concierge', 'Concierge') },
+    { name: ls('Transfers', 'Traslados'), href: `/${locale}/staff/transfers`, icon: TruckIcon, group: ls('Concierge', 'Concierge'), permission: 'transfers:read' },
+    { name: ls('Tours & Activities', 'Tours y Actividades'), href: `/${locale}/staff/tour-bookings`, icon: MapIcon, group: ls('Concierge', 'Concierge'), permission: 'tours:read' },
+    { name: ls('Special Requests', 'Solicitudes'), href: `/${locale}/staff/special-requests`, icon: SparklesIcon, group: ls('Concierge', 'Concierge'), permission: 'reservations:manage' }, // Using closest permission for now
+    { name: ls('Hotel Bookings', 'Hoteles'), href: `/${locale}/staff/hotel-bookings`, icon: BuildingOfficeIcon, group: ls('Concierge', 'Concierge'), permission: 'reservations:manage' },
+    { name: ls('Romantic Dinners', 'Cenas Románticas'), href: `/${locale}/staff/romantic-dinners`, icon: HeartIcon, group: ls('Concierge', 'Concierge'), permission: 'reservations:manage' },
+    { name: ls('Billing', 'Facturación'), href: `/${locale}/staff/billing`, icon: CurrencyDollarIcon, group: ls('Concierge', 'Concierge'), permission: 'reservations:manage' },
+    { name: ls('Daily Sheet', 'Hoja Diaria'), href: `/${locale}/staff/daily-sheet`, icon: PrinterIcon, group: ls('Concierge', 'Concierge'), permission: 'reports:view' },
 
     // F&B
-    { name: ls('Orders', 'Órdenes'), href: `/${locale}/staff/orders`, icon: ShoppingCartIcon, group: ls('Food & Beverage', 'Alimentos') },
+    { name: ls('Orders', 'Órdenes'), href: `/${locale}/staff/orders`, icon: ShoppingCartIcon, group: ls('Food & Beverage', 'Alimentos'), permission: 'orders:read' },
 
     // Communications
-    { name: ls('Messages', 'Mensajes'), href: `/${locale}/staff/messages`, icon: ChatBubbleLeftRightIcon, group: ls('Communications', 'Comunicaciones') },
+    { name: ls('Messages', 'Mensajes'), href: `/${locale}/staff/messages`, icon: ChatBubbleLeftRightIcon, group: ls('Communications', 'Comunicaciones') }, // Open to all staff usually
 
     // Admin
-    { name: ls('Vendors', 'Vendedores'), href: `/${locale}/staff/vendors`, icon: UserGroupIcon, group: ls('Admin', 'Admin') },
-    { name: ls('Vendor Import', 'Importar Vendedores'), href: `/${locale}/staff/vendor-import-wizard`, icon: CloudArrowUpIcon, group: ls('Admin', 'Admin') },
-    { name: ls('Tour Products', 'Productos de Tours'), href: `/${locale}/staff/tour-products`, icon: MapIcon, group: ls('Admin', 'Admin') },
-{ name: ls('Data Curation Center', 'Centro de Curacion de Datos'), href: `/${locale}/staff/settings`, icon: Cog6ToothIcon, group: ls('Admin', 'Admin') },
+    { name: ls('Vendors', 'Vendedores'), href: `/${locale}/staff/vendors`, icon: UserGroupIcon, group: ls('Admin', 'Admin'), permission: 'settings:manage' },
+    { name: ls('Vendor Import', 'Importar Vendedores'), href: `/${locale}/staff/vendor-import-wizard`, icon: CloudArrowUpIcon, group: ls('Admin', 'Admin'), permission: 'settings:manage' },
+    { name: ls('Tour Products', 'Productos de Tours'), href: `/${locale}/staff/tour-products`, icon: MapIcon, group: ls('Admin', 'Admin'), permission: 'tours:products:manage' },
+    { name: ls('Data Curation Center', 'Centro de Curacion de Datos'), href: `/${locale}/staff/settings`, icon: Cog6ToothIcon, group: ls('Admin', 'Admin'), permission: 'settings:manage' },
   ];
 
+  const navigation = allNavigation.filter(item => !item.permission || can(item.permission));
   const groups = Array.from(new Set(navigation.map(n => n.group)));
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
