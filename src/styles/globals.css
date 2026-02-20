@@ -1,10 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;1,400;1,500;1,600;1,700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Brand Colors */
+    /* ── V13 Slate Botanical Design Tokens ─────────────────────────── */
+    --bg:         #C8BDA8;
+    --surface:    #F2EBE0;
+    --elevated:   #E8DED2;
+    --gold:       #AA8E67;
+    --gold-dark:  #9a7e55;
+    --sage:       #4E5E3E;
+    --forest:     #3a4a2e;
+    --terra:      #EC6C4B;
+    --charcoal:   #1A1A1A;
+    --sidebar-bg: #0E1A09;
+    --muted:      rgba(26,26,26,0.80);
+    --muted-dim:  rgba(26,26,26,0.55);
+    --separator:  rgba(78,94,62,0.18);
+    --card-shadow: 0 2px 12px rgba(78,94,62,0.10), 0 1px 3px rgba(26,26,26,0.06);
+    --card-shadow-hover: 0 8px 28px rgba(78,94,62,0.14), 0 2px 8px rgba(26,26,26,0.08);
+    --modal-shadow: 0 28px 80px rgba(14,26,9,0.32), 0 4px 20px rgba(26,26,26,0.14);
+
+    /* ── Legacy brand tokens (kept for backward compat) ────────────── */
     --color-brand-primary: 28 43 51;
     --color-brand-secondary: 232 232 232;
     --color-brand-accent: 228 192 146;
@@ -13,7 +33,6 @@
     --color-brand-black: 0 0 0;
     --color-brand-cream: 250 248 245;
 
-    /* UI Colors */
     --color-background: 250 248 245;
     --color-foreground: 28 43 51;
     --color-card: 255 255 255;
@@ -23,12 +42,8 @@
     --color-border: 232 232 232;
     --color-input: 232 232 232;
     --color-ring: 228 192 146;
-
-    /* Accent Colors */
     --color-accent: 228 192 146;
     --color-accent-foreground: 28 43 51;
-
-    /* Status Colors */
     --color-success: 34 197 94;
     --color-success-foreground: 255 255 255;
     --color-warning: 234 179 8;
@@ -38,17 +53,12 @@
     --color-info: 59 130 246;
     --color-info-foreground: 255 255 255;
 
-    /* Spacing */
     --spacing-content: 1.5rem;
     --spacing-section: 4rem;
-
-    /* Radius */
-    --radius-card: 1rem;
-    --radius-button: 0.5rem;
+    --radius-card: 0.75rem;
+    --radius-button: 0.625rem;
     --radius-input: 0.5rem;
-
-    /* Shadows */
-    --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-card: var(--card-shadow);
     --shadow-button: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 
@@ -57,12 +67,217 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    background: var(--bg);
+    color: var(--charcoal);
+    font-family: 'DM Sans', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   html {
     scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* ── Status Badges ─────────────────────────────────────────────── */
+  .nayara-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px 3px 8px;
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .nayara-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: currentColor;
+  }
+  .nayara-badge-confirmed {
+    background: rgba(78,94,62,0.12);
+    color: #4E5E3E;
+  }
+  .nayara-badge-pending {
+    background: rgba(236,108,75,0.10);
+    color: #EC6C4B;
+  }
+  .nayara-badge-pending::before {
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+  .nayara-badge-en-route {
+    background: rgba(170,142,103,0.12);
+    color: #AA8E67;
+  }
+  .nayara-badge-en-route::before {
+    animation: blink-dot 1s step-end infinite;
+  }
+  .nayara-badge-completed {
+    background: rgba(58,74,46,0.10);
+    color: #3a4a2e;
+  }
+  .nayara-badge-cancelled {
+    background: rgba(26,26,26,0.07);
+    color: rgba(26,26,26,0.55);
+  }
+  .nayara-badge-in-progress {
+    background: rgba(170,142,103,0.12);
+    color: #AA8E67;
+  }
+  .nayara-badge-high {
+    background: rgba(236,108,75,0.12);
+    color: #EC6C4B;
+    font-weight: 700;
+  }
+  .nayara-badge-medium {
+    background: rgba(170,142,103,0.12);
+    color: #AA8E67;
+  }
+  .nayara-badge-low {
+    background: rgba(78,94,62,0.10);
+    color: #4E5E3E;
+  }
+  .nayara-badge-vendor-confirmed {
+    background: rgba(78,94,62,0.12);
+    color: #4E5E3E;
+  }
+  .nayara-badge-no-show {
+    background: rgba(26,26,26,0.07);
+    color: rgba(26,26,26,0.45);
+  }
+  .nayara-badge-resolved {
+    background: rgba(58,74,46,0.10);
+    color: #3a4a2e;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @keyframes blink-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* ── Card ──────────────────────────────────────────────────────── */
+  .nayara-card {
+    background: var(--surface);
+    border: 1px solid var(--separator);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: box-shadow 0.2s cubic-bezier(0.25,1,0.5,1), transform 0.2s cubic-bezier(0.25,1,0.5,1);
+  }
+  .nayara-card-hover:hover {
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-1px);
+  }
+
+  /* ── Input ─────────────────────────────────────────────────────── */
+  .nayara-input {
+    background: var(--elevated);
+    border: 1.5px solid rgba(124,142,103,0.25);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--charcoal);
+    padding: 8px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .nayara-input:focus {
+    border-color: var(--gold);
+  }
+  .nayara-input.error {
+    border-color: var(--terra);
+  }
+  .nayara-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-dim);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* ── Buttons ───────────────────────────────────────────────────── */
+  .nayara-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+    outline: none;
+  }
+  .nayara-btn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+  .nayara-btn:active {
+    transform: scale(0.97);
+  }
+  .nayara-btn-primary {
+    background: var(--gold);
+    color: #fff;
+  }
+  .nayara-btn-primary:hover { background: var(--gold-dark); }
+  .nayara-btn-secondary {
+    background: rgba(78,94,62,0.14);
+    color: var(--sage);
+    border: 1px solid rgba(124,142,103,0.25);
+  }
+  .nayara-btn-secondary:hover { background: rgba(78,94,62,0.22); }
+  .nayara-btn-danger {
+    background: rgba(236,108,75,0.10);
+    color: var(--terra);
+    border: 1px solid rgba(236,108,75,0.25);
+  }
+  .nayara-btn-danger:hover { background: rgba(236,108,75,0.18); }
+  .nayara-btn-ghost {
+    background: transparent;
+    color: var(--muted-dim);
+  }
+  .nayara-btn-ghost:hover { color: var(--muted); }
+
+  /* ── Table ─────────────────────────────────────────────────────── */
+  .nayara-table th {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-dim);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--separator);
+    text-align: left;
+  }
+  .nayara-table td {
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(124,142,103,0.06);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--charcoal);
+  }
+  .nayara-table tr:hover td {
+    background: rgba(124,142,103,0.07);
+  }
+  .nayara-table tr:last-child td {
+    border-bottom: none;
   }
 }
 

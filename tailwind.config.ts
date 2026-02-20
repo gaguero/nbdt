@@ -10,6 +10,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // ── V13 Slate Botanical tokens ────────────────────────────────
+        nayara: {
+          bg:        'var(--bg)',
+          surface:   'var(--surface)',
+          elevated:  'var(--elevated)',
+          gold:      'var(--gold)',
+          'gold-dark': 'var(--gold-dark)',
+          sage:      'var(--sage)',
+          forest:    'var(--forest)',
+          terra:     'var(--terra)',
+          charcoal:  'var(--charcoal)',
+          sidebar:   'var(--sidebar-bg)',
+          muted:     'var(--muted)',
+          'muted-dim': 'var(--muted-dim)',
+          separator: 'var(--separator)',
+        },
         // Nayara Brand Color Palette
         brand: {
           primary: "#1F3D2F",        // Forest Green
@@ -104,12 +120,16 @@ const config: Config = {
         },
       },
       fontFamily: {
+        // V13 Slate Botanical fonts
+        playfair: ["Playfair Display", "serif"],
+        'dm-sans': ["DM Sans", "system-ui", "sans-serif"],
+        'dm-mono': ["DM Mono", "Menlo", "monospace"],
         // Primary Heading Font
         heading: ["Playfair Display", "serif"],
         // Body Copy Font
-        sans: ["Lato", "Open Sans", "system-ui", "sans-serif"],
+        sans: ["DM Sans", "Lato", "system-ui", "sans-serif"],
         // Monospace for code
-        mono: ["var(--font-geist-mono)", "Menlo", "monospace"],
+        mono: ["DM Mono", "var(--font-geist-mono)", "Menlo", "monospace"],
       },
       fontSize: {
         // Typography Scale from Style Guide
@@ -162,16 +182,21 @@ const config: Config = {
         },
       },
       boxShadow: {
-        'card': '0 4px 8px rgba(0, 0, 0, 0.08)',
-        'card-hover': '0 6px 16px rgba(0, 0, 0, 0.12)',
-        'button': '0 2px 4px rgba(0, 0, 0, 0.1)',
-        'focus': '0 0 0 3px rgba(213, 162, 13, 0.2)',
-        'focus-primary': '0 0 0 3px rgba(31, 61, 47, 0.2)',
-        'status': '0 2px 8px rgba(0, 0, 0, 0.06)',
+        'card': '0 2px 12px rgba(78,94,62,0.10), 0 1px 3px rgba(26,26,26,0.06)',
+        'card-hover': '0 8px 28px rgba(78,94,62,0.14), 0 2px 8px rgba(26,26,26,0.08)',
+        'modal': '0 28px 80px rgba(14,26,9,0.32), 0 4px 20px rgba(26,26,26,0.14)',
+        'button': '0 1px 2px rgba(0,0,0,0.08)',
+        'focus': '0 0 0 3px rgba(170,142,103,0.25)',
+        'focus-sage': '0 0 0 3px rgba(78,94,62,0.20)',
+        'status': '0 2px 8px rgba(0,0,0,0.06)',
       },
       transitionProperty: {
         'height': 'height',
         'spacing': 'margin, padding',
+      },
+      transitionTimingFunction: {
+        'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'smooth': 'cubic-bezier(0.25, 1, 0.5, 1)',
       },
     },
   },
