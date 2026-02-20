@@ -163,7 +163,7 @@ export default function UsersPage() {
               <Button type="button" variant="secondary" onClick={() => setEditingUser(null)} disabled={saving}>
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" loading={saving}>
+              <Button type="submit" variant="primary" isLoading={saving}>
                 Save Changes
               </Button>
             </div>
