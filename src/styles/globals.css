@@ -60,8 +60,13 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  h1, h2, h3, h4, h5, h6, .font-heading {
-    @apply font-heading uppercase tracking-brand-heading;
+  h1, h2, h3, h4, h5, h6 {
+    @apply uppercase tracking-brand-heading;
+    font-family: var(--font-gotham), Tahoma, sans-serif;
+  }
+
+  .font-heading {
+    @apply uppercase tracking-brand-heading;
   }
 
   .font-subheading {

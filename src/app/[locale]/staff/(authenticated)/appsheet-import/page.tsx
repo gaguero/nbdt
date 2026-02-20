@@ -10,7 +10,8 @@ import {
   TableCellsIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
-import { APPSHEET_TABLES, type AppSheetTable } from '@/lib/appsheet/csv-import';
+import { APPSHEET_TABLES } from '@/types/appsheet';
+import type { AppSheetTable } from '@/types/appsheet';
 
 export default function AppSheetImportPage() {
   const locale = useLocale();
