@@ -12,12 +12,13 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   fullName: string;
-  role: 'admin' | 'manager' | 'staff' | 'kitchen' | 'front_desk';
+  role: string;
   propertyId: string;
   permissions: string[];
   isActive: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+  station: string | null;
 }
 
 interface UseAuthReturn {
@@ -111,7 +112,7 @@ export function hasPermission(user: AuthUser | null, permission: string): boolea
  */
 export function hasRole(
   user: AuthUser | null,
-  role: 'admin' | 'manager' | 'staff' | 'kitchen' | 'front_desk'
+  role: string
 ): boolean {
   if (!user) return false;
   return user.role === role;
@@ -125,7 +126,7 @@ export function hasRole(
  */
 export function hasAnyRole(
   user: AuthUser | null,
-  roles: Array<'admin' | 'manager' | 'staff' | 'kitchen' | 'front_desk'>
+  roles: string[]
 ): boolean {
   if (!user) return false;
   return roles.includes(user.role);
