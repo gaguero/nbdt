@@ -40,6 +40,7 @@ export function VendorSearchSelect({ value, onChange, placeholder = 'Search vend
     } else {
       setSelectedName('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export function VendorSearchSelect({ value, onChange, placeholder = 'Search vend
         })
         .catch(() => setLoading(false));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   useEffect(() => {

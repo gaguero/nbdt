@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { ChatBubbleLeftRightIcon, PaperAirplaneIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { sendGuestMessage, getDefaultChannelId } from '@/lib/messaging';
+import { sendGuestMessage } from '@/lib/messaging';
 
 interface MessageGuestPanelProps {
   guestId: string;
@@ -15,7 +15,7 @@ export function MessageGuestPanel({ guestId, guestName }: MessageGuestPanelProps
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
 
   const [open, setOpen] = useState(false);
-  const [channels, setChannels] = useState<any[]>([]);
+  const [channels, setChannels] = useState<Array<{ id: string; name?: string; display_name_en?: string }>>([]);
   const [channelId, setChannelId] = useState('');
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -30,7 +30,7 @@ export function MessageGuestPanel({ guestId, guestName }: MessageGuestPanelProps
           const ch = d.channels ?? [];
           setChannels(ch);
           if (ch.length > 0 && !channelId) {
-            const concierge = ch.find((c: any) =>
+            const concierge = ch.find((c: { id: string; name?: string; display_name_en?: string }) =>
               c.name?.toLowerCase().includes('concierge') ||
               c.display_name_en?.toLowerCase().includes('concierge')
             );
@@ -38,7 +38,7 @@ export function MessageGuestPanel({ guestId, guestName }: MessageGuestPanelProps
           }
         });
     }
-  }, [open]);
+  }, [open, channelId, channels.length]);
 
   const handleSend = async () => {
     if (!message.trim() || !channelId || !guestId) return;
