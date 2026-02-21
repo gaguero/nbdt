@@ -1,13 +1,5 @@
 import { transaction } from '@/lib/db';
-
-export type AppSheetTable =
-  | 'guests'
-  | 'vendors'
-  | 'transfers'
-  | 'special_requests'
-  | 'other_hotel_bookings'
-  | 'romantic_dinners'
-  | 'tour_bookings';
+import type { AppSheetTable } from '@/types/appsheet';
 
 export interface CsvImportResult {
   total: number;
@@ -763,13 +755,3 @@ export async function importAppSheetCSV(
       return { total: 0, created: 0, updated: 0, unchanged: 0, errors: [`Unknown table: ${table}`] };
   }
 }
-
-export const APPSHEET_TABLES: { value: AppSheetTable; label: string }[] = [
-  { value: 'guests', label: 'Guests' },
-  { value: 'vendors', label: 'Vendors' },
-  { value: 'transfers', label: 'Transfers' },
-  { value: 'special_requests', label: 'Special Requests' },
-  { value: 'other_hotel_bookings', label: 'Other Hotel Bookings' },
-  { value: 'romantic_dinners', label: 'Romantic Dinners' },
-  { value: 'tour_bookings', label: 'Tour Bookings' },
-];

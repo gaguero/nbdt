@@ -10,40 +10,42 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Nayara Brand Color Palette
+        // Nayara Brand Color Palette (Official 2023 Brand Book - Bocas Bali)
         brand: {
-          primary: "#1F3D2F",        // Forest Green
-          accent: "#D5A20D",         // Gold
-          white: "#FFFFFF",          // Pure White
-          cream: "#FAF7F2",          // Off-White / Cream
-          shadow: "#0E1E16",         // Forest Shadow
+          primary: "#A6BBC2",        // Blue-Grey (Bocas Bali Hero Color)
+          accent: "#D4DBDF",         // Soft Lavender
+          sage: "#C6C897",           // Muted Sage
+          cream: "#E8E5D7",          // Master Cream
+          grey: "#4A4A4A",           // Master Grey
+          white: "#FBF8F3",          // Master White
+          pure: "#FFFFFF",
         },
         // Semantic color mappings
         primary: {
-          DEFAULT: "#1F3D2F",
-          foreground: "#FFFFFF",
+          DEFAULT: "#A6BBC2",
+          foreground: "#4A4A4A",
         },
         secondary: {
-          DEFAULT: "#FAF7F2",
-          foreground: "#1F3D2F",
+          DEFAULT: "#D4DBDF",
+          foreground: "#4A4A4A",
         },
         accent: {
-          DEFAULT: "#D5A20D",
-          foreground: "#FFFFFF",
+          DEFAULT: "#C6C897",
+          foreground: "#4A4A4A",
         },
-        background: "#FAF7F2",
-        foreground: "#1F3D2F",
+        background: "#FBF8F3",
+        foreground: "#4A4A4A",
         muted: {
-          DEFAULT: "#F5F3F0",
-          foreground: "#1F3D2F",
+          DEFAULT: "#D4DBDF",
+          foreground: "#4A4A4A",
         },
         card: {
-          DEFAULT: "#FAF7F2",
-          foreground: "#1F3D2F",
+          DEFAULT: "#FFFFFF",
+          foreground: "#4A4A4A",
         },
-        border: "#E0DDD8",
-        input: "#C0BCB7",
-        ring: "#D5A20D",
+        border: "#D4DBDF",
+        input: "#A6BBC2",
+        ring: "#A6BBC2",
         // Status colors for ordering system
         status: {
           pending: {
@@ -104,10 +106,12 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Primary Heading Font
-        heading: ["Playfair Display", "serif"],
-        // Body Copy Font
-        sans: ["Lato", "Open Sans", "system-ui", "sans-serif"],
+        // Primary Heading Font: Gotham (Black for web, all-caps tracked at 100)
+        heading: ["var(--font-gotham)", "Tahoma", "sans-serif"],
+        // Sub-heading Font: Georgia (Italic, sentence/title case, tracked at 40)
+        subheading: ["Georgia", "serif"],
+        // Body Copy Font: Proxima Nova (Light, Light Italic, Semibold, tracked at 40)
+        sans: ["var(--font-proxima-nova)", "Arial", "sans-serif"],
         // Monospace for code
         mono: ["var(--font-geist-mono)", "Menlo", "monospace"],
       },
@@ -168,6 +172,10 @@ const config: Config = {
         'focus': '0 0 0 3px rgba(213, 162, 13, 0.2)',
         'focus-primary': '0 0 0 3px rgba(31, 61, 47, 0.2)',
         'status': '0 2px 8px rgba(0, 0, 0, 0.06)',
+      },
+      letterSpacing: {
+        'brand-heading': '0.1em', // Tracking 100
+        'brand-body': '0.04em',   // Tracking 40
       },
       transitionProperty: {
         'height': 'height',

@@ -4,29 +4,28 @@
 
 @layer base {
   :root {
-    /* Brand Colors */
-    --color-brand-primary: 28 43 51;
-    --color-brand-secondary: 232 232 232;
-    --color-brand-accent: 228 192 146;
-    --color-brand-shadow: 51 51 51;
-    --color-brand-white: 255 255 255;
-    --color-brand-black: 0 0 0;
-    --color-brand-cream: 250 248 245;
+    /* Brand Colors (Official 2023 Brand Book - Bocas Bali) */
+    --color-brand-primary: 166 187 194; /* #A6BBC2 */
+    --color-brand-accent: 212 219 223;  /* #D4DBDF */
+    --color-brand-sage: 198 200 151;    /* #C6C897 */
+    --color-brand-cream: 232 229 215;   /* #E8E5D7 */
+    --color-brand-grey: 74 74 74;       /* #4A4A4A */
+    --color-brand-white: 251 248 243;   /* #FBF8F3 */
 
     /* UI Colors */
-    --color-background: 250 248 245;
-    --color-foreground: 28 43 51;
+    --color-background: 251 248 243;
+    --color-foreground: 74 74 74;
     --color-card: 255 255 255;
-    --color-card-foreground: 28 43 51;
-    --color-muted: 232 232 232;
-    --color-muted-foreground: 51 51 51;
-    --color-border: 232 232 232;
-    --color-input: 232 232 232;
-    --color-ring: 228 192 146;
+    --color-card-foreground: 74 74 74;
+    --color-muted: 212 219 223;
+    --color-muted-foreground: 74 74 74;
+    --color-border: 212 219 223;
+    --color-input: 166 187 194;
+    --color-ring: 166 187 194;
 
     /* Accent Colors */
-    --color-accent: 228 192 146;
-    --color-accent-foreground: 28 43 51;
+    --color-accent: 198 200 151;
+    --color-accent-foreground: 74 74 74;
 
     /* Status Colors */
     --color-success: 34 197 94;
@@ -57,8 +56,21 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans tracking-brand-body;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply uppercase tracking-brand-heading;
+    font-family: var(--font-gotham), Tahoma, sans-serif;
+  }
+
+  .font-heading {
+    @apply uppercase tracking-brand-heading;
+  }
+
+  .font-subheading {
+    @apply font-subheading normal-case italic tracking-brand-body;
   }
 
   html {
