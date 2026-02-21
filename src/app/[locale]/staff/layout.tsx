@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -59,6 +59,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { guestId, closeGuest } = useGuestDrawer();
   const { can } = usePermissions();
 
@@ -147,13 +148,37 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     }
   }, [pathname]);
 
-  const toggleGroup = (key: string) => {
-    if (activeGroup === key && panelOpen) {
+  const groupDashboards: Record<string, string> = {
+    concierge: `/${locale}/staff/daily-sheet`,
+    fnb:       `/${locale}/staff/orders`,
+    comms:     `/${locale}/staff/messages`,
+    admin:     `/${locale}/staff/users`,
+  };
+
+  const handleGroupClick = (key: string) => {
+    router.push(groupDashboards[key] ?? `/${locale}/staff/dashboard`);
+  };
+
+  const handleGroupHoverEnter = (key: string) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setActiveGroup(key);
+    setPanelOpen(true);
+  };
+
+  const handleGroupHoverLeave = () => {
+    hoverTimerRef.current = setTimeout(() => {
       setPanelOpen(false);
-    } else {
-      setActiveGroup(key);
-      setPanelOpen(true);
-    }
+    }, 300);
+  };
+
+  const handlePanelHoverEnter = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+  };
+
+  const handlePanelHoverLeave = () => {
+    hoverTimerRef.current = setTimeout(() => {
+      setPanelOpen(false);
+    }, 300);
   };
 
   const closePanel = () => setPanelOpen(false);
@@ -236,7 +261,9 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
                   label={g.label}
                   active={isGroupActive && panelOpen}
                   hasActivePage={hasActivePage}
-                  onClick={() => toggleGroup(g.key)}
+                  onClick={() => handleGroupClick(g.key)}
+                  onHoverEnter={() => handleGroupHoverEnter(g.key)}
+                  onHoverLeave={handleGroupHoverLeave}
                   showTooltip={!panelOpen}
                 />
               );
@@ -266,6 +293,8 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Expandable Panel */}
         <div
           className="flex flex-col overflow-hidden"
+          onMouseEnter={handlePanelHoverEnter}
+          onMouseLeave={handlePanelHoverLeave}
           style={{
             width: panelOpen && currentGroup ? PANEL_WIDTH : 0,
             background: '#121f0d',
@@ -481,6 +510,8 @@ function RailIcon({
   active,
   hasActivePage,
   onClick,
+  onHoverEnter,
+  onHoverLeave,
   showTooltip,
   variant,
 }: {
@@ -489,6 +520,8 @@ function RailIcon({
   active: boolean;
   hasActivePage?: boolean;
   onClick: () => void;
+  onHoverEnter?: () => void;
+  onHoverLeave?: () => void;
   showTooltip: boolean;
   variant?: 'logout';
 }) {
@@ -508,8 +541,8 @@ function RailIcon({
   return (
     <button
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => { setHovered(true); onHoverEnter?.(); }}
+      onMouseLeave={() => { setHovered(false); onHoverLeave?.(); }}
       className="relative flex items-center justify-center"
       style={{
         width: RAIL_WIDTH,
