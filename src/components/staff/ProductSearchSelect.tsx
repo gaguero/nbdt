@@ -42,6 +42,7 @@ export function ProductSearchSelect({ value, onChange, placeholder = 'Search pro
     } else {
       setSelectedName('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, locale]);
 
   useEffect(() => {
@@ -65,6 +66,7 @@ export function ProductSearchSelect({ value, onChange, placeholder = 'Search pro
         })
         .catch(() => setLoading(false));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   useEffect(() => {
