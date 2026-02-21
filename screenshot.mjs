@@ -43,6 +43,7 @@ async function takeScreenshot() {
   try {
     browser = await puppeteer.launch({
       headless: true,
+      executablePath: '/root/.cache/ms-playwright/chromium-1194/chrome-linux/chrome',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
