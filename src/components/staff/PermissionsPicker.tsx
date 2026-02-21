@@ -2,7 +2,7 @@
 
 import { PERMISSIONS, Permission } from '@/lib/permissions';
 import { getRolePermissions } from '@/lib/roles';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 
 interface PermissionsPickerProps {
   role: string;

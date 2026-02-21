@@ -73,6 +73,19 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    @apply uppercase tracking-brand-heading;
+    font-family: var(--font-gotham), Tahoma, sans-serif;
+  }
+
+  .font-heading {
+    @apply uppercase tracking-brand-heading;
+  }
+
+  .font-subheading {
+    @apply font-subheading normal-case italic tracking-brand-body;
+  }
+
   html {
     scroll-behavior: smooth;
   }

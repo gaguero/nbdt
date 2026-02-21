@@ -47,13 +47,9 @@ function matchesPattern(pathname: string, patterns: RegExp[]): boolean {
 function getLocaleFromPathname(pathname: string): string {
   const segments = pathname.split('/').filter(Boolean);
   const locale = segments[0];
-  return routing.locales.includes(locale as any)
+  return (routing.locales as readonly string[]).includes(locale)
     ? locale
     : routing.defaultLocale;
-}
-
-function hasValidCookie(request: NextRequest, cookieName: string): boolean {
-  return !!request.cookies.get(cookieName)?.value;
 }
 
 // ============================================================================

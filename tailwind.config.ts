@@ -28,38 +28,40 @@ const config: Config = {
         },
         // Nayara Brand Color Palette
         brand: {
-          primary: "#1F3D2F",        // Forest Green
-          accent: "#D5A20D",         // Gold
-          white: "#FFFFFF",          // Pure White
-          cream: "#FAF7F2",          // Off-White / Cream
-          shadow: "#0E1E16",         // Forest Shadow
+          primary: "#A6BBC2",        // Blue-Grey (Bocas Bali Hero Color)
+          accent: "#D4DBDF",         // Soft Lavender
+          sage: "#C6C897",           // Muted Sage
+          cream: "#E8E5D7",          // Master Cream
+          grey: "#4A4A4A",           // Master Grey
+          white: "#FBF8F3",          // Master White
+          pure: "#FFFFFF",
         },
         // Semantic color mappings
         primary: {
-          DEFAULT: "#1F3D2F",
-          foreground: "#FFFFFF",
+          DEFAULT: "#A6BBC2",
+          foreground: "#4A4A4A",
         },
         secondary: {
-          DEFAULT: "#FAF7F2",
-          foreground: "#1F3D2F",
+          DEFAULT: "#D4DBDF",
+          foreground: "#4A4A4A",
         },
         accent: {
-          DEFAULT: "#D5A20D",
-          foreground: "#FFFFFF",
+          DEFAULT: "#C6C897",
+          foreground: "#4A4A4A",
         },
-        background: "#FAF7F2",
-        foreground: "#1F3D2F",
+        background: "#FBF8F3",
+        foreground: "#4A4A4A",
         muted: {
-          DEFAULT: "#F5F3F0",
-          foreground: "#1F3D2F",
+          DEFAULT: "#D4DBDF",
+          foreground: "#4A4A4A",
         },
         card: {
-          DEFAULT: "#FAF7F2",
-          foreground: "#1F3D2F",
+          DEFAULT: "#FFFFFF",
+          foreground: "#4A4A4A",
         },
-        border: "#E0DDD8",
-        input: "#C0BCB7",
-        ring: "#D5A20D",
+        border: "#D4DBDF",
+        input: "#A6BBC2",
+        ring: "#A6BBC2",
         // Status colors for ordering system
         status: {
           pending: {
@@ -189,6 +191,10 @@ const config: Config = {
         'focus': '0 0 0 3px rgba(170,142,103,0.25)',
         'focus-sage': '0 0 0 3px rgba(78,94,62,0.20)',
         'status': '0 2px 8px rgba(0,0,0,0.06)',
+      },
+      letterSpacing: {
+        'brand-heading': '0.1em', // Tracking 100
+        'brand-body': '0.04em',   // Tracking 40
       },
       transitionProperty: {
         'height': 'height',

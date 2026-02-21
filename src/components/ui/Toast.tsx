@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 
@@ -67,17 +67,20 @@ const Toast: React.FC<ToastProps> = ({
 }) => {
   const [isExiting, setIsExiting] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onClose();
+      setIsExiting(false);
+    }, 300);
+  }, [onClose]);
+
   useEffect(() => {
     if (isVisible && duration > 0) {
       const timer = setTimeout(handleClose, duration);
       return () => clearTimeout(timer);
     }
-  }, [isVisible, duration]);
-
-  const handleClose = () => {
-    setIsExiting(true);
-    setTimeout(() => { onClose(); setIsExiting(false); }, 300);
-  };
+  }, [isVisible, duration, handleClose]);
 
   if (!isVisible && !isExiting) return null;
 

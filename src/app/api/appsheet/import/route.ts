@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { importAppSheetCSV, type AppSheetTable } from '@/lib/appsheet/csv-import';
+import { importAppSheetCSV } from '@/lib/appsheet/csv-import';
 import { verifyToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { APPSHEET_TABLES } from '@/types/appsheet';
+import type { AppSheetTable } from '@/types/appsheet';
 
-const VALID_TABLES: AppSheetTable[] = [
-  'guests', 'vendors', 'transfers', 'special_requests',
-  'other_hotel_bookings', 'romantic_dinners', 'tour_bookings',
-];
+const VALID_TABLES = APPSHEET_TABLES.map(t => t.value);
 
 export async function POST(request: NextRequest) {
   try {
