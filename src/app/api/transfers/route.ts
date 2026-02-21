@@ -28,11 +28,10 @@ export async function GET(request: NextRequest) {
     if (date_from) { whereClause += ` AND t.date >= $${idx++}`; params.push(date_from); }
     if (date_to) { whereClause += ` AND t.date <= $${idx++}`; params.push(date_to); }
 
-    // If user is a vendor, restrict to their vendor ID
-    const effectiveVendorId = (auth as any).propertyId || vendor_id;
-    if (effectiveVendorId) {
+    // If an explicit vendor_id filter is passed, apply it
+    if (vendor_id) {
       whereClause += ` AND t.vendor_id = $${idx++}`;
-      params.push(effectiveVendorId);
+      params.push(vendor_id);
     }
 
     const transfers = await queryMany(
