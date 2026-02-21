@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nayara Bocas del Toro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --brand-blue: #A0B4BF;
+    --brand-warm: #f5f0eb;
+    --bg-deep: #141a26;
+    --bg-mid: #1a2233;
+    --gold-glow: rgba(255, 248, 230, 0.4);
+    --shimmer-white: rgba(255, 255, 255, 0.12);
+    --medallion-size: 300px;
+  }
+
+  @media (max-width: 640px) {
+    :root { --medallion-size: 180px; }
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-deep);
+    overflow: hidden;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+
+  /* ===== BACKGROUND WITH GRAIN + VIGNETTE ===== */
+  .scene {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Layered radial gradients for depth */
+    background:
+      radial-gradient(ellipse 80% 70% at 50% 50%, rgba(160,180,191,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 120% 120% at 50% 50%, var(--bg-mid) 0%, var(--bg-deep) 80%);
+  }
+
+  /* SVG noise grain overlay */
+  .scene::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.035;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    z-index: 1;
+  }
+
+  /* Vignette */
+  .scene::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, rgba(10,12,20,0.5) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ===== LIGHT BAR ===== */
+  .light-bar {
+    position: absolute;
+    top: 50%;
+    left: -10%;
+    width: 30%;
+    height: 120px;
+    transform: translateY(-50%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,248,230,0.03) 20%,
+      var(--gold-glow) 50%,
+      rgba(255,248,230,0.03) 80%,
+      transparent 100%
+    );
+    filter: blur(20px);
+    z-index: 2;
+    opacity: 0;
+    animation: lightBarSweep 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s forwards;
+  }
+
+  @keyframes lightBarSweep {
+    0% {
+      left: -30%;
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      left: 110%;
+      opacity: 0;
+    }
+  }
+
+  /* ===== LOGO GROUP ===== */
+  .logo-group {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ===== GLOW HALO ===== */
+  .glow-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(var(--medallion-size) * 1.6);
+    height: calc(var(--medallion-size) * 1.6);
+    transform: translate(-50%, -60%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(160,180,191,0.18) 0%, transparent 70%);
+    opacity: 0;
+    animation: glowAppear 1.5s ease-out 2.2s forwards, glowPulse 8s ease-in-out 3.8s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes glowAppear {
+    to { opacity: 1; }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+    50% { opacity: 0.6; transform: translate(-50%, -60%) scale(1.05); }
+  }
+
+  /* ===== MEDALLION WRAPPER ===== */
+  .medallion-wrap {
+    position: relative;
+    width: var(--medallion-size);
+    height: var(--medallion-size);
+    overflow: hidden;
+    border-radius: 50%;
+  }
+
+  /* Luminous ring around medallion */
+  .medallion-wrap::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    border: 1px solid rgba(160,180,191,0.2);
+    box-shadow: 0 0 15px rgba(160,180,191,0.08), inset 0 0 15px rgba(160,180,191,0.05);
+    pointer-events: none;
+    opacity: 0;
+    animation: ringAppear 1.5s ease 2.4s forwards;
+    z-index: 10;
+  }
+
+  @keyframes ringAppear {
+    to { opacity: 1; }
+  }
+
+  /* The actual medallion image */
+  .medallion {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    /* Start hidden, revealed by sweep */
+    clip-path: inset(0 100% 0 0);
+    opacity: 0.3;
+    transform: scale(0.96);
+    animation: medallionReveal 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.9s forwards;
+    /* After reveal, add breathing */
+    filter: drop-shadow(0 4px 30px rgba(160,180,191,0));
+  }
+
+  @keyframes medallionReveal {
+    0% {
+      clip-path: inset(0 100% 0 0);
+      opacity: 0.3;
+      transform: scale(0.96);
+      filter: drop-shadow(0 4px 30px rgba(160,180,191,0));
+    }
+    100% {
+      clip-path: inset(0 0% 0 0);
+      opacity: 1;
+      transform: scale(1);
+      filter: drop-shadow(0 4px 30px rgba(160,180,191,0.25));
+    }
+  }
+
+  /* Breathing animation applied after reveal */
+  .medallion-wrap.revealed .medallion {
+    clip-path: inset(0 0% 0 0);
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 4px 30px rgba(160,180,191,0.25));
+    animation: breathe 6s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.015); }
+  }
+
+  /* ===== SHIMMER OVERLAY ===== */
+  .shimmer {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    animation: shimmerAppear 0.5s ease 2.8s forwards;
+  }
+
+  .shimmer::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -150%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      110deg,
+      transparent 25%,
+      rgba(255,255,255,0.10) 45%,
+      rgba(255,255,255,0.18) 50%,
+      rgba(255,255,255,0.10) 55%,
+      transparent 75%
+    );
+    mix-blend-mode: soft-light;
+    animation: shimmerSweep 5s ease-in-out 3.5s infinite;
+  }
+
+  @keyframes shimmerAppear {
+    to { opacity: 1; }
+  }
+
+  @keyframes shimmerSweep {
+    0%, 70% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(200%);
+    }
+  }
+
+  /* ===== TEXT ===== */
+  .brand-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 300;
+    font-size: clamp(28px, 5vw, 42px);
+    letter-spacing: 0.45em;
+    color: var(--brand-warm);
+    margin-top: 36px;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: textReveal 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 2.6s forwards;
+  }
+
+  .brand-sub {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(12px, 2.2vw, 15px);
+    letter-spacing: 0.55em;
+    color: rgba(245, 240, 235, 0.72);
+    margin-top: 8px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: textReveal 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 3.0s forwards;
+  }
+
+  @keyframes textReveal {
+    0% {
+      opacity: 0;
+      transform: translateY(14px);
+      letter-spacing: 0.55em;
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+      letter-spacing: 0.35em;
+    }
+  }
+
+  /* ===== HORIZONTAL ACCENT LINES ===== */
+  .accent-line {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(160,180,191,0.4), transparent);
+    margin-top: 20px;
+    opacity: 0;
+    animation: lineReveal 1.5s ease 3.3s forwards;
+  }
+
+  @keyframes lineReveal {
+    to { opacity: 1; }
+  }
+
+  /* ===== REDUCED MOTION ===== */
+  @media (prefers-reduced-motion: reduce) {
+    .light-bar,
+    .shimmer,
+    .shimmer::before { animation: none; opacity: 0; }
+    .medallion {
+      animation: none;
+      clip-path: inset(0);
+      opacity: 1;
+      transform: scale(1);
+      filter: drop-shadow(0 4px 30px rgba(160,180,191,0.25));
+    }
+    .medallion-wrap.revealed .medallion { animation: none; }
+    .glow-halo { animation: none; opacity: 1; }
+    .brand-name, .brand-sub { animation: none; opacity: 1; transform: none; letter-spacing: 0.35em; }
+    .accent-line { animation: none; opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <!-- Sweeping light bar -->
+  <div class="light-bar"></div>
+
+  <!-- Logo group -->
+  <div class="logo-group">
+    <!-- Soft glow behind medallion -->
+    <div class="glow-halo"></div>
+
+    <!-- Medallion with shimmer -->
+    <div class="medallion-wrap" id="medallionWrap">
+      <img class="medallion" src="/brand_assets/nayara-logo-round.png" alt="Nayara Bocas del Toro" />
+      <div class="shimmer"></div>
+    </div>
+
+    <!-- Brand text -->
+    <h1 class="brand-name">NAYARA</h1>
+    <p class="brand-sub">BOCAS DEL TORO</p>
+
+    <!-- Accent line -->
+    <div class="accent-line"></div>
+  </div>
+</div>
+
+<script>
+  // After the reveal animation finishes, switch to breathing mode
+  const medallionWrap = document.getElementById('medallionWrap');
+  const medallion = medallionWrap.querySelector('.medallion');
+
+  medallion.addEventListener('animationend', () => {
+    medallionWrap.classList.add('revealed');
+  });
+</script>
+
+</body>
+</html>
