@@ -8,7 +8,9 @@ import {
   CheckCircleIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  CloudArrowUpIcon,
   Cog6ToothIcon,
+  EnvelopeIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   LockClosedIcon,
@@ -19,6 +21,7 @@ import {
   TrashIcon,
   UserGroupIcon,
   UserPlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 type ModuleKey =
@@ -31,6 +34,7 @@ type ModuleKey =
   | 'tourImport'
   | 'guestCleanup'
   | 'vendorCleanup'
+  | 'email'
   | 'configuration';
 
 type Flash = { type: 'success' | 'error'; text: string };
@@ -307,6 +311,20 @@ export default function SettingsPage() {
   const [vendorNormCopied, setVendorNormCopied] = useState(false);
   const [vendorNormExecuteResult, setVendorNormExecuteResult] = useState<any | null>(null);
 
+  // Email module state
+  const [emailAccounts, setEmailAccounts] = useState<any[]>([]);
+  const [emailAccountsLoading, setEmailAccountsLoading] = useState(false);
+  const [emailMessage, setEmailMessage] = useState<Flash | null>(null);
+  const [emailShowGoogleSetup, setEmailShowGoogleSetup] = useState(false);
+  const [emailConnecting, setEmailConnecting] = useState(false);
+  const [emailNewAccount, setEmailNewAccount] = useState({ display_name: '', department: '', email_address: '' });
+  const [emailShowAddForm, setEmailShowAddForm] = useState(false);
+  const [emailSelectedAccount, setEmailSelectedAccount] = useState<any | null>(null);
+  const [emailAliases, setEmailAliases] = useState<any[]>([]);
+  const [emailAliasesLoading, setEmailAliasesLoading] = useState(false);
+  const [emailNewAlias, setEmailNewAlias] = useState({ alias_address: '', display_name: '' });
+  const [emailShowAddAlias, setEmailShowAddAlias] = useState(false);
+
   const activeSettings = settings ?? DEFAULT_SETTINGS;
 
   const getCount = useCallback(
@@ -403,6 +421,7 @@ export default function SettingsPage() {
         note: vendorNormLocked ? `Locked: need ${activeSettings.pipeline.vendorNormalizationMinVendors}+ vendors` : 'Deduplicate vendor records',
         locked: vendorNormLocked,
       },
+      { key: 'email' as ModuleKey, label: 'Email', icon: EnvelopeIcon, note: 'Departmental email accounts' },
       { key: 'configuration' as ModuleKey, label: 'Center Settings', icon: Cog6ToothIcon, note: 'Global behavior switches' },
     ],
     [activeSettings.pipeline.vendorNormalizationMinVendors, getCount, guestNormLocked, transferLocked, vendorNormLocked]
@@ -2023,6 +2042,439 @@ export default function SettingsPage() {
     );
   }
 
+  // ── Email Module helpers ──
+
+  const fetchEmailAccounts = useCallback(async () => {
+    setEmailAccountsLoading(true);
+    try {
+      const res = await fetch('/api/email/accounts');
+      const data = await res.json();
+      if (res.ok) setEmailAccounts(data.accounts ?? []);
+    } catch { /* non-fatal */ }
+    finally { setEmailAccountsLoading(false); }
+  }, []);
+
+  const fetchEmailAliases = useCallback(async (accountId: number) => {
+    setEmailAliasesLoading(true);
+    try {
+      const res = await fetch(`/api/email/accounts/${accountId}/aliases`);
+      const data = await res.json();
+      if (res.ok) setEmailAliases(data.aliases ?? []);
+    } catch { /* non-fatal */ }
+    finally { setEmailAliasesLoading(false); }
+  }, []);
+
+  const handleCreateEmailAccount = useCallback(async () => {
+    if (!emailNewAccount.display_name.trim()) return;
+    setEmailConnecting(true);
+    setEmailMessage(null);
+    try {
+      const res = await fetch('/api/email/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailNewAccount),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEmailMessage({ type: 'success', text: 'Account created. Now connect it with Google.' });
+        setEmailNewAccount({ display_name: '', department: '', email_address: '' });
+        setEmailShowAddForm(false);
+        await fetchEmailAccounts();
+      } else {
+        setEmailMessage({ type: 'error', text: data.error || 'Failed to create account.' });
+      }
+    } catch (err: unknown) {
+      setEmailMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed' });
+    } finally {
+      setEmailConnecting(false);
+    }
+  }, [emailNewAccount, fetchEmailAccounts]);
+
+  const handleConnectGoogle = useCallback(async (accountId: number) => {
+    setEmailConnecting(true);
+    setEmailMessage(null);
+    try {
+      const res = await fetch('/api/email/oauth/authorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.authUrl) {
+        window.location.href = data.authUrl;
+      } else {
+        setEmailMessage({ type: 'error', text: data.error || 'Failed to start authorization.' });
+      }
+    } catch (err: unknown) {
+      setEmailMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed' });
+    } finally {
+      setEmailConnecting(false);
+    }
+  }, []);
+
+  const handleDeleteEmailAccount = useCallback(async (accountId: number) => {
+    if (!confirm('Disconnect and delete this email account? All synced emails for this account will be removed.')) return;
+    try {
+      const res = await fetch(`/api/email/accounts/${accountId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setEmailMessage({ type: 'success', text: 'Account disconnected.' });
+        if (emailSelectedAccount?.id === accountId) setEmailSelectedAccount(null);
+        await fetchEmailAccounts();
+      } else {
+        const data = await res.json();
+        setEmailMessage({ type: 'error', text: data.error || 'Failed to delete account.' });
+      }
+    } catch (err: unknown) {
+      setEmailMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed' });
+    }
+  }, [emailSelectedAccount, fetchEmailAccounts]);
+
+  const handleCreateAlias = useCallback(async () => {
+    if (!emailSelectedAccount || !emailNewAlias.alias_address.trim()) return;
+    try {
+      const res = await fetch(`/api/email/accounts/${emailSelectedAccount.id}/aliases`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailNewAlias),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEmailNewAlias({ alias_address: '', display_name: '' });
+        setEmailShowAddAlias(false);
+        await fetchEmailAliases(emailSelectedAccount.id);
+      } else {
+        setEmailMessage({ type: 'error', text: data.error || 'Failed to create alias.' });
+      }
+    } catch (err: unknown) {
+      setEmailMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed' });
+    }
+  }, [emailSelectedAccount, emailNewAlias, fetchEmailAliases]);
+
+  const handleDeleteAlias = useCallback(async (aliasId: number) => {
+    if (!emailSelectedAccount) return;
+    if (!confirm('Delete this alias mapping?')) return;
+    try {
+      const res = await fetch(`/api/email/aliases/${aliasId}`, { method: 'DELETE' });
+      if (res.ok) await fetchEmailAliases(emailSelectedAccount.id);
+    } catch { /* non-fatal */ }
+  }, [emailSelectedAccount, fetchEmailAliases]);
+
+  // Load email accounts when tab is opened
+  useEffect(() => {
+    if (activeModule === 'email') void fetchEmailAccounts();
+  }, [activeModule, fetchEmailAccounts]);
+
+  // Load aliases when a specific account is selected
+  useEffect(() => {
+    if (emailSelectedAccount) void fetchEmailAliases(emailSelectedAccount.id);
+  }, [emailSelectedAccount, fetchEmailAliases]);
+
+  // Check for OAuth callback messages in URL
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const successMsg = params.get('emailSuccess');
+    const errorMsg = params.get('emailError');
+    if (successMsg) {
+      setEmailMessage({ type: 'success', text: successMsg });
+      setActiveModule('email');
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (errorMsg) {
+      setEmailMessage({ type: 'error', text: errorMsg });
+      setActiveModule('email');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
+  function renderEmailModule() {
+    const statusColors: Record<string, string> = {
+      active: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+      disconnected: 'bg-slate-100 text-slate-600 border-slate-300',
+      error: 'bg-rose-100 text-rose-700 border-rose-300',
+      paused: 'bg-amber-100 text-amber-700 border-amber-300',
+    };
+
+    return (
+      <div className="space-y-5">
+        <SectionTitle title="Email Accounts" subtitle="Connect departmental Google Workspace accounts to manage email within NBDT.">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEmailShowGoogleSetup(true)}
+              className="rounded-lg border border-sky-300 bg-sky-50 text-sky-700 px-3 py-2 text-sm font-medium hover:bg-sky-100 flex items-center gap-2"
+            >
+              <InformationCircleIcon className="h-4 w-4" />
+              Google Setup Guide
+            </button>
+            <button
+              type="button"
+              onClick={() => { setEmailShowAddForm(true); setEmailMessage(null); }}
+              className="rounded-lg bg-slate-900 text-white px-3 py-2 text-sm font-semibold hover:bg-slate-800 flex items-center gap-2"
+            >
+              <EnvelopeIcon className="h-4 w-4" />
+              + Connect Account
+            </button>
+          </div>
+        </SectionTitle>
+
+        {/* Flash message */}
+        {emailMessage ? (
+          <div className={cx(
+            'rounded-lg border px-4 py-3 text-sm flex items-center justify-between',
+            emailMessage.type === 'success' ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-rose-50 border-rose-300 text-rose-800'
+          )}>
+            <span>{emailMessage.text}</span>
+            <button type="button" onClick={() => setEmailMessage(null)} className="ml-2 text-current opacity-60 hover:opacity-100"><XMarkIcon className="h-4 w-4" /></button>
+          </div>
+        ) : null}
+
+        {/* Google Setup Instructions Modal */}
+        {emailShowGoogleSetup ? (
+          <div className="rounded-2xl border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 space-y-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Google Workspace Setup Instructions</h3>
+                <p className="text-sm text-slate-500 mt-1">Follow these steps to prepare your Google Cloud project for email integration.</p>
+              </div>
+              <button type="button" onClick={() => setEmailShowGoogleSetup(false)} className="rounded-lg border border-slate-300 bg-white p-1.5 hover:bg-slate-50"><XMarkIcon className="h-4 w-4 text-slate-600" /></button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="rounded-xl border border-sky-200 bg-white p-4">
+                <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-bold">1</span>
+                  Create a Google Cloud Project
+                </h4>
+                <ol className="mt-2 ml-8 text-sm text-slate-600 list-decimal space-y-1">
+                  <li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" className="text-sky-600 underline hover:text-sky-800">Google Cloud Console</a></li>
+                  <li>Create a new project (or select existing) — e.g., <code className="bg-slate-100 px-1 rounded text-xs">nbdt-email</code></li>
+                </ol>
+              </div>
+
+              <div className="rounded-xl border border-sky-200 bg-white p-4">
+                <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-bold">2</span>
+                  Enable Required APIs
+                </h4>
+                <ol className="mt-2 ml-8 text-sm text-slate-600 list-decimal space-y-1">
+                  <li>In the Cloud Console, go to <strong>APIs &amp; Services &gt; Library</strong></li>
+                  <li>Search for and enable <strong>Gmail API</strong></li>
+                  <li>Search for and enable <strong>Google Cloud Pub/Sub API</strong> (for real-time notifications)</li>
+                </ol>
+              </div>
+
+              <div className="rounded-xl border border-sky-200 bg-white p-4">
+                <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-bold">3</span>
+                  Create OAuth 2.0 Credentials
+                </h4>
+                <ol className="mt-2 ml-8 text-sm text-slate-600 list-decimal space-y-1">
+                  <li>Go to <strong>APIs &amp; Services &gt; Credentials</strong></li>
+                  <li>Click <strong>+ Create Credentials &gt; OAuth client ID</strong></li>
+                  <li>Application type: <strong>Web application</strong></li>
+                  <li>Add Authorized redirect URI: <code className="bg-slate-100 px-1 rounded text-xs break-all">{typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/email/oauth/callback</code></li>
+                  <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong></li>
+                </ol>
+              </div>
+
+              <div className="rounded-xl border border-sky-200 bg-white p-4">
+                <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-bold">4</span>
+                  Configure OAuth Consent Screen
+                </h4>
+                <ol className="mt-2 ml-8 text-sm text-slate-600 list-decimal space-y-1">
+                  <li>Go to <strong>APIs &amp; Services &gt; OAuth consent screen</strong></li>
+                  <li>User type: <strong>Internal</strong> (if all accounts are in your Workspace)</li>
+                  <li>Add scopes: <code className="bg-slate-100 px-1 rounded text-xs">gmail.modify</code> and <code className="bg-slate-100 px-1 rounded text-xs">gmail.send</code></li>
+                </ol>
+              </div>
+
+              <div className="rounded-xl border border-sky-200 bg-white p-4">
+                <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-bold">5</span>
+                  Set Up Pub/Sub (for real-time push)
+                </h4>
+                <ol className="mt-2 ml-8 text-sm text-slate-600 list-decimal space-y-1">
+                  <li>In Cloud Console, go to <strong>Pub/Sub &gt; Topics</strong></li>
+                  <li>Create topic: <code className="bg-slate-100 px-1 rounded text-xs">gmail-notifications</code></li>
+                  <li>Go to topic Permissions, add principal: <code className="bg-slate-100 px-1 rounded text-xs">gmail-api-push@system.gserviceaccount.com</code></li>
+                  <li>Assign role: <strong>Pub/Sub Publisher</strong></li>
+                  <li>Create a <strong>Push subscription</strong> with endpoint: <code className="bg-slate-100 px-1 rounded text-xs break-all">{typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/email/webhook</code></li>
+                </ol>
+              </div>
+
+              <div className="rounded-xl border border-sky-200 bg-white p-4">
+                <h4 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 text-sky-700 text-xs font-bold">6</span>
+                  Add Environment Variables
+                </h4>
+                <div className="mt-2 ml-8 text-sm text-slate-600 space-y-1">
+                  <p>Set these in your Railway (or hosting) environment:</p>
+                  <pre className="bg-slate-900 text-green-400 rounded-lg p-3 mt-2 text-xs overflow-x-auto">{`GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxx
+GOOGLE_REDIRECT_URI=${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/email/oauth/callback
+EMAIL_ENCRYPTION_KEY=<32-byte-hex-key>
+PUBSUB_TOPIC=projects/your-project/topics/gmail-notifications`}</pre>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                <h4 className="font-semibold text-emerald-800 flex items-center gap-2">
+                  <CheckCircleIcon className="h-5 w-5" />
+                  Ready to Connect
+                </h4>
+                <p className="mt-1 text-sm text-emerald-700">Once the above steps are complete and environment variables are set, click <strong>&quot;+ Connect Account&quot;</strong> above to link a departmental Gmail account.</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Add Account Form */}
+        {emailShowAddForm ? (
+          <div className="rounded-xl border border-slate-300 bg-white p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-slate-900">New Email Account</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 block mb-1">Display Name *</label>
+                <input type="text" placeholder="e.g. Cocina" value={emailNewAccount.display_name} onChange={(e) => setEmailNewAccount(prev => ({ ...prev, display_name: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 block mb-1">Department</label>
+                <input type="text" placeholder="e.g. Kitchen" value={emailNewAccount.department} onChange={(e) => setEmailNewAccount(prev => ({ ...prev, department: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 block mb-1">Email Address</label>
+                <input type="email" placeholder="e.g. cocina@hotel.com" value={emailNewAccount.email_address} onChange={(e) => setEmailNewAccount(prev => ({ ...prev, email_address: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={handleCreateEmailAccount} disabled={emailConnecting || !emailNewAccount.display_name.trim()} className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">
+                {emailConnecting ? 'Creating...' : 'Create Account'}
+              </button>
+              <button type="button" onClick={() => setEmailShowAddForm(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Account List */}
+        {emailAccountsLoading ? (
+          <p className="text-sm text-slate-500">Loading email accounts...</p>
+        ) : emailAccounts.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center space-y-3">
+            <EnvelopeIcon className="h-12 w-12 mx-auto text-slate-300" />
+            <p className="text-slate-500 text-sm">No email accounts connected yet.</p>
+            <p className="text-slate-400 text-xs">Click &quot;Google Setup Guide&quot; above to get started, then connect your first account.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {emailAccounts.map((account: any) => (
+              <div key={account.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-slate-100 p-2">
+                      <EnvelopeIcon className="h-5 w-5 text-slate-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-800">{account.email_address?.includes('pending-') ? account.display_name : account.email_address}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-slate-500">{account.display_name}</span>
+                        {account.department ? <span className="text-xs text-slate-400">| {account.department}</span> : null}
+                        <span className={cx('text-[10px] font-medium px-2 py-0.5 rounded-full border', statusColors[account.sync_status] || statusColors.disconnected)}>
+                          {account.sync_status}
+                        </span>
+                      </div>
+                      {account.sync_error ? <p className="text-xs text-rose-600 mt-1">{account.sync_error}</p> : null}
+                      {account.last_sync_at ? <p className="text-xs text-slate-400 mt-1">Last sync: {new Date(account.last_sync_at).toLocaleString()}</p> : null}
+                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                        <span>{account.alias_count ?? 0} aliases</span>
+                        <span>{account.thread_count ?? 0} threads</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {account.sync_status === 'disconnected' || account.sync_status === 'error' ? (
+                      <button type="button" onClick={() => handleConnectGoogle(account.id)} disabled={emailConnecting} className="rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 px-3 py-1.5 text-xs font-medium hover:bg-emerald-100 disabled:opacity-50">
+                        {account.sync_status === 'error' ? 'Re-authorize' : 'Connect Google'}
+                      </button>
+                    ) : null}
+                    <button type="button" onClick={() => { setEmailSelectedAccount(emailSelectedAccount?.id === account.id ? null : account); }} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50">
+                      {emailSelectedAccount?.id === account.id ? 'Close' : 'Manage Aliases'}
+                    </button>
+                    <button type="button" onClick={() => handleDeleteEmailAccount(account.id)} className="rounded-lg border border-rose-200 text-rose-600 p-1.5 hover:bg-rose-50">
+                      <TrashIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Alias Management Panel */}
+                {emailSelectedAccount?.id === account.id ? (
+                  <div className="mt-4 pt-4 border-t border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-slate-800">Aliases for {account.display_name}</h4>
+                      <button type="button" onClick={() => setEmailShowAddAlias(!emailShowAddAlias)} className="text-xs text-sky-600 hover:text-sky-800 font-medium">
+                        {emailShowAddAlias ? 'Cancel' : '+ Add Alias'}
+                      </button>
+                    </div>
+
+                    {emailShowAddAlias ? (
+                      <div className="flex items-end gap-2">
+                        <div className="flex-1">
+                          <label className="text-xs font-medium text-slate-600 block mb-1">Alias Address</label>
+                          <input type="email" placeholder="chef-juan@hotel.com" value={emailNewAlias.alias_address} onChange={(e) => setEmailNewAlias(prev => ({ ...prev, alias_address: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs font-medium text-slate-600 block mb-1">Display Name</label>
+                          <input type="text" placeholder="Chef Juan" value={emailNewAlias.display_name} onChange={(e) => setEmailNewAlias(prev => ({ ...prev, display_name: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none" />
+                        </div>
+                        <button type="button" onClick={handleCreateAlias} disabled={!emailNewAlias.alias_address.trim()} className="rounded-lg bg-slate-900 text-white px-3 py-1.5 text-sm font-medium hover:bg-slate-800 disabled:opacity-50">Add</button>
+                      </div>
+                    ) : null}
+
+                    {emailAliasesLoading ? (
+                      <p className="text-xs text-slate-500">Loading aliases...</p>
+                    ) : emailAliases.length === 0 ? (
+                      <p className="text-xs text-slate-400">No aliases configured. Add aliases to route emails to individual staff members.</p>
+                    ) : (
+                      <div className="overflow-hidden rounded-lg border border-slate-200">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-50">
+                            <tr>
+                              <th className="text-left px-3 py-2 text-xs font-medium text-slate-500">Alias Address</th>
+                              <th className="text-left px-3 py-2 text-xs font-medium text-slate-500">Display Name</th>
+                              <th className="text-left px-3 py-2 text-xs font-medium text-slate-500">Assigned To</th>
+                              <th className="px-3 py-2 text-xs font-medium text-slate-500 w-8"></th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {emailAliases.map((alias: any) => (
+                              <tr key={alias.id} className="hover:bg-slate-50">
+                                <td className="px-3 py-2 text-slate-800 font-mono text-xs">{alias.alias_address}</td>
+                                <td className="px-3 py-2 text-slate-600">{alias.display_name || '—'}</td>
+                                <td className="px-3 py-2 text-slate-600">{alias.assigned_user_name || <span className="text-slate-400 italic">Unassigned</span>}</td>
+                                <td className="px-3 py-2">
+                                  <button type="button" onClick={() => handleDeleteAlias(alias.id)} className="text-rose-400 hover:text-rose-600"><TrashIcon className="h-3.5 w-3.5" /></button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 pt-2">
+                      <InformationCircleIcon className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                      <p className="text-xs text-slate-500">Remember to also create these aliases in your <a href="https://admin.google.com" target="_blank" rel="noopener noreferrer" className="text-sky-600 underline hover:text-sky-800">Google Workspace Admin Console</a>.</p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   function renderActiveModule() {
     if (loadingDb && activeModule === 'hub') {
       return <p className="text-sm text-slate-500">Loading pipeline stats...</p>;
@@ -2061,6 +2513,8 @@ export default function SettingsPage() {
         return renderGuestCleanupModule();
       case 'vendorCleanup':
         return renderVendorCleanupModule();
+      case 'email':
+        return renderEmailModule();
       case 'configuration':
         return renderConfigurationModule();
       default:
