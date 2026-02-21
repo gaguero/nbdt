@@ -40,6 +40,13 @@ export const PERMISSIONS = {
   
   // --- Reports ---
   'reports:view': 'reports:view',
+
+  // --- Email ---
+  'email:read': 'email:read',
+  'email:read_all': 'email:read_all',
+  'email:send': 'email:send',
+  'email:manage': 'email:manage',
+  'email:admin': 'email:admin',
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

@@ -132,5 +132,36 @@
       "signIn": "Sign In",
       "signingIn": "Signing in…"
     }
+  },
+  "email": {
+    "inbox": "Inbox",
+    "compose": "Compose",
+    "reply": "Reply",
+    "replyAll": "Reply All",
+    "forward": "Forward",
+    "assign": "Assign",
+    "unassigned": "Unassigned",
+    "status": {
+      "open": "Open",
+      "pending": "Pending",
+      "closed": "Closed"
+    },
+    "department": "Department",
+    "thread": "Conversation",
+    "attachments": "Attachments",
+    "noEmails": "No emails found",
+    "syncError": "Sync error",
+    "selectConversation": "Select a conversation to read",
+    "searchPlaceholder": "Search emails...",
+    "admin": {
+      "accounts": "Email Accounts",
+      "connectAccount": "Connect Account",
+      "aliases": "Aliases",
+      "addAlias": "Add Alias",
+      "syncLog": "Sync Log",
+      "reauthorize": "Re-authorize",
+      "forceSyncNow": "Force Sync Now",
+      "googleSetupGuide": "Google Setup Guide"
+    }
   }
 }

@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ['pg', 'pg-native'],
 };
 
 export default withNextIntl(nextConfig);

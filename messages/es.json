@@ -132,5 +132,36 @@
       "signIn": "Iniciar Sesión",
       "signingIn": "Iniciando sesión…"
     }
+  },
+  "email": {
+    "inbox": "Bandeja de entrada",
+    "compose": "Redactar",
+    "reply": "Responder",
+    "replyAll": "Responder a todos",
+    "forward": "Reenviar",
+    "assign": "Asignar",
+    "unassigned": "Sin asignar",
+    "status": {
+      "open": "Abierto",
+      "pending": "Pendiente",
+      "closed": "Cerrado"
+    },
+    "department": "Departamento",
+    "thread": "Conversación",
+    "attachments": "Adjuntos",
+    "noEmails": "No se encontraron correos",
+    "syncError": "Error de sincronización",
+    "selectConversation": "Selecciona una conversación para leer",
+    "searchPlaceholder": "Buscar correos...",
+    "admin": {
+      "accounts": "Cuentas de correo",
+      "connectAccount": "Conectar cuenta",
+      "aliases": "Alias",
+      "addAlias": "Agregar alias",
+      "syncLog": "Registro de sincronización",
+      "reauthorize": "Re-autorizar",
+      "forceSyncNow": "Sincronizar ahora",
+      "googleSetupGuide": "Guía de configuración de Google"
+    }
   }
 }

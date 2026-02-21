@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { statusColor } from '@/lib/statusColors';
 
 interface Order {
   id: string;
@@ -22,15 +23,6 @@ interface Order {
 
 const STATUS_OPTIONS = ['pending', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled'];
 const ORDER_TYPES = ['room_service', 'restaurant', 'bar', 'pool'];
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-green-100 text-green-800',
-  preparing: 'bg-yellow-100 text-yellow-800',
-  ready: 'bg-blue-100 text-blue-800',
-  picked_up: 'bg-purple-100 text-purple-800',
-  delivered: 'bg-gray-100 text-gray-600',
-  cancelled: 'bg-red-100 text-red-700',
-};
 
 export default function StaffOrdersPage() {
   const params = useParams();
@@ -77,27 +69,25 @@ export default function StaffOrdersPage() {
     return `${diff}m ago`;
   }
 
-  const activeCount = orders.filter((o) => !['delivered', 'cancelled'].includes(o.status)).length;
+  const activeCount = orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length;
   const revenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-6 max-w-[1200px] mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{activeCount} active · ${revenue.toFixed(2)} total</p>
+          <h1 className="text-2xl font-bold italic" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>Orders</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--muted-dim)' }}>
+            <span className="nayara-badge nayara-badge-pending mr-2">{activeCount} active</span>
+            <span className="font-mono" style={{ color: 'var(--gold)' }}>${revenue.toFixed(2)}</span> total revenue
+          </p>
         </div>
         <div className="flex gap-2">
-          <Link
-            href={`/${locale}/kds/kitchen`}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
+          <Link href={`/${locale}/kds/kitchen`} className="nayara-btn nayara-btn-secondary text-xs">
             Kitchen KDS
           </Link>
-          <Link
-            href={`/${locale}/kds/bar`}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
+          <Link href={`/${locale}/kds/bar`} className="nayara-btn nayara-btn-secondary text-xs">
             Bar KDS
           </Link>
         </div>
@@ -107,46 +97,51 @@ export default function StaffOrdersPage() {
       <div className="flex gap-3 flex-wrap">
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={e => setStatusFilter(e.target.value)}
+          className="nayara-input"
+          style={{ width: 'auto' }}
         >
           <option value="">All Statuses</option>
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
+          {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={e => setTypeFilter(e.target.value)}
+          className="nayara-input"
+          style={{ width: 'auto' }}
         >
           <option value="">All Types</option>
-          {ORDER_TYPES.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
+          {ORDER_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
 
-      {loading && <div className="text-center text-gray-400 py-8">Loading…</div>}
+      {loading && (
+        <div className="text-center py-8">
+          <div className="h-7 w-7 border-2 border-t-transparent rounded-full mx-auto mb-2 animate-spin" style={{ borderColor: 'var(--gold)', borderTopColor: 'transparent' }} />
+          <p className="text-sm" style={{ color: 'var(--muted-dim)' }}>Loading orders…</p>
+        </div>
+      )}
 
       <div className="space-y-3">
-        {orders.map((order) => (
-          <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-5">
+        {orders.map(order => (
+          <div key={order.id} className="nayara-card p-5">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1 min-w-0">
+              <div className="space-y-1.5 min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className="font-bold text-gray-900 text-lg">{order.order_number}</span>
-                  <span className="text-gray-500">Room {order.room_number || '—'}</span>
-                  {order.guest_name && (
-                    <span className="text-gray-500">{order.guest_name}</span>
-                  )}
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-700'}`}>
-                    {order.status}
+                  <span className="font-bold text-lg" style={{ fontFamily: "'DM Mono', monospace", color: 'var(--charcoal)' }}>
+                    {order.order_number}
                   </span>
-                  <span className="text-xs text-gray-400">{elapsed(order.created_at)}</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
+                    Room {order.room_number || '—'}
+                  </span>
+                  {order.guest_name && (
+                    <span className="text-sm" style={{ color: 'var(--muted-dim)' }}>{order.guest_name}</span>
+                  )}
+                  <span className={statusColor(order.status)}>{order.status}</span>
+                  <span className="text-xs" style={{ color: 'var(--muted-dim)' }}>{elapsed(order.created_at)}</span>
                 </div>
 
-                <div className="text-sm text-gray-600">
+                <div className="text-sm" style={{ color: 'var(--muted)' }}>
                   {order.items.map((item, i) => (
                     <span key={i}>
                       {i > 0 ? ' · ' : ''}
@@ -156,32 +151,36 @@ export default function StaffOrdersPage() {
                 </div>
 
                 {order.special_instructions && (
-                  <div className="text-sm text-amber-700 bg-amber-50 rounded px-2 py-1 inline-block">
+                  <div
+                    className="text-sm rounded-lg px-2.5 py-1.5 inline-block"
+                    style={{ background: 'rgba(170,142,103,0.12)', color: 'var(--gold-dark)' }}
+                  >
                     {order.special_instructions}
                   </div>
                 )}
 
-                <div className="text-sm text-gray-500">
-                  {order.order_type} {order.station ? `· ${order.station}` : ''} · ${order.total?.toFixed(2)}
+                <div className="text-xs" style={{ color: 'var(--muted-dim)' }}>
+                  {order.order_type}{order.station ? ` · ${order.station}` : ''} · <span className="font-mono font-bold" style={{ color: 'var(--gold)' }}>${order.total?.toFixed(2)}</span>
                 </div>
               </div>
 
               <select
                 value={order.status}
                 disabled={updating === order.id}
-                onChange={(e) => updateStatus(order.id, e.target.value)}
-                className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shrink-0"
+                onChange={e => updateStatus(order.id, e.target.value)}
+                className="nayara-input shrink-0"
+                style={{ width: 'auto' }}
               >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
+                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
         ))}
 
         {!loading && orders.length === 0 && (
-          <div className="text-center text-gray-400 py-12">No orders found.</div>
+          <div className="nayara-card p-12 text-center">
+            <p className="text-sm italic" style={{ color: 'var(--muted-dim)' }}>No orders found.</p>
+          </div>
         )}
       </div>
     </div>

@@ -48,7 +48,6 @@ export default function DailySheetPage() {
 
   return (
     <>
-      {/* Print-only styles */}
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -62,31 +61,45 @@ export default function DailySheetPage() {
       `}</style>
 
       <div className="p-6 space-y-6 print-full max-w-5xl mx-auto">
-        {/* Header */}
+        {/* Controls */}
         <div className="flex items-center justify-between no-print">
           <div className="flex items-center gap-2">
-            <button onClick={() => handleDateChange(-1)} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+            <button
+              onClick={() => handleDateChange(-1)}
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--muted-dim)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--elevated)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
               <ChevronLeftIcon className="h-4 w-4" />
             </button>
             <input
               type="date"
               value={selectedDate}
               onChange={e => setSelectedDate(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="nayara-input"
+              style={{ width: 'auto' }}
             />
-            <button onClick={() => handleDateChange(1)} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+            <button
+              onClick={() => handleDateChange(1)}
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--muted-dim)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--elevated)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
               <ChevronRightIcon className="h-4 w-4" />
             </button>
             <button
-              onClick={() => { setSelectedDate(localDateString()); }}
-              className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm hover:bg-blue-100 font-medium"
+              onClick={() => setSelectedDate(localDateString())}
+              className="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+              style={{ background: 'rgba(170,142,103,0.12)', color: 'var(--gold)' }}
             >
               {ls('Today', 'Hoy')}
             </button>
           </div>
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg text-sm hover:bg-gray-900"
+            className="nayara-btn nayara-btn-secondary"
           >
             <PrinterIcon className="h-4 w-4" />
             {ls('Print', 'Imprimir')}
@@ -94,26 +107,30 @@ export default function DailySheetPage() {
         </div>
 
         {/* Print header */}
-        <div className="text-center border-b pb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Nayara BDT — {ls('Daily Operations Sheet', 'Hoja de Operaciones Diarias')}</h1>
-          <p className="text-gray-500 mt-1 capitalize">{dateLabel}</p>
+        <div className="text-center pb-4" style={{ borderBottom: '1px solid var(--separator)' }}>
+          <h1
+            className="text-2xl font-bold italic"
+            style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}
+          >
+            Nayara BDT — {ls('Daily Operations Sheet', 'Hoja de Operaciones Diarias')}
+          </h1>
+          <p className="mt-1 capitalize" style={{ color: 'var(--muted-dim)' }}>{dateLabel}</p>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-gray-400">{ls('Loading...', 'Cargando...')}</div>
+          <div className="p-8 text-center text-sm" style={{ color: 'var(--muted-dim)' }}>{ls('Loading...', 'Cargando...')}</div>
         ) : (
           <>
-            {/* Arrivals */}
             <Section title={ls('Arrivals', 'Llegadas')} count={data.arrivals?.length}>
               {data.arrivals?.length > 0 ? (
-                <table className="w-full text-sm">
-                  <thead><tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+                <table className="w-full nayara-table text-sm">
+                  <thead><tr>
                     <th className="p-2 text-left">{ls('Guest', 'Huésped')}</th>
                     <th className="p-2 text-left">{ls('Room', 'Habitación')}</th>
                     <th className="p-2 text-left">{ls('Nights', 'Noches')}</th>
                     <th className="p-2 text-left">{ls('Departure', 'Salida')}</th>
                   </tr></thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {data.arrivals.map((r: any) => (
                       <tr key={r.id}>
                         <td className="p-2 font-medium">{r.guest_name ?? r.full_name ?? '—'}</td>
@@ -127,16 +144,15 @@ export default function DailySheetPage() {
               ) : <Empty ls={ls} />}
             </Section>
 
-            {/* Departures */}
             <Section title={ls('Departures', 'Salidas')} count={data.departures?.length}>
               {data.departures?.length > 0 ? (
-                <table className="w-full text-sm">
-                  <thead><tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+                <table className="w-full nayara-table text-sm">
+                  <thead><tr>
                     <th className="p-2 text-left">{ls('Guest', 'Huésped')}</th>
                     <th className="p-2 text-left">{ls('Room', 'Habitación')}</th>
                     <th className="p-2 text-left">{ls('Arrival', 'Llegada')}</th>
                   </tr></thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {data.departures.map((r: any) => (
                       <tr key={r.id}>
                         <td className="p-2 font-medium">{r.guest_name ?? r.full_name ?? '—'}</td>
@@ -149,11 +165,10 @@ export default function DailySheetPage() {
               ) : <Empty ls={ls} />}
             </Section>
 
-            {/* Transfers */}
             <Section title={ls('Transfers', 'Traslados')} count={data.transfers?.length}>
               {data.transfers?.length > 0 ? (
-                <table className="w-full text-sm">
-                  <thead><tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+                <table className="w-full nayara-table text-sm">
+                  <thead><tr>
                     <th className="p-2 text-left">{ls('Time', 'Hora')}</th>
                     <th className="p-2 text-left">{ls('Guest', 'Huésped')}</th>
                     <th className="p-2 text-left">{ls('Route', 'Ruta')}</th>
@@ -161,7 +176,7 @@ export default function DailySheetPage() {
                     <th className="p-2 text-left">{ls('Pax', 'Pax')}</th>
                     <th className="p-2 text-left">{ls('Status', 'Estado')}</th>
                   </tr></thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {[...data.transfers].sort((a: any, b: any) => (a.time || '').localeCompare(b.time || '')).map((t: any) => (
                       <tr key={t.id}>
                         <td className="p-2 font-medium whitespace-nowrap">{t.time?.slice(0, 5) ?? '—'}</td>
@@ -169,7 +184,14 @@ export default function DailySheetPage() {
                         <td className="p-2 text-xs">{t.origin} → {t.destination}</td>
                         <td className="p-2 text-xs">{t.vendor_name ?? '—'}</td>
                         <td className="p-2">{t.num_passengers ?? '—'}</td>
-                        <td className="p-2"><span className="text-xs px-1.5 py-0.5 rounded bg-gray-100">{t.guest_status}</span></td>
+                        <td className="p-2">
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded font-medium"
+                            style={{ background: 'var(--elevated)', color: 'var(--muted)' }}
+                          >
+                            {t.guest_status}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -177,11 +199,10 @@ export default function DailySheetPage() {
               ) : <Empty ls={ls} />}
             </Section>
 
-            {/* Tours */}
             <Section title={ls('Tours & Activities', 'Tours y Actividades')} count={data.tours?.length}>
               {data.tours?.length > 0 ? (
-                <table className="w-full text-sm">
-                  <thead><tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+                <table className="w-full nayara-table text-sm">
+                  <thead><tr>
                     <th className="p-2 text-left">{ls('Time', 'Hora')}</th>
                     <th className="p-2 text-left">{ls('Guest', 'Huésped')}</th>
                     <th className="p-2 text-left">{ls('Tour', 'Tour')}</th>
@@ -189,7 +210,7 @@ export default function DailySheetPage() {
                     <th className="p-2 text-left">{ls('Pax', 'Pax')}</th>
                     <th className="p-2 text-left">{ls('Status', 'Estado')}</th>
                   </tr></thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {data.tours.map((t: any) => (
                       <tr key={t.id}>
                         <td className="p-2 font-medium whitespace-nowrap">{t.start_time?.slice(0, 5) ?? '—'}</td>
@@ -197,7 +218,14 @@ export default function DailySheetPage() {
                         <td className="p-2">{t.name_en ?? t.product_name ?? '—'}</td>
                         <td className="p-2 text-xs">{t.booking_mode ?? '—'}</td>
                         <td className="p-2">{t.num_guests ?? '—'}</td>
-                        <td className="p-2"><span className="text-xs px-1.5 py-0.5 rounded bg-gray-100">{t.guest_status}</span></td>
+                        <td className="p-2">
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded font-medium"
+                            style={{ background: 'var(--elevated)', color: 'var(--muted)' }}
+                          >
+                            {t.guest_status}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -205,25 +233,31 @@ export default function DailySheetPage() {
               ) : <Empty ls={ls} />}
             </Section>
 
-            {/* Romantic Dinners */}
             <Section title={ls('Romantic Dinners', 'Cenas Románticas')} count={data.dinners?.length}>
               {data.dinners?.length > 0 ? (
-                <table className="w-full text-sm">
-                  <thead><tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+                <table className="w-full nayara-table text-sm">
+                  <thead><tr>
                     <th className="p-2 text-left">{ls('Time', 'Hora')}</th>
                     <th className="p-2 text-left">{ls('Guest', 'Huésped')}</th>
                     <th className="p-2 text-left">{ls('Location', 'Ubicación')}</th>
                     <th className="p-2 text-left">{ls('Pax', 'Pax')}</th>
                     <th className="p-2 text-left">{ls('Status', 'Estado')}</th>
                   </tr></thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {[...data.dinners].sort((a: any, b: any) => (a.time || '').localeCompare(b.time || '')).map((d: any) => (
                       <tr key={d.id}>
                         <td className="p-2 font-medium whitespace-nowrap">{d.time?.slice(0, 5) ?? '—'}</td>
                         <td className="p-2">{d.guest_name ?? '—'}</td>
                         <td className="p-2">{d.location ?? '—'}</td>
                         <td className="p-2">{d.num_guests ?? '—'}</td>
-                        <td className="p-2"><span className="text-xs px-1.5 py-0.5 rounded bg-gray-100">{d.status}</span></td>
+                        <td className="p-2">
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded font-medium"
+                            style={{ background: 'var(--elevated)', color: 'var(--muted)' }}
+                          >
+                            {d.status}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -231,18 +265,17 @@ export default function DailySheetPage() {
               ) : <Empty ls={ls} />}
             </Section>
 
-            {/* Special Requests */}
             <Section title={ls('Pending Special Requests', 'Solicitudes Pendientes')} count={data.requests?.length}>
               {data.requests?.length > 0 ? (
-                <table className="w-full text-sm">
-                  <thead><tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+                <table className="w-full nayara-table text-sm">
+                  <thead><tr>
                     <th className="p-2 text-left">{ls('Dept', 'Depto')}</th>
                     <th className="p-2 text-left">{ls('Guest', 'Huésped')}</th>
                     <th className="p-2 text-left">{ls('Request', 'Solicitud')}</th>
                     <th className="p-2 text-left">{ls('Priority', 'Prioridad')}</th>
                     <th className="p-2 text-left">{ls('Assigned To', 'Asignado')}</th>
                   </tr></thead>
-                  <tbody className="divide-y">
+                  <tbody>
                     {data.requests.map((r: any) => (
                       <tr key={r.id}>
                         <td className="p-2 text-xs capitalize">{r.department?.replace('_', ' ')}</td>
@@ -265,12 +298,19 @@ export default function DailySheetPage() {
 
 function Section({ title, count, children }: { title: string; count?: number; children: React.ReactNode }) {
   return (
-    <div className="print-section border border-gray-200 rounded-lg overflow-hidden">
-      <div className="bg-gray-800 text-white px-4 py-2 flex items-center justify-between">
-        <h2 className="font-bold text-sm uppercase tracking-wider">{title}</h2>
-        {count !== undefined && <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">{count}</span>}
+    <div className="print-section nayara-card overflow-hidden">
+      <div
+        className="px-4 py-2 flex items-center justify-between"
+        style={{ background: 'var(--sidebar-bg)', color: '#fff' }}
+      >
+        <h2 className="font-semibold text-sm uppercase tracking-wider">{title}</h2>
+        {count !== undefined && (
+          <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(255,255,255,0.15)' }}>
+            {count}
+          </span>
+        )}
       </div>
-      <div className="bg-white">
+      <div style={{ background: 'var(--surface)' }}>
         {children}
       </div>
     </div>
@@ -279,6 +319,8 @@ function Section({ title, count, children }: { title: string; count?: number; ch
 
 function Empty({ ls }: { ls: (en: string, es: string) => string }) {
   return (
-    <p className="p-4 text-center text-gray-400 text-sm italic">{ls('None for this date', 'Ninguno para esta fecha')}</p>
+    <p className="p-4 text-center text-sm italic" style={{ color: 'var(--muted-dim)' }}>
+      {ls('None for this date', 'Ninguno para esta fecha')}
+    </p>
   );
 }

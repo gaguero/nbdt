@@ -10,7 +10,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Nayara Brand Color Palette (Official 2023 Brand Book - Bocas Bali)
+        // ── V13 Slate Botanical tokens ────────────────────────────────
+        nayara: {
+          bg:        'var(--bg)',
+          surface:   'var(--surface)',
+          elevated:  'var(--elevated)',
+          gold:      'var(--gold)',
+          'gold-dark': 'var(--gold-dark)',
+          sage:      'var(--sage)',
+          forest:    'var(--forest)',
+          terra:     'var(--terra)',
+          charcoal:  'var(--charcoal)',
+          sidebar:   'var(--sidebar-bg)',
+          muted:     'var(--muted)',
+          'muted-dim': 'var(--muted-dim)',
+          separator: 'var(--separator)',
+        },
+        // Nayara Brand Color Palette
         brand: {
           primary: "#A6BBC2",        // Blue-Grey (Bocas Bali Hero Color)
           accent: "#D4DBDF",         // Soft Lavender
@@ -106,14 +122,10 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Primary Heading Font: Gotham (Black for web, all-caps tracked at 100)
-        heading: ["var(--font-gotham)", "Tahoma", "sans-serif"],
-        // Sub-heading Font: Georgia (Italic, sentence/title case, tracked at 40)
-        subheading: ["Georgia", "serif"],
-        // Body Copy Font: Proxima Nova (Light, Light Italic, Semibold, tracked at 40)
-        sans: ["var(--font-proxima-nova)", "Arial", "sans-serif"],
-        // Monospace for code
-        mono: ["var(--font-geist-mono)", "Menlo", "monospace"],
+        heading: ["var(--font-gotham)", "Montserrat", "Tahoma", "sans-serif"],
+        subheading: ["var(--font-gelasio)", "Georgia", "serif"],
+        sans: ["var(--font-proxima-nova)", "Figtree", "Arial", "sans-serif"],
+        mono: ["DM Mono", "var(--font-geist-mono)", "Menlo", "monospace"],
       },
       fontSize: {
         // Typography Scale from Style Guide
@@ -166,12 +178,13 @@ const config: Config = {
         },
       },
       boxShadow: {
-        'card': '0 4px 8px rgba(0, 0, 0, 0.08)',
-        'card-hover': '0 6px 16px rgba(0, 0, 0, 0.12)',
-        'button': '0 2px 4px rgba(0, 0, 0, 0.1)',
-        'focus': '0 0 0 3px rgba(213, 162, 13, 0.2)',
-        'focus-primary': '0 0 0 3px rgba(31, 61, 47, 0.2)',
-        'status': '0 2px 8px rgba(0, 0, 0, 0.06)',
+        'card': '0 2px 12px rgba(78,94,62,0.10), 0 1px 3px rgba(26,26,26,0.06)',
+        'card-hover': '0 8px 28px rgba(78,94,62,0.14), 0 2px 8px rgba(26,26,26,0.08)',
+        'modal': '0 28px 80px rgba(14,26,9,0.32), 0 4px 20px rgba(26,26,26,0.14)',
+        'button': '0 1px 2px rgba(0,0,0,0.08)',
+        'focus': '0 0 0 3px rgba(170,142,103,0.25)',
+        'focus-sage': '0 0 0 3px rgba(78,94,62,0.20)',
+        'status': '0 2px 8px rgba(0,0,0,0.06)',
       },
       letterSpacing: {
         'brand-heading': '0.1em', // Tracking 100
@@ -180,6 +193,10 @@ const config: Config = {
       transitionProperty: {
         'height': 'height',
         'spacing': 'margin, padding',
+      },
+      transitionTimingFunction: {
+        'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'smooth': 'cubic-bezier(0.25, 1, 0.5, 1)',
       },
     },
   },
