@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nayara Bocas del Toro — Home</title>
+<title>Nayara Bocas del Toro — Communications</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+
   :root {
     --bg: #C8BDA8; --surface: #F2EBE0; --elevated: #E8DED2;
     --gold: #AA8E67; --gold-faint: rgba(170,142,103,0.15); --gold-glow: rgba(170,142,103,0.30);
@@ -152,12 +153,55 @@
   .anim-1 { animation-delay: 30ms; } .anim-2 { animation-delay: 70ms; }
   .anim-3 { animation-delay: 110ms; } .anim-4 { animation-delay: 150ms; }
   .anim-5 { animation-delay: 190ms; }
+
+  .main-wrap{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;}
+  .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .kpi-card{background:var(--surface);border:1px solid rgba(124,142,103,0.14);border-radius:14px;padding:14px 16px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:4px;}
+  .kpi-num{font-family:"Playfair Display",serif;font-size:32px;font-weight:700;line-height:1;color:var(--gold);}
+  .kpi-num.sage{color:var(--sage);}.kpi-num.terra{color:var(--terra);}.kpi-num.blue{color:#4A90D9;}
+  .kpi-label{font-size:9px;font-weight:800;letter-spacing:0.11em;text-transform:uppercase;color:var(--muted-dim);}
+  .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .dash-card{background:var(--surface);border:1px solid rgba(124,142,103,0.14);border-radius:14px;box-shadow:var(--card-shadow);overflow:hidden;}
+  .dash-card-header{padding:10px 16px 8px;border-bottom:1px solid var(--separator);display:flex;align-items:center;justify-content:space-between;}
+  .dash-card-title{font-family:"Playfair Display",serif;font-style:italic;font-size:13px;color:var(--sage);}
+  .dash-card-body{padding:8px 0;}
+  .list-row{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px solid rgba(124,142,103,0.06);}
+  .list-row:last-child{border-bottom:none;}
+  .list-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+  .list-dot.sage{background:var(--sage);}.list-dot.terra{background:var(--terra);}.list-dot.blue{background:#4A90D9;}
+  .list-text{font-size:11px;color:var(--muted);flex:1;}
+  .list-text strong{color:var(--charcoal);font-weight:600;}
+  .list-badge{font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+  .list-badge.pending{background:rgba(236,108,75,0.12);color:var(--terra);}
+  .list-badge.active{background:var(--sage-faint);color:var(--sage);}
+  .list-badge.done{background:var(--gold-faint);color:var(--gold);}
+  .list-badge.urgent{background:rgba(236,108,75,0.18);color:var(--terra);border:1px solid rgba(236,108,75,0.3);}
+  .stat-big{padding:20px 16px;display:flex;flex-direction:column;gap:4px;}
+  .stat-big-num{font-family:"Playfair Display",serif;font-size:48px;font-weight:700;color:var(--gold);line-height:1;}
+  .stat-big-label{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--muted-dim);}
+  .stat-big-sub{font-size:11px;color:var(--muted-dim);margin-top:4px;}
+  .channel-row{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(124,142,103,0.06);}
+  .channel-row:last-child{border-bottom:none;}
+  .channel-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+  .channel-name{font-size:12px;font-weight:600;color:var(--charcoal);flex:1;}
+  .channel-count{font-family:"DM Mono",monospace;font-size:12px;font-weight:700;color:var(--sage);}
+  .coming-overlay{position:absolute;inset:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:rgba(242,235,224,0.55);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .coming-card{background:var(--surface);border:1.5px solid var(--gold);border-radius:20px;padding:40px 48px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(78,94,62,0.18),0 4px 20px rgba(26,26,26,0.12),0 0 0 1px rgba(170,142,103,0.08);display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;animation:fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+  .coming-icon-wrap{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .coming-icon-wrap.sage-wrap{background:var(--sage-faint);border:1.5px solid rgba(78,94,62,0.22);}
+  .coming-icon-wrap.sage-wrap svg{stroke:var(--sage);width:28px;height:28px;stroke-width:1.5;fill:none;}
+  .coming-icon-wrap.blue-wrap{background:rgba(74,144,217,0.10);border:1.5px solid rgba(74,144,217,0.22);}
+  .coming-icon-wrap.blue-wrap svg{stroke:#4A90D9;width:28px;height:28px;stroke-width:1.5;fill:none;}
+  .coming-badge{font-size:9px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);padding:3px 12px;border-radius:20px;background:var(--gold-faint);}
+  .coming-title{font-family:"Playfair Display",serif;font-size:26px;font-weight:700;color:var(--charcoal);line-height:1.2;}
+  .coming-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:340px;}
+  .coming-back{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:100px;background:var(--sage-faint);border:1px solid rgba(78,94,62,0.22);color:var(--sage);font-size:12px;font-weight:600;text-decoration:none;margin-top:4px;transition:background 0.2s ease,transform 0.2s ease;}
+  .coming-back:hover{background:rgba(78,94,62,0.22);transform:translateX(-2px);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body>
-
-<div class="sidebar-container">
-<aside class="sidebar">
+<div class="sidebar-container"><aside class="sidebar">
   <svg class="sidebar-leaf" viewBox="0 0 60 80" fill="none" aria-hidden="true">
     <path d="M30 78 C30 78 4 55 4 32 C4 15 15 4 30 4 C45 4 56 15 56 32 C56 55 30 78 30 78Z" stroke="rgba(164,196,200,0.4)" stroke-width="1.2" fill="none"/>
     <path d="M30 78 L30 4" stroke="rgba(164,196,200,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
@@ -168,7 +212,7 @@
   </svg>
   <div class="sidebar-logo"><img src="brand_assets/nayara-logo-round.png" alt="Nayara" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="width:100%;height:100%;object-fit:cover"><span style="display:none;font-family:'Playfair Display',serif;font-style:italic;font-size:17px;font-weight:700;color:var(--gold)">N</span></div>
   <nav class="sidebar-nav">
-    <div class="nav-item active">
+    <div class="nav-item" onclick="window.location.href='/home.html'" style="cursor:pointer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 12l8.954-8.955a1.5 1.5 0 012.092 0L22.25 12M4.5 9.75v10.125A1.125 1.125 0 005.625 21h4.5a1.125 1.125 0 001.125-1.125V14.25a1.125 1.125 0 011.125-1.125h2.25a1.125 1.125 0 011.125 1.125v5.625A1.125 1.125 0 0016.875 21h4.5A1.125 1.125 0 0022.5 19.875V9.75"/></svg>
       <span class="nav-tooltip">Home</span>
     </div>
@@ -181,7 +225,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 22.5l-.75-3m-4.5 3l.75-3m0 0l-.375-1.5M15 19.5l.375-1.5M15 19.5H9m6 0l.375-1.5m-6.75 0H9m0 0L8.625 16.5M12 13.5l-3.75 3h7.5L12 13.5z"/></svg>
       <span class="nav-tooltip">Food &amp; Beverage</span>
     </div>
-    <div class="nav-item" onclick="window.location.href='/comms.html'" style="cursor:pointer">
+    <div class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
       <span class="nav-tooltip">Communications</span>
     </div>
@@ -197,11 +241,9 @@
       <span class="nav-tooltip">Profile</span>
     </div>
   </div>
-</aside>
-</div>
-
+</aside></div>
 <div class="main-wrap">
-  <header class="header">
+<header class="header">
     <span class="header-greeting" id="headerGreeting">Good morning, Sofia</span>
     <div class="header-weather">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>
@@ -213,198 +255,32 @@
       <div class="header-avatar">SF</div>
     </div>
   </header>
-
-  <div class="content">
-
-    <!-- ── PROPERTY PULSE ── -->
-    <div class="anim anim-1">
-      <div class="section-eyebrow" style="margin-bottom:8px">Property Pulse — Today, Friday Feb 20</div>
-      <div class="pulse-grid">
-
-        <!-- Occupancy -->
-        <div class="occ-card">
-          <div class="occ-title">Tonight's Occupancy</div>
-          <div class="occ-row">
-            <div>
-              <div class="occ-big">89<span style="font-size:18px;color:var(--muted-dim)">%</span></div>
-              <div class="occ-sub">33 of 37 villas · +4 arriving · −3 departing</div>
-            </div>
-            <span class="occ-tag">Near Full</span>
-          </div>
-          <div class="occ-bars">
-            <div class="occ-bar-row"><span class="occ-bar-label">Overwater</span><div class="occ-bar-track"><div class="occ-bar-fill" data-w="80%"></div></div><span class="occ-bar-count">8/10</span></div>
-            <div class="occ-bar-row"><span class="occ-bar-label">Garden</span><div class="occ-bar-track"><div class="occ-bar-fill" data-w="83%"></div></div><span class="occ-bar-count">5/6</span></div>
-            <div class="occ-bar-row"><span class="occ-bar-label">Beach</span><div class="occ-bar-track"><div class="occ-bar-fill" data-w="75%"></div></div><span class="occ-bar-count">3/4</span></div>
-            <div class="occ-bar-row"><span class="occ-bar-label">Suite</span><div class="occ-bar-track"><div class="occ-bar-fill" data-w="100%"></div></div><span class="occ-bar-count">2/2</span></div>
-          </div>
-        </div>
-
-        <!-- 2×2 stats -->
-        <div class="stat-grid">
-          <div class="stat-card">
-            <div class="stat-top">
-              <div class="stat-icon gold">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
-              </div>
-            </div>
-            <div class="stat-num gold">4</div>
-            <div class="stat-label">Arrivals Today</div>
-            <div class="stat-hint">Next: <strong style="color:var(--gold)">Martínez</strong> · 2:00 PM</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-top">
-              <div class="stat-icon sage">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"/></svg>
-              </div>
-            </div>
-            <div class="stat-num sage">3</div>
-            <div class="stat-label">Departures</div>
-            <div class="stat-hint"><span class="ok">2 billed</span> · 1 pending</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-top">
-              <div class="stat-icon terra">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-              </div>
-            </div>
-            <div class="stat-num terra">3</div>
-            <div class="stat-label">Open Requests</div>
-            <div class="stat-hint"><strong>2 high priority</strong></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-top">
-              <div class="stat-icon blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
-              </div>
-            </div>
-            <div class="stat-num blue">12</div>
-            <div class="stat-label">Unread Messages</div>
-            <div class="stat-hint"><span class="ok">5 assigned</span> · 7 open</div>
-          </div>
-        </div>
-
-        <!-- Rain radar -->
-        <div class="radar-card">
-          <div class="radar-header">
-            <span class="radar-title">Rain Radar</span>
-            <span class="radar-sub">Bocas del Toro · Live</span>
-          </div>
-          <iframe
-            class="radar-iframe"
-            src="https://embed.windy.com/embed2.html?lat=9.341&lon=-82.253&detailLat=9.341&detailLon=-82.253&width=280&height=220&zoom=8&level=surface&overlay=rain&product=ecmwf&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── MODULE TILES ── -->
-    <div class="anim anim-2">
-      <div class="section-eyebrow" style="margin-bottom:8px">Modules</div>
-      <div class="modules-grid">
-
-        <a class="module-tile" href="/concierge.html" style="--tile-accent:var(--gold);--tile-accent-faint:var(--gold-faint);--tile-accent-glow:var(--gold-glow)">
-          <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg></div>
-          <div class="tile-name">Concierge</div>
-          <div class="tile-desc">Arrivals, departures, transfers, tours & guest requests.</div>
-          <div class="tile-stats">
-            <div><div class="tile-stat-num">4</div><div class="tile-stat-lbl">Arrivals</div></div>
-            <div><div class="tile-stat-num">8</div><div class="tile-stat-lbl">Transfers</div></div>
-            <div><div class="tile-stat-num">6</div><div class="tile-stat-lbl">Tours</div></div>
-          </div>
-          <div class="tile-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></div>
-        </a>
-
-        <a class="module-tile" href="/fnb.html" style="--tile-accent:var(--sage);--tile-accent-faint:var(--sage-faint);--tile-accent-glow:var(--sage-glow)">
-          <div class="tile-icon" style="background:var(--sage-faint);color:var(--sage)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 22.5l-.75-3m-4.5 3l.75-3m0 0l-.375-1.5M15 19.5l.375-1.5M15 19.5H9m6 0l.375-1.5m-6.75 0H9m0 0L8.625 16.5M12 13.5l-3.75 3h7.5L12 13.5z"/></svg></div>
-          <div class="tile-name">Food & Beverage</div>
-          <div class="tile-desc">Orders, menus, romantic dinners & restaurant covers.</div>
-          <div class="tile-stats">
-            <div><div class="tile-stat-num" style="color:var(--sage)">7</div><div class="tile-stat-lbl">Orders</div></div>
-            <div><div class="tile-stat-num" style="color:var(--sage)">3</div><div class="tile-stat-lbl">Dinners</div></div>
-          </div>
-          <div class="tile-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></div>
-        </a>
-
-        <a class="module-tile" href="/comms.html" style="--tile-accent:#4A90D9;--tile-accent-faint:rgba(74,144,217,0.10);--tile-accent-glow:rgba(74,144,217,0.15)">
-          <div class="tile-icon" style="background:rgba(74,144,217,0.10);color:#4A90D9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg></div>
-          <div class="tile-name">Communications</div>
-          <div class="tile-desc">WhatsApp, SMS, email threads & guest inbox.</div>
-          <div class="tile-stats">
-            <div><div class="tile-stat-num" style="color:#4A90D9">12</div><div class="tile-stat-lbl">Unread</div></div>
-            <div><div class="tile-stat-num" style="color:#4A90D9">5</div><div class="tile-stat-lbl">Requests</div></div>
-          </div>
-          <div class="tile-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></div>
-        </a>
-
-        <a class="module-tile" href="#" style="--tile-accent:var(--terra);--tile-accent-faint:rgba(236,108,75,0.10);--tile-accent-glow:rgba(236,108,75,0.13)">
-          <div class="tile-icon" style="background:rgba(236,108,75,0.10);color:var(--terra)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
-          <div class="tile-name">Admin</div>
-          <div class="tile-desc">Billing, vendors, staff & system settings.</div>
-          <div class="tile-stats">
-            <div><div class="tile-stat-num" style="color:var(--terra)">2</div><div class="tile-stat-lbl">Pending Bills</div></div>
-          </div>
-          <div class="tile-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></div>
-        </a>
-
-      </div>
-    </div>
-
-    <!-- ── BOTTOM FEEDS ── -->
-    <div class="bottom-row anim anim-3">
-      <div class="feed-card">
-        <div class="feed-header">
-          <span class="feed-title">Recent Activity</span>
-          <span class="feed-see-all">See all</span>
-        </div>
-        <div class="feed-body">
-          <div class="feed-item"><div class="feed-dot terra"></div><div><div class="feed-text"><strong>Billing flagged</strong> — Villa Garden 2 checkout overdue</div><div class="feed-meta">Admin · Billing</div></div><span class="feed-time">8:39</span></div>
-          <div class="feed-item"><div class="feed-dot blue"></div><div><div class="feed-text"><strong>New message</strong> from García family — dietary request</div><div class="feed-meta">Communications · WhatsApp</div></div><span class="feed-time">8:31</span></div>
-          <div class="feed-item"><div class="feed-dot gold"></div><div><div class="feed-text"><strong>Transfer confirmed</strong> — Martínez · Liberia → Nayara</div><div class="feed-meta">Concierge · Transfers</div></div><span class="feed-time">8:15</span></div>
-          <div class="feed-item"><div class="feed-dot sage"></div><div><div class="feed-text"><strong>Order placed</strong> — Villa Overwater 5 · Breakfast for 2</div><div class="feed-meta">F&amp;B · Orders</div></div><span class="feed-time">8:02</span></div>
-          <div class="feed-item"><div class="feed-dot terra"></div><div><div class="feed-text"><strong>Special request</strong> — Flower arrangement, Villa Suite 1</div><div class="feed-meta">Concierge · Requests</div></div><span class="feed-time">7:58</span></div>
-          <div class="feed-item"><div class="feed-dot gold"></div><div><div class="feed-text"><strong>Check-in completed</strong> — Johnson family · Villa Beach 2</div><div class="feed-meta">Concierge · Arrivals</div></div><span class="feed-time">7:44</span></div>
-        </div>
-      </div>
-
-      <div class="feed-card">
-        <div class="feed-header">
-          <span class="feed-title">Coming Up Today</span>
-          <span class="feed-see-all">Full calendar</span>
-        </div>
-        <div class="feed-body">
-          <div class="feed-item"><div class="feed-dot gold"></div><div><div class="feed-text"><strong>Martínez</strong> arrival — transfer from Liberia</div><div class="feed-meta">Concierge · Transfer confirmed</div></div><span class="feed-time">2:00 PM</span></div>
-          <div class="feed-item"><div class="feed-dot sage"></div><div><div class="feed-text"><strong>Kayak tour</strong> — 6 guests · Bocas Town circuit</div><div class="feed-meta">Concierge · Tours</div></div><span class="feed-time">3:30 PM</span></div>
-          <div class="feed-item"><div class="feed-dot blue"></div><div><div class="feed-text"><strong>Williams family</strong> departure — flight 6:15 PM</div><div class="feed-meta">Concierge · Billing pending</div></div><span class="feed-time">4:00 PM</span></div>
-          <div class="feed-item"><div class="feed-dot sage"></div><div><div class="feed-text"><strong>Sunset cocktails</strong> — 12 in-house guests · Bar</div><div class="feed-meta">F&amp;B · Orders open</div></div><span class="feed-time">5:30 PM</span></div>
-          <div class="feed-item"><div class="feed-dot gold"></div><div><div class="feed-text"><strong>Romantic dinner</strong> — García · Overwater deck</div><div class="feed-meta">F&amp;B · Vendor confirmed</div></div><span class="feed-time">7:00 PM</span></div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+<div class="content">
+<div class="kpi-strip">
+<div class="kpi-card"><div class="kpi-num">12</div><div class="kpi-label">Unread</div></div>
+<div class="kpi-card"><div class="kpi-num sage">5</div><div class="kpi-label">Active Threads</div></div>
+<div class="kpi-card"><div class="kpi-num blue">3</div><div class="kpi-label">Channels</div></div>
+<div class="kpi-card"><div class="kpi-num terra">2</div><div class="kpi-label">Urgent</div></div>
 </div>
-
-<script>
-  function tick() {
-    const now = new Date();
-    let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    document.getElementById('headerClock').textContent =
-      `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} ${ampm}`;
-  }
-  tick(); setInterval(tick, 1000);
-
-  const hour = new Date().getHours();
-  const g = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  document.getElementById('headerGreeting').textContent = `${g}, Sofia`;
-
-  setTimeout(() => {
-    document.querySelectorAll('.occ-bar-fill[data-w]').forEach(el => { el.style.width = el.dataset.w; });
-  }, 250);
-</script>
+<div class="cards-grid">
+<div class="dash-card"><div class="dash-card-header"><span class="dash-card-title">Recent Conversations</span><span style="font-size:10px;font-weight:600;color:var(--gold)">See All</span></div><div class="dash-card-body">
+<div class="list-row"><div class="list-dot terra"></div><span class="list-text"><strong>Mart&iacute;nez</strong> &middot; &ldquo;Can we arrange a late checkout?&rdquo;</span><span class="list-badge urgent">Urgent</span></div>
+<div class="list-row"><div class="list-dot sage"></div><span class="list-text"><strong>Chen</strong> &middot; &ldquo;Anniversary surprise setup confirmed&rdquo;</span><span class="list-badge active">Active</span></div>
+<div class="list-row"><div class="list-dot"></div><span class="list-text"><strong>Okonkwo</strong> &middot; &ldquo;Dietary preferences for dinner tonight&rdquo;</span><span class="list-badge done">Replied</span></div>
+</div></div>
+<div class="dash-card"><div class="dash-card-header"><span class="dash-card-title">Channels</span></div><div class="dash-card-body">
+<div class="channel-row"><div class="channel-icon" style="background:rgba(37,211,102,0.12)">&#128240;</div><span class="channel-name">WhatsApp</span><span class="channel-count">7 unread</span></div>
+<div class="channel-row"><div class="channel-icon" style="background:rgba(74,144,217,0.12)">&#128241;</div><span class="channel-name">SMS</span><span class="channel-count">3 unread</span></div>
+<div class="channel-row"><div class="channel-icon" style="background:rgba(170,142,103,0.12)">&#9993;</div><span class="channel-name">Email</span><span class="channel-count">2 unread</span></div>
+</div></div>
+<div class="dash-card"><div class="dash-card-header"><span class="dash-card-title">Guest Requests</span><span style="font-size:10px;font-weight:600;color:var(--gold)">See All</span></div><div class="dash-card-body">
+<div class="list-row"><div class="list-dot terra"></div><span class="list-text"><strong>Villa 08</strong> &middot; Late checkout request &middot; 1:00 PM</span><span class="list-badge pending">Pending</span></div>
+<div class="list-row"><div class="list-dot sage"></div><span class="list-text"><strong>Villa 22</strong> &middot; Extra towels &amp; bath amenities</span><span class="list-badge active">In Progress</span></div>
+<div class="list-row"><div class="list-dot"></div><span class="list-text"><strong>Villa 11</strong> &middot; Airport transfer &mdash; 9:00 AM tomorrow</span><span class="list-badge done">Confirmed</span></div>
+</div></div>
+<div class="dash-card"><div class="dash-card-header"><span class="dash-card-title">Avg. Response Time</span></div><div class="stat-big"><div class="stat-big-num" style="color:#4A90D9">4m</div><div class="stat-big-label">Response Time Today</div><div class="stat-big-sub">Target: &lt;5 min &middot; 23 messages handled</div></div></div>
+</div></div>
+<div class="coming-overlay"><div class="coming-card"><div class="coming-icon-wrap blue-wrap"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg></div><span class="coming-badge">Coming Soon</span><h1 class="coming-title">Communications Dashboard</h1><p class="coming-desc">Unified inbox for WhatsApp, SMS, email and in-app messages. Full guest conversation management coming soon.</p><a href="/home.html" class="coming-back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0l7 7m-7-7l7-7"/></svg> Back to Home</a></div></div>
+</div>
 </body>
 </html>
