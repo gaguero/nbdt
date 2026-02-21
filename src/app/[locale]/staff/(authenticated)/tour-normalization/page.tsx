@@ -40,14 +40,6 @@ interface GroupDecision {
 
 type Step = 'upload' | 'parsing' | 'paste' | 'review' | 'importing' | 'done';
 
-const VENDOR_TYPE_COLORS: Record<string, string> = {
-  transfer: 'text-blue-600',
-  tour: 'text-green-600',
-  spa: 'text-purple-600',
-  restaurant: 'text-orange-600',
-  other: 'text-gray-500',
-};
-
 function buildCompositeKey(name: string, vendorLegacyId: string): string {
   const n = (name || '').trim();
   const v = (vendorLegacyId || '').trim();
@@ -397,8 +389,8 @@ export default function TourNormalizationPage() {
       <DataCurationNav />
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Tour Bookings Import</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>Tour Bookings Import</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>
           Upload your CSV, copy the AI prompt, paste the response, assign vendors, then import.
         </p>
       </div>
@@ -407,26 +399,32 @@ export default function TourNormalizationPage() {
       <div className="flex items-center gap-2 text-sm flex-wrap">
         {stepLabels.map((s, i) => (
           <div key={s.key} className="flex items-center gap-2">
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-              i === currentIdx ? 'bg-blue-600 text-white' :
-              i < currentIdx ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
-            }`}>{i + 1}</span>
-            <span className={i === currentIdx ? 'font-medium text-gray-900' : 'text-gray-400'}>{s.label}</span>
-            {i < stepLabels.length - 1 && <span className="text-gray-300">→</span>}
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+              style={
+                i === currentIdx
+                  ? { background: 'var(--gold)', color: '#fff' }
+                  : i < currentIdx
+                  ? { background: 'var(--sage)', color: '#fff' }
+                  : { background: 'var(--elevated)', color: 'var(--muted-dim)' }
+              }
+            >{i + 1}</span>
+            <span style={{ color: i === currentIdx ? 'var(--charcoal)' : 'var(--muted-dim)', fontWeight: i === currentIdx ? 500 : 400 }}>{s.label}</span>
+            {i < stepLabels.length - 1 && <span style={{ color: 'var(--muted-dim)' }}>→</span>}
           </div>
         ))}
       </div>
 
       {/* ── Step 1: Upload ── */}
       {(step === 'upload' || step === 'parsing') && (
-        <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12 text-center space-y-4">
-          <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="nayara-card p-12 text-center space-y-4" style={{ border: '2px dashed var(--separator)' }}>
+          <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--muted-dim)' }}>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           <div>
-            <p className="text-base font-medium text-gray-700">Upload Tour Bookings CSV</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-base font-medium" style={{ color: 'var(--muted)' }}>Upload Tour Bookings CSV</p>
+            <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>
               Must include a &quot;Nombre de la actividad&quot; column with tour names
             </p>
           </div>
@@ -434,15 +432,16 @@ export default function TourNormalizationPage() {
             ref={fileRef}
             type="file"
             accept=".csv"
-            className="block w-full max-w-xs mx-auto text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="block w-full max-w-xs mx-auto text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-medium"
+            style={{ color: 'var(--muted-dim)' }}
           />
           {parseError && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2 inline-block">{parseError}</p>
+            <p className="text-sm rounded-lg px-4 py-2 inline-block" style={{ background: 'rgba(236,108,75,0.1)', color: 'var(--terra)' }}>{parseError}</p>
           )}
           <button
             onClick={handleParse}
             disabled={step === 'parsing'}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 mx-auto"
+            className="nayara-btn nayara-btn-primary flex items-center gap-2 mx-auto disabled:opacity-50"
           >
             {step === 'parsing' ? (
               <>
@@ -457,23 +456,21 @@ export default function TourNormalizationPage() {
       {/* ── Step 2: Copy prompt + paste AI response ── */}
       {step === 'paste' && (
         <div className="space-y-5">
-          <div className="bg-blue-50 rounded-xl border border-blue-200 px-4 py-3 text-sm text-blue-700 flex flex-wrap gap-4">
+          <div className="rounded-xl px-4 py-3 text-sm flex flex-wrap gap-4" style={{ background: 'rgba(170,142,103,0.08)', color: 'var(--gold)', border: '1px solid rgba(170,142,103,0.2)' }}>
             <span>Found <strong>{uniqueNames.length}</strong> unique tour names across <strong>{totalRows}</strong> booking rows.</span>
-            <span className="text-green-700"><strong>{totalNew}</strong> new rows to import</span>
+            <span style={{ color: 'var(--sage)' }}><strong>{totalNew}</strong> new rows to import</span>
             {totalExisting > 0 && (
-              <span className="text-orange-600"><strong>{totalExisting}</strong> already in the database (will be updated)</span>
+              <span style={{ color: 'var(--terra)' }}><strong>{totalExisting}</strong> already in the database (will be updated)</span>
             )}
           </div>
 
           {/* Prompt box */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <div className="nayara-card p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-800">1. Copy this prompt</h2>
+              <h2 className="font-semibold" style={{ color: 'var(--charcoal)' }}>1. Copy this prompt</h2>
               <button
                 onClick={handleCopy}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  copied ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                className={`nayara-btn ${copied ? 'nayara-btn-secondary' : 'nayara-btn-primary'} flex items-center gap-1.5 px-4 py-1.5`}
               >
                 {copied ? (
                   <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> Copied!</>
@@ -482,19 +479,20 @@ export default function TourNormalizationPage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-500">Paste into ChatGPT, Claude, Gemini, etc. Ask for JSON only.</p>
+            <p className="text-xs" style={{ color: 'var(--muted-dim)' }}>Paste into ChatGPT, Claude, Gemini, etc. Ask for JSON only.</p>
             <textarea
               readOnly
               value={prompt}
               rows={12}
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 font-mono resize-none focus:outline-none"
+              className="nayara-input w-full px-3 py-2 text-xs font-mono resize-none"
+              style={{ background: 'var(--elevated)' }}
             />
           </div>
 
           {/* Paste response */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-            <h2 className="font-semibold text-gray-800">2. Paste the AI response here</h2>
-            <p className="text-xs text-gray-500">
+          <div className="nayara-card p-5 space-y-3">
+            <h2 className="font-semibold" style={{ color: 'var(--charcoal)' }}>2. Paste the AI response here</h2>
+            <p className="text-xs" style={{ color: 'var(--muted-dim)' }}>
               The AI should return a JSON array of groups. Paste the full reply — the JSON will be extracted automatically.
             </p>
             <textarea
@@ -502,19 +500,19 @@ export default function TourNormalizationPage() {
               onChange={e => setPastedResponse(e.target.value)}
               rows={10}
               placeholder="Paste the AI response here..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="nayara-input w-full px-3 py-2 text-xs font-mono resize-y"
             />
             {aiParseError && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{aiParseError}</p>
+              <p className="text-sm rounded-lg px-3 py-2" style={{ background: 'rgba(236,108,75,0.1)', color: 'var(--terra)' }}>{aiParseError}</p>
             )}
             <div className="flex justify-between items-center pt-1">
-              <button onClick={() => setStep('upload')} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+              <button onClick={() => setStep('upload')} className="nayara-btn nayara-btn-ghost px-4 py-2 text-sm">
                 ← Back
               </button>
               <button
                 onClick={handleParseAIResponse}
                 disabled={!pastedResponse.trim()}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+                className="nayara-btn nayara-btn-primary px-6 py-2 disabled:opacity-50"
               >
                 Parse &amp; Review →
               </button>
@@ -528,21 +526,21 @@ export default function TourNormalizationPage() {
         <div className="space-y-5">
           {/* Summary */}
           <div className="grid grid-cols-4 gap-3">
-            <div className="bg-blue-50 rounded-xl p-3 text-center">
-              <p className="text-xl font-bold text-blue-700">{groups.length}</p>
-              <p className="text-xs text-blue-500">Tour groups</p>
+            <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(170,142,103,0.08)', border: '1px solid rgba(170,142,103,0.2)' }}>
+              <p className="text-xl font-bold" style={{ color: 'var(--gold)' }}>{groups.length}</p>
+              <p className="text-xs" style={{ color: 'var(--gold)', opacity: 0.8 }}>Tour groups</p>
             </div>
-            <div className="bg-green-50 rounded-xl p-3 text-center">
-              <p className="text-xl font-bold text-green-700">{createCount}</p>
-              <p className="text-xs text-green-500">New products</p>
+            <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(78,94,62,0.08)', border: '1px solid rgba(78,94,62,0.2)' }}>
+              <p className="text-xl font-bold" style={{ color: 'var(--sage)' }}>{createCount}</p>
+              <p className="text-xs" style={{ color: 'var(--sage)', opacity: 0.8 }}>New products</p>
             </div>
-            <div className="bg-yellow-50 rounded-xl p-3 text-center">
-              <p className="text-xl font-bold text-yellow-700">{mapCount}</p>
-              <p className="text-xs text-yellow-500">Mapped to existing</p>
+            <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(170,142,103,0.06)', border: '1px solid rgba(170,142,103,0.15)' }}>
+              <p className="text-xl font-bold" style={{ color: 'var(--gold)' }}>{mapCount}</p>
+              <p className="text-xs" style={{ color: 'var(--gold)', opacity: 0.7 }}>Mapped to existing</p>
             </div>
-            <div className="bg-gray-50 rounded-xl p-3 text-center">
-              <p className="text-xl font-bold text-gray-600">{skipCount}</p>
-              <p className="text-xs text-gray-500">Skipped</p>
+            <div className="rounded-xl p-3 text-center" style={{ background: 'var(--elevated)', border: '1px solid var(--separator)' }}>
+              <p className="text-xl font-bold" style={{ color: 'var(--muted)' }}>{skipCount}</p>
+              <p className="text-xs" style={{ color: 'var(--muted-dim)' }}>Skipped</p>
             </div>
           </div>
 
@@ -554,26 +552,27 @@ export default function TourNormalizationPage() {
               return (
                 <div
                   key={g.groupId}
-                  className={`bg-white rounded-xl border-2 p-4 space-y-3 transition-colors ${
-                    dec.action === 'create' ? 'border-green-300' :
-                    dec.action === 'map'    ? 'border-blue-300' :
-                    'border-gray-200'
-                  }`}
+                  className="nayara-card p-4 space-y-3"
+                  style={{
+                    borderColor: dec.action === 'create' ? 'rgba(78,94,62,0.4)' :
+                      dec.action === 'map' ? 'rgba(170,142,103,0.4)' :
+                      'var(--separator)',
+                  }}
                 >
                   {/* Top row: CSV name tags + row count + action toggle */}
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-gray-900 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest" style={{ background: 'var(--sidebar-bg)', color: '#fff' }}>
                           Group #{g.groupId}
                         </span>
                         {dec.action === 'create' && dec.name_en && (
-                          <span className="text-xs font-bold text-green-600 truncate max-w-[200px]">
+                          <span className="text-xs font-bold truncate max-w-[200px]" style={{ color: 'var(--sage)' }}>
                             → {dec.name_en}
                           </span>
                         )}
                         {dec.action === 'map' && dec.productId && (
-                          <span className="text-xs font-bold text-blue-600 truncate max-w-[200px]">
+                          <span className="text-xs font-bold truncate max-w-[200px]" style={{ color: 'var(--gold)' }}>
                             → {products.find(p => p.id === dec.productId)?.name_en}
                           </span>
                         )}
@@ -584,11 +583,11 @@ export default function TourNormalizationPage() {
                           const label = detail ? keyToLabel(detail) : key;
                           return (
                             <div key={key} className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-mono">
+                              <span className="text-xs px-2 py-0.5 rounded-full font-mono" style={{ background: 'var(--elevated)', color: 'var(--muted)' }}>
                                 {label}
                               </span>
                               <select
-                                className="text-[11px] border border-gray-300 rounded px-1.5 py-0.5 text-gray-600 max-w-[150px]"
+                                className="nayara-input text-[11px] px-1.5 py-0.5 max-w-[150px]"
                                 defaultValue=""
                                 onChange={(e) => {
                                   const target = e.target.value;
@@ -621,12 +620,12 @@ export default function TourNormalizationPage() {
                           );
                         })}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--muted-dim)' }}>
                         <span>{g.rowCount} booking{g.rowCount !== 1 ? 's' : ''}</span>
                         {g.existingCount > 0 && (
                           <>
-                            <span className="text-green-600 font-medium">{g.newCount} new</span>
-                            <span className="text-orange-500">{g.existingCount} already imported</span>
+                            <span style={{ color: 'var(--sage)', fontWeight: 500 }}>{g.newCount} new</span>
+                            <span style={{ color: 'var(--terra)' }}>{g.existingCount} already imported</span>
                           </>
                         )}
                       </div>
@@ -637,13 +636,16 @@ export default function TourNormalizationPage() {
                         <button
                           key={a}
                           onClick={() => setDec(g.groupId, { action: a })}
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
+                          className="px-2.5 py-1 rounded-full text-xs font-medium capitalize"
+                          style={
                             dec.action === a
-                              ? a === 'create' ? 'bg-green-500 text-white'
-                              : a === 'map'    ? 'bg-blue-500 text-white'
-                              : 'bg-gray-500 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
+                              ? a === 'create'
+                                ? { background: 'var(--sage)', color: '#fff' }
+                                : a === 'map'
+                                ? { background: 'var(--gold)', color: '#fff' }
+                                : { background: 'var(--muted)', color: '#fff' }
+                              : { background: 'var(--elevated)', color: 'var(--muted-dim)' }
+                          }
                         >
                           {a}
                         </button>
@@ -653,31 +655,31 @@ export default function TourNormalizationPage() {
 
                   {/* Create: EN/ES names + vendor */}
                   {dec.action === 'create' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-gray-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1" style={{ borderTop: '1px solid var(--separator)' }}>
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">English Name</label>
+                        <label className="nayara-label block mb-1">English Name</label>
                         <input
                           value={dec.name_en ?? ''}
                           onChange={e => setDec(g.groupId, { name_en: e.target.value })}
                           placeholder="e.g. Snorkeling Tour"
-                          className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                          className="nayara-input w-full"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Spanish Name</label>
+                        <label className="nayara-label block mb-1">Spanish Name</label>
                         <input
                           value={dec.name_es ?? ''}
                           onChange={e => setDec(g.groupId, { name_es: e.target.value })}
                           placeholder="e.g. Tour de Snorkel"
-                          className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                          className="nayara-input w-full"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Vendor</label>
+                        <label className="nayara-label block mb-1">Vendor</label>
                         <select
                           value={dec.vendor_id ?? ''}
                           onChange={e => setDec(g.groupId, { vendor_id: e.target.value })}
-                          className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                          className="nayara-input w-full"
                         >
                           <option value="">— No vendor —</option>
                           {vendors.map(v => (
@@ -688,7 +690,7 @@ export default function TourNormalizationPage() {
                           ))}
                         </select>
                         {!dec.vendor_id && (
-                          <p className={`text-xs mt-0.5 ${VENDOR_TYPE_COLORS['other']}`}>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--muted-dim)' }}>
                             Assign a vendor so tour orders route correctly
                           </p>
                         )}
@@ -698,12 +700,12 @@ export default function TourNormalizationPage() {
 
                   {/* Map: product select */}
                   {dec.action === 'map' && (
-                    <div className="pt-1 border-t border-gray-100">
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Map to Product</label>
+                    <div className="pt-1" style={{ borderTop: '1px solid var(--separator)' }}>
+                      <label className="nayara-label block mb-1">Map to Product</label>
                       <select
                         value={dec.productId ?? ''}
                         onChange={e => setDec(g.groupId, { productId: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="nayara-input w-full"
                       >
                         <option value="">— Select product —</option>
                         {products.map(p => (
@@ -713,7 +715,7 @@ export default function TourNormalizationPage() {
                         ))}
                       </select>
                       {!dec.productId && (
-                        <p className="text-xs text-red-500 mt-0.5">Select a product or change to Create/Skip</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--terra)' }}>Select a product or change to Create/Skip</p>
                       )}
                     </div>
                   )}
@@ -724,21 +726,21 @@ export default function TourNormalizationPage() {
 
           {/* Footer */}
           <div className="flex justify-between items-center pt-2">
-            <div className="text-sm text-gray-500 space-y-0.5">
+            <div className="text-sm space-y-0.5" style={{ color: 'var(--muted-dim)' }}>
               <p>
-                <span className="text-green-600 font-medium">{importableNew} new</span>
-                {importableExisting > 0 && <> + <span className="text-orange-500 font-medium">{importableExisting} updates</span></>}
+                <span style={{ color: 'var(--sage)', fontWeight: 500 }}>{importableNew} new</span>
+                {importableExisting > 0 && <> + <span style={{ color: 'var(--terra)', fontWeight: 500 }}>{importableExisting} updates</span></>}
                 {' '}rows &middot; {createCount} new products &middot; {skipCount} groups skipped
               </p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setStep('paste')} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+              <button onClick={() => setStep('paste')} className="nayara-btn nayara-btn-ghost px-4 py-2 text-sm">
                 ← Back
               </button>
               <button
                 onClick={handleImport}
                 disabled={importableRows === 0}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+                className="nayara-btn nayara-btn-primary px-6 py-2 disabled:opacity-50"
               >
                 {importableExisting > 0
                   ? `Import ${importableNew} new + ${importableExisting} updates →`
@@ -752,47 +754,47 @@ export default function TourNormalizationPage() {
 
       {/* ── Importing spinner ── */}
       {step === 'importing' && (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-700 font-medium">Importing tour bookings…</p>
-          <p className="text-sm text-gray-500 mt-1">Creating products and saving bookings</p>
+        <div className="nayara-card p-12 text-center">
+          <div className="animate-spin w-10 h-10 border-4 border-t-transparent rounded-full mx-auto mb-4" style={{ borderColor: 'var(--gold)', borderTopColor: 'transparent' }} />
+          <p className="font-medium" style={{ color: 'var(--charcoal)' }}>Importing tour bookings…</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>Creating products and saving bookings</p>
         </div>
       )}
 
       {/* ── Done ── */}
       {step === 'done' && importResult && (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 space-y-4">
+        <div className="nayara-card p-8 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,94,62,0.15)' }}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--sage)' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Import Complete</h2>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--charcoal)' }}>Import Complete</h2>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-green-700">{importResult.created}</p>
-              <p className="text-sm text-green-600">New bookings</p>
+            <div className="rounded-lg p-4 text-center" style={{ background: 'rgba(78,94,62,0.08)', border: '1px solid rgba(78,94,62,0.2)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--sage)' }}>{importResult.created}</p>
+              <p className="text-sm" style={{ color: 'var(--sage)', opacity: 0.8 }}>New bookings</p>
             </div>
-            <div className="bg-blue-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-blue-700">{importResult.updated}</p>
-              <p className="text-sm text-blue-600">Updated</p>
+            <div className="rounded-lg p-4 text-center" style={{ background: 'rgba(170,142,103,0.08)', border: '1px solid rgba(170,142,103,0.2)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>{importResult.updated}</p>
+              <p className="text-sm" style={{ color: 'var(--gold)', opacity: 0.8 }}>Updated</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-gray-700">{importResult.skipped}</p>
-              <p className="text-sm text-gray-600">Skipped</p>
+            <div className="rounded-lg p-4 text-center" style={{ background: 'var(--elevated)', border: '1px solid var(--separator)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--muted)' }}>{importResult.skipped}</p>
+              <p className="text-sm" style={{ color: 'var(--muted-dim)' }}>Skipped</p>
             </div>
           </div>
           {importResult.errors.length > 0 && (
-            <div className="bg-red-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-red-700 mb-2">{importResult.errors.length} errors:</p>
-              <ul className="text-xs text-red-600 space-y-1 max-h-32 overflow-y-auto">
+            <div className="rounded-lg p-4" style={{ background: 'rgba(236,108,75,0.08)', border: '1px solid rgba(236,108,75,0.2)' }}>
+              <p className="text-sm font-medium mb-2" style={{ color: 'var(--terra)' }}>{importResult.errors.length} errors:</p>
+              <ul className="text-xs space-y-1 max-h-32 overflow-y-auto" style={{ color: 'var(--terra)' }}>
                 {importResult.errors.slice(0, 20).map((e, i) => <li key={i}>{e}</li>)}
               </ul>
             </div>
           )}
-          <button onClick={reset} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+          <button onClick={reset} className="nayara-btn nayara-btn-primary px-4 py-2 text-sm">
             Import Another File
           </button>
         </div>

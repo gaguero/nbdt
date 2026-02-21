@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nayara Bocas del Toro — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #C8BDA8; --surface: #F2EBE0; --elevated: #E8DED2;
+    --gold: #AA8E67; --gold-faint: rgba(170,142,103,0.15); --gold-glow: rgba(170,142,103,0.30);
+    --sage: #4E5E3E; --sage-faint: rgba(78,94,62,0.14); --sage-glow: rgba(78,94,62,0.28);
+    --charcoal: #1A1A1A; --muted: rgba(26,26,26,0.80); --muted-dim: rgba(26,26,26,0.60);
+    --terra: #EC6C4B; --sidebar-bg: #0E1A09;
+    --separator: rgba(78,94,62,0.18);
+    --card-shadow: 0 4px 24px rgba(78,94,62,0.12), 0 1px 6px rgba(26,26,26,0.10);
+    --sidebar-w: 72px; --spring: cubic-bezier(0.34,1.56,0.64,1);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 14px; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--charcoal); min-height: 100vh; display: flex; overflow: hidden; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,142,103,0.2); border-radius: 4px; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar-container { display: flex; height: 100vh; flex-shrink: 0; z-index: 100; }
+  .sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); height: 100vh; background: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding: 20px 0 24px; position: relative; overflow: hidden; flex-shrink: 0; }
+  .sidebar-leaf { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 60px; height: 80px; pointer-events: none; opacity: 0.4; }
+  .sidebar-logo { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(124,142,103,0.3); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.3s ease; flex-shrink: 0; }
+  .sidebar-logo:hover { border-color: var(--sage); }
+  .sidebar-logo span { font-family: 'Playfair Display', serif; font-style: italic; font-size: 17px; font-weight: 700; color: var(--gold); }
+  .sidebar-nav { display: flex; flex-direction: column; align-items: center; width: 100%; flex: 1; gap: 2px; }
+  .sidebar-footer { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .nav-item { width: 100%; height: 46px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.38); position: relative; transition: color 0.2s ease; }
+  .nav-item::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%) scaleY(0); width: 3px; height: 22px; background: var(--sage); border-radius: 0 3px 3px 0; transition: transform 0.3s var(--spring); }
+  .nav-item::after { content: ''; position: absolute; inset: 0; background: rgba(124,142,103,0.08); opacity: 0; transition: opacity 0.2s ease; }
+  .nav-item.active { color: var(--sage); }
+  .nav-item.active::before { transform: translateY(-50%) scaleY(1); }
+  .nav-item.active::after { opacity: 1; }
+  .nav-item:hover { color: rgba(255,255,255,0.75); }
+  .nav-item svg { width: 20px; height: 20px; stroke-width: 1.6; position: relative; z-index: 1; }
+  .nav-tooltip { position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); background: #0E1A0B; color: rgba(255,255,255,0.9); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+  .nav-tooltip::before { content: ''; position: absolute; right: 100%; top: 50%; transform: translateY(-50%); border: 5px solid transparent; border-right-color: #0E1A0B; }
+  .nav-item:hover .nav-tooltip { opacity: 1; }
+  .sidebar-divider { width: 28px; height: 1px; background: rgba(255,255,255,0.12); margin: 6px 0; }
+
+  /* ─── LAYOUT ─── */
+  .main-wrap { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .header { height: 42px; min-height: 42px; background: var(--bg); border-bottom: 1px solid rgba(124,142,103,0.12); display: flex; align-items: center; gap: 14px; padding: 0 20px; flex-shrink: 0; }
+  .header-greeting { font-family: 'Playfair Display', serif; font-style: italic; font-size: 16px; color: var(--charcoal); }
+  .header-weather { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(78,94,62,0.08); border: 1px solid rgba(78,94,62,0.14); border-radius: 8px; font-size: 11px; color: var(--muted); }
+  .header-weather svg { width: 13px; height: 13px; color: var(--gold); flex-shrink: 0; }
+  .header-clock { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; color: var(--sage); letter-spacing: 0.05em; margin-left: auto; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .header-property { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; }
+  .header-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--gold); background: var(--gold-faint); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--gold); }
+  .content { flex: 1; overflow-y: auto; padding: 14px 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ─── EYEBROW ─── */
+  .section-eyebrow { font-size: 9px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted-dim); }
+
+  /* ─── PROPERTY PULSE GRID ─── */
+  /* 3 columns: occupancy | 2×2 stat grid | radar */
+  .pulse-grid { display: grid; grid-template-columns: 220px 1fr 280px; gap: 10px; align-items: stretch; }
+
+  /* Occupancy card */
+  .occ-card { background: var(--surface); border: 1px solid rgba(124,142,103,0.14); border-radius: 14px; padding: 14px 16px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 10px; }
+  .occ-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 11px; color: var(--muted-dim); }
+  .occ-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .occ-big { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; color: var(--gold); line-height: 1; text-shadow: 0 0 28px rgba(170,142,103,0.28); }
+  .occ-tag { background: var(--sage-faint); border: 1px solid rgba(78,94,62,0.2); color: var(--sage); font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; align-self: flex-start; }
+  .occ-sub { font-size: 10px; color: var(--muted-dim); margin-top: -6px; }
+  .occ-bars { display: flex; flex-direction: column; gap: 5px; }
+  .occ-bar-row { display: flex; align-items: center; gap: 7px; }
+  .occ-bar-label { font-size: 10px; color: var(--muted-dim); width: 56px; flex-shrink: 0; }
+  .occ-bar-track { flex: 1; height: 4px; background: rgba(124,142,103,0.15); border-radius: 10px; overflow: hidden; }
+  .occ-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sage), rgba(78,94,62,0.6)); border-radius: 10px; transition: width 1s cubic-bezier(0.16,1,0.3,1); width: 0; }
+  .occ-bar-count { font-size: 9px; font-weight: 600; color: var(--muted-dim); width: 22px; text-align: right; flex-shrink: 0; }
+
+  /* Stat 2×2 grid */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+  .stat-card { background: var(--surface); border: 1px solid rgba(124,142,103,0.14); border-radius: 14px; padding: 12px 14px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: border-color 0.22s ease, transform 0.22s ease; }
+  .stat-card:hover { border-color: rgba(124,142,103,0.32); transform: translateY(-2px); }
+  .stat-card:active { transform: translateY(0); }
+  .stat-top { display: flex; align-items: center; justify-content: space-between; }
+  .stat-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .stat-icon svg { width: 14px; height: 14px; stroke-width: 1.8; }
+  .stat-icon.gold { background: var(--gold-faint); color: var(--gold); }
+  .stat-icon.sage { background: var(--sage-faint); color: var(--sage); }
+  .stat-icon.terra { background: rgba(236,108,75,0.12); color: var(--terra); }
+  .stat-icon.blue { background: rgba(74,144,217,0.10); color: #4A90D9; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; line-height: 1; }
+  .stat-num.gold { color: var(--gold); }
+  .stat-num.terra { color: var(--terra); }
+  .stat-num.sage { color: var(--sage); }
+  .stat-num.blue { color: #4A90D9; }
+  .stat-label { font-size: 9px; font-weight: 800; letter-spacing: 0.11em; text-transform: uppercase; color: var(--muted-dim); }
+  .stat-hint { font-size: 10px; color: var(--muted-dim); margin-top: 2px; }
+  .stat-hint strong { color: var(--terra); font-weight: 600; }
+  .stat-hint .ok { color: var(--sage); font-weight: 600; }
+
+  /* Radar card */
+  .radar-card { background: var(--surface); border: 1px solid rgba(124,142,103,0.14); border-radius: 14px; box-shadow: var(--card-shadow); overflow: hidden; display: flex; flex-direction: column; }
+  .radar-header { padding: 8px 12px 6px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid var(--separator); }
+  .radar-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 12px; color: var(--sage); }
+  .radar-sub { font-size: 9px; color: var(--muted-dim); letter-spacing: 0.04em; }
+  .radar-iframe { flex: 1; border: none; width: 100%; min-height: 0; display: block; }
+
+  /* ─── MODULE TILES ─── */
+  .modules-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .module-tile { background: var(--surface); border: 1px solid rgba(124,142,103,0.14); border-radius: 14px; padding: 14px 15px; box-shadow: var(--card-shadow); cursor: pointer; transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease; display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; text-decoration: none; }
+  .module-tile::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 0%, var(--tile-accent-faint, rgba(170,142,103,0.07)) 0%, transparent 65%); pointer-events: none; }
+  .module-tile:hover { border-color: var(--tile-accent, var(--gold)); transform: translateY(-2px); box-shadow: var(--card-shadow), 0 0 20px var(--tile-accent-glow, rgba(170,142,103,0.10)); }
+  .module-tile:active { transform: translateY(0); }
+  .tile-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--tile-accent-faint, var(--gold-faint)); color: var(--tile-accent, var(--gold)); flex-shrink: 0; }
+  .tile-icon svg { width: 18px; height: 18px; stroke-width: 1.6; }
+  .tile-name { font-family: 'Playfair Display', serif; font-style: italic; font-size: 14px; font-weight: 700; color: var(--charcoal); }
+  .tile-desc { font-size: 10px; color: var(--muted-dim); line-height: 1.5; }
+  .tile-stats { display: flex; gap: 10px; margin-top: auto; }
+  .tile-stat-num { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: var(--tile-accent, var(--gold)); line-height: 1; }
+  .tile-stat-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-dim); }
+  .tile-arrow { position: absolute; bottom: 14px; right: 14px; color: var(--tile-accent, var(--gold)); opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease; }
+  .tile-arrow svg { width: 14px; height: 14px; stroke-width: 2; }
+  .module-tile:hover .tile-arrow { opacity: 1; transform: translate(2px, -2px); }
+
+  /* ─── BOTTOM FEEDS ─── */
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .feed-card { background: var(--surface); border: 1px solid rgba(124,142,103,0.14); border-radius: 14px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; overflow: hidden; }
+  .feed-header { padding: 10px 16px 8px; border-bottom: 1px solid var(--separator); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .feed-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 13px; color: var(--sage); }
+  .feed-see-all { font-size: 10px; font-weight: 600; color: var(--gold); cursor: pointer; }
+  .feed-see-all:hover { text-decoration: underline; }
+  .feed-body { overflow-y: auto; flex: 1; }
+  .feed-item { display: flex; align-items: flex-start; gap: 9px; padding: 8px 16px; border-bottom: 1px solid rgba(124,142,103,0.06); transition: background 0.15s ease; cursor: pointer; }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-item:hover { background: rgba(124,142,103,0.05); }
+  .feed-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .feed-dot.gold { background: var(--gold); }
+  .feed-dot.sage { background: var(--sage); }
+  .feed-dot.terra { background: var(--terra); }
+  .feed-dot.blue { background: #4A90D9; }
+  .feed-text { font-size: 11px; color: var(--muted); line-height: 1.45; flex: 1; min-width: 0; }
+  .feed-text strong { color: var(--charcoal); font-weight: 600; }
+  .feed-meta { font-size: 9px; color: var(--muted-dim); margin-top: 1px; }
+  .feed-time { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted-dim); flex-shrink: 0; margin-top: 3px; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .anim { animation: fadeUp 0.45s ease both; }
+  .anim-1 { animation-delay: 30ms; } .anim-2 { animation-delay: 70ms; }
+  .anim-3 { animation-delay: 110ms; } .anim-4 { animation-delay: 150ms; }
+  .anim-5 { animation-delay: 190ms; }
+</style>
+</head>
+<body>
+
+<div class="sidebar-container">
+<aside class="sidebar">
+  <svg class="sidebar-leaf" viewBox="0 0 60 80" fill="none" aria-hidden="true">
+    <path d="M30 78 C30 78 4 55 4 32 C4 15 15 4 30 4 C45 4 56 15 56 32 C56 55 30 78 30 78Z" stroke="rgba(164,196,200,0.4)" stroke-width="1.2" fill="none"/>
+    <path d="M30 78 L30 4" stroke="rgba(164,196,200,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+    <path d="M30 28 C24 22 12 22 8 26" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 38 C36 30 50 30 54 34" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 48 C22 40 10 42 7 48" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 58 C38 50 52 52 54 58" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+  </svg>
+  <div class="sidebar-logo"><img src="brand_assets/nayara-logo-round.png" alt="Nayara" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="width:100%;height:100%;object-fit:cover"><span style="display:none;font-family:'Playfair Display',serif;font-style:italic;font-size:17px;font-weight:700;color:var(--gold)">N</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 12l8.954-8.955a1.5 1.5 0 012.092 0L22.25 12M4.5 9.75v10.125A1.125 1.125 0 005.625 21h4.5a1.125 1.125 0 001.125-1.125V14.25a1.125 1.125 0 011.125-1.125h2.25a1.125 1.125 0 011.125 1.125v5.625A1.125 1.125 0 0016.875 21h4.5A1.125 1.125 0 0022.5 19.875V9.75"/></svg>
+      <span class="nav-tooltip">Home</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="nav-item" onclick="window.location.href='/concierge.html'" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+      <span class="nav-tooltip">Concierge</span>
+    </div>
+    <div class="nav-item" onclick="window.location.href='/fnb.html'" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 22.5l-.75-3m-4.5 3l.75-3m0 0l-.375-1.5M15 19.5l.375-1.5M15 19.5H9m6 0l.375-1.5m-6.75 0H9m0 0L8.625 16.5M12 13.5l-3.75 3h7.5L12 13.5z"/></svg>
+      <span class="nav-tooltip">Food &amp; Beverage</span>
+    </div>
+    <div class="nav-item" onclick="window.location.href='/comms.html'" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+      <span class="nav-tooltip">Communications</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="nav-item" style="opacity:0.35;cursor:default">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="nav-tooltip">Admin — Coming Soon</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="nav-tooltip">Profile</span>
+    </div>
+  </div>
+</aside>
+</div>
+
+<div class="main-wrap">
+  <header class="header">
+    <span class="header-greeting" id="headerGreeting">Good morning, Sofia</span>
+    <div class="header-weather">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>
+      28°C · Partly Cloudy · Bocas del Toro
+    </div>
+    <span class="header-clock" id="headerClock">08:42 AM</span>
+    <div class="header-right">
+      <span class="header-property">Nayara Bocas del Toro</span>
+      <div class="header-avatar">SF</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ── PROPERTY PULSE ── -->
+    <div class="anim anim-1">
+      <div class="section-eyebrow" style="margin-bottom:8px">Property Pulse — Today, Friday Feb 20</div>
+      <div class="pulse-grid">
+
+        <!-- Occupancy -->
+        <div class="occ-card">
+          <div class="occ-title">Tonight's Occupancy</div>
+          <div class="occ-row">
+            <div>
+              <div class="occ-big">89<span style="font-size:18px;color:var(--muted-dim)">%</span></div>
+              <div class="occ-sub">33 of 37 villas · +4 arriving · −3 departing</div>
+            </div>
+            <span class="occ-tag">Near Full</span>
+          </div>
+          <div class="occ-bars">
+            <div class="occ-bar-row"><span class="occ-bar-label">Overwater</span><div class="occ-bar-track"><div class="occ-bar-fill" data-w="80%"></div></div><span class="occ-bar-count">8/10</span></div>
+            <div class="occ-bar-row"><span class="occ-bar-label">Garden</span><div class="occ-bar-track"><div class="occ-bar-fill" data-w="83%"></div></div><span class="occ-bar-count">5/6</span></div>
+            <div class="occ-bar-row"><span class="occ-bar-label">Beach</span><div class="occ-bar-track"><div class="occ-bar-fill" data-w="75%"></div></div><span class="occ-bar-count">3/4</span></div>
+            <div class="occ-bar-row"><span class="occ-bar-label">Suite</span><div class="occ-bar-track"><div class="occ-bar-fill" data-w="100%"></div></div><span class="occ-bar-count">2/2</span></div>
+          </div>
+        </div>
+
+        <!-- 2×2 stats -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon gold">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
+              </div>
+            </div>
+            <div class="stat-num gold">4</div>
+            <div class="stat-label">Arrivals Today</div>
+            <div class="stat-hint">Next: <strong style="color:var(--gold)">Martínez</strong> · 2:00 PM</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon sage">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"/></svg>
+              </div>
+            </div>
+            <div class="stat-num sage">3</div>
+            <div class="stat-label">Departures</div>
+            <div class="stat-hint"><span class="ok">2 billed</span> · 1 pending</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon terra">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+              </div>
+            </div>
+            <div class="stat-num terra">3</div>
+            <div class="stat-label">Open Requests</div>
+            <div class="stat-hint"><strong>2 high priority</strong></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+              </div>
+            </div>
+            <div class="stat-num blue">12</div>
+            <div class="stat-label">Unread Messages</div>
+            <div class="stat-hint"><span class="ok">5 assigned</span> · 7 open</div>
+          </div>
+        </div>
+
+        <!-- Rain radar -->
+        <div class="radar-card">
+          <div class="radar-header">
+            <span class="radar-title">Rain Radar</span>
+            <span class="radar-sub">Bocas del Toro · Live</span>
+          </div>
+          <iframe
+            class="radar-iframe"
+            src="https://embed.windy.com/embed2.html?lat=9.341&lon=-82.253&detailLat=9.341&detailLon=-82.253&width=280&height=220&zoom=8&level=surface&overlay=rain&product=ecmwf&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1"
+            allowfullscreen
+            loading="lazy"
+          ></iframe>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── MODULE TILES ── -->
+    <div class="anim anim-2">
+      <div class="section-eyebrow" style="margin-bottom:8px">Modules</div>
+      <div class="modules-grid">
+
+        <a class="module-tile" href="/concierge.html" style="--tile-accent:var(--gold);--tile-accent-faint:var(--gold-faint);--tile-accent-glow:var(--gold-glow)">
+          <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg></div>
+          <div class="tile-name">Concierge</div>
+          <div class="tile-desc">Arrivals, departures, transfers, tours & guest requests.</div>
+          <div class="tile-stats">
+            <div><div class="tile-stat-num">4</div><div class="tile-stat-lbl">Arrivals</div></div>
+            <div><div class="tile-stat-num">8</div><div class="tile-stat-lbl">Transfers</div></div>
+            <div><div class="tile-stat-num">6</div><div class="tile-stat-lbl">Tours</div></div>
+          </div>
+          <div class="tile-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></div>
+        </a>
+
+        <a class="module-tile" href="/fnb.html" style="--tile-accent:var(--sage);--tile-accent-faint:var(--sage-faint);--tile-accent-glow:var(--sage-glow)">
+          <div class="tile-icon" style="background:var(--sage-faint);color:var(--sage)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 22.5l-.75-3m-4.5 3l.75-3m0 0l-.375-1.5M15 19.5l.375-1.5M15 19.5H9m6 0l.375-1.5m-6.75 0H9m0 0L8.625 16.5M12 13.5l-3.75 3h7.5L12 13.5z"/></svg></div>
+          <div class="tile-name">Food & Beverage</div>
+          <div class="tile-desc">Orders, menus, romantic dinners & restaurant covers.</div>
+          <div class="tile-stats">
+            <div><div class="tile-stat-num" style="color:var(--sage)">7</div><div class="tile-stat-lbl">Orders</div></div>
+            <div><div class="tile-stat-num" style="color:var(--sage)">3</div><div class="tile-stat-lbl">Dinners</div></div>
+          </div>
+          <div class="tile-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></div>
+        </a>
+
+        <a class="module-tile" href="/comms.html" style="--tile-accent:#4A90D9;--tile-accent-faint:rgba(74,144,217,0.10);--tile-accent-glow:rgba(74,144,217,0.15)">
+          <div class="tile-icon" style="background:rgba(74,144,217,0.10);color:#4A90D9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg></div>
+          <div class="tile-name">Communications</div>
+          <div class="tile-desc">WhatsApp, SMS, email threads & guest inbox.</div>
+          <div class="tile-stats">
+            <div><div class="tile-stat-num" style="color:#4A90D9">12</div><div class="tile-stat-lbl">Unread</div></div>
+            <div><div class="tile-stat-num" style="color:#4A90D9">5</div><div class="tile-stat-lbl">Requests</div></div>
+          </div>
+          <div class="tile-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></div>
+        </a>
+
+        <a class="module-tile" href="#" style="--tile-accent:var(--terra);--tile-accent-faint:rgba(236,108,75,0.10);--tile-accent-glow:rgba(236,108,75,0.13)">
+          <div class="tile-icon" style="background:rgba(236,108,75,0.10);color:var(--terra)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+          <div class="tile-name">Admin</div>
+          <div class="tile-desc">Billing, vendors, staff & system settings.</div>
+          <div class="tile-stats">
+            <div><div class="tile-stat-num" style="color:var(--terra)">2</div><div class="tile-stat-lbl">Pending Bills</div></div>
+          </div>
+          <div class="tile-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg></div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ── BOTTOM FEEDS ── -->
+    <div class="bottom-row anim anim-3">
+      <div class="feed-card">
+        <div class="feed-header">
+          <span class="feed-title">Recent Activity</span>
+          <span class="feed-see-all">See all</span>
+        </div>
+        <div class="feed-body">
+          <div class="feed-item"><div class="feed-dot terra"></div><div><div class="feed-text"><strong>Billing flagged</strong> — Villa Garden 2 checkout overdue</div><div class="feed-meta">Admin · Billing</div></div><span class="feed-time">8:39</span></div>
+          <div class="feed-item"><div class="feed-dot blue"></div><div><div class="feed-text"><strong>New message</strong> from García family — dietary request</div><div class="feed-meta">Communications · WhatsApp</div></div><span class="feed-time">8:31</span></div>
+          <div class="feed-item"><div class="feed-dot gold"></div><div><div class="feed-text"><strong>Transfer confirmed</strong> — Martínez · Liberia → Nayara</div><div class="feed-meta">Concierge · Transfers</div></div><span class="feed-time">8:15</span></div>
+          <div class="feed-item"><div class="feed-dot sage"></div><div><div class="feed-text"><strong>Order placed</strong> — Villa Overwater 5 · Breakfast for 2</div><div class="feed-meta">F&amp;B · Orders</div></div><span class="feed-time">8:02</span></div>
+          <div class="feed-item"><div class="feed-dot terra"></div><div><div class="feed-text"><strong>Special request</strong> — Flower arrangement, Villa Suite 1</div><div class="feed-meta">Concierge · Requests</div></div><span class="feed-time">7:58</span></div>
+          <div class="feed-item"><div class="feed-dot gold"></div><div><div class="feed-text"><strong>Check-in completed</strong> — Johnson family · Villa Beach 2</div><div class="feed-meta">Concierge · Arrivals</div></div><span class="feed-time">7:44</span></div>
+        </div>
+      </div>
+
+      <div class="feed-card">
+        <div class="feed-header">
+          <span class="feed-title">Coming Up Today</span>
+          <span class="feed-see-all">Full calendar</span>
+        </div>
+        <div class="feed-body">
+          <div class="feed-item"><div class="feed-dot gold"></div><div><div class="feed-text"><strong>Martínez</strong> arrival — transfer from Liberia</div><div class="feed-meta">Concierge · Transfer confirmed</div></div><span class="feed-time">2:00 PM</span></div>
+          <div class="feed-item"><div class="feed-dot sage"></div><div><div class="feed-text"><strong>Kayak tour</strong> — 6 guests · Bocas Town circuit</div><div class="feed-meta">Concierge · Tours</div></div><span class="feed-time">3:30 PM</span></div>
+          <div class="feed-item"><div class="feed-dot blue"></div><div><div class="feed-text"><strong>Williams family</strong> departure — flight 6:15 PM</div><div class="feed-meta">Concierge · Billing pending</div></div><span class="feed-time">4:00 PM</span></div>
+          <div class="feed-item"><div class="feed-dot sage"></div><div><div class="feed-text"><strong>Sunset cocktails</strong> — 12 in-house guests · Bar</div><div class="feed-meta">F&amp;B · Orders open</div></div><span class="feed-time">5:30 PM</span></div>
+          <div class="feed-item"><div class="feed-dot gold"></div><div><div class="feed-text"><strong>Romantic dinner</strong> — García · Overwater deck</div><div class="feed-meta">F&amp;B · Vendor confirmed</div></div><span class="feed-time">7:00 PM</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function tick() {
+    const now = new Date();
+    let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('headerClock').textContent =
+      `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} ${ampm}`;
+  }
+  tick(); setInterval(tick, 1000);
+
+  const hour = new Date().getHours();
+  const g = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('headerGreeting').textContent = `${g}, Sofia`;
+
+  setTimeout(() => {
+    document.querySelectorAll('.occ-bar-fill[data-w]').forEach(el => { el.style.width = el.dataset.w; });
+  }, 250);
+</script>
+</body>
+</html>

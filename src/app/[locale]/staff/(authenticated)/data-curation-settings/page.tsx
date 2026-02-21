@@ -49,20 +49,28 @@ function Toggle({
   hint?: string;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 p-3 rounded-lg border border-gray-200">
+    <div className="flex items-start justify-between gap-4 p-3 rounded-lg" style={{ border: '1px solid var(--separator)' }}>
       <div>
-        <p className="text-sm font-medium text-gray-800">{label}</p>
-        {hint ? <p className="text-xs text-gray-500 mt-0.5">{hint}</p> : null}
+        <p className="text-sm font-medium" style={{ color: 'var(--charcoal)' }}>{label}</p>
+        {hint ? <p className="text-xs mt-0.5" style={{ color: 'var(--muted-dim)' }}>{hint}</p> : null}
       </div>
       <button
         onClick={() => onChange(!value)}
-        className={`w-12 h-7 rounded-full relative transition-colors ${value ? 'bg-blue-600' : 'bg-gray-300'}`}
+        className="w-12 h-7 rounded-full relative"
+        style={{
+          background: value ? 'var(--gold)' : 'var(--separator)',
+          transition: 'background 0.2s ease',
+          flexShrink: 0,
+        }}
         type="button"
       >
         <span
-          className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-transform ${
-            value ? 'translate-x-6 left-0' : 'translate-x-1 left-0'
-          }`}
+          className="absolute top-1 w-5 h-5 rounded-full bg-white"
+          style={{
+            transform: value ? 'translateX(24px)' : 'translateX(4px)',
+            left: 0,
+            transition: 'transform 0.2s ease',
+          }}
         />
       </button>
     </div>
@@ -123,7 +131,7 @@ export default function DataCurationSettingsPage() {
     return (
       <div className="p-6 max-w-5xl mx-auto">
         <DataCurationNav />
-        <p className="text-sm text-gray-500">Loading Data Curation settings...</p>
+        <p className="text-sm" style={{ color: 'var(--muted-dim)' }}>Loading Data Curation settings...</p>
       </div>
     );
   }
@@ -133,23 +141,23 @@ export default function DataCurationSettingsPage() {
       <DataCurationNav />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Data Curation Settings</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>Data Curation Settings</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>
             Central configuration for imports, sync behavior, safety controls, and UI behavior.
           </p>
         </div>
         <button
           onClick={save}
           disabled={saving}
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="nayara-btn nayara-btn-primary disabled:opacity-50"
           type="button"
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
-      <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Pipeline Rules</h2>
+      <section className="nayara-card p-4 space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--charcoal)' }}>Pipeline Rules</h2>
         <Toggle
           label="Require guest import before Opera sync recommendation"
           value={settings.pipeline.requireGuestImportBeforeOpera}
@@ -165,20 +173,20 @@ export default function DataCurationSettingsPage() {
           value={settings.pipeline.lockGuestNormalizationWithoutData}
           onChange={(v) => update('pipeline', { lockGuestNormalizationWithoutData: v })}
         />
-        <div className="p-3 rounded-lg border border-gray-200">
-          <label className="text-sm font-medium text-gray-800">Minimum vendors for vendor-normalization unlock</label>
+        <div className="p-3 rounded-lg" style={{ border: '1px solid var(--separator)' }}>
+          <label className="nayara-label">Minimum vendors for vendor-normalization unlock</label>
           <input
             type="number"
             min={1}
             value={settings.pipeline.vendorNormalizationMinVendors}
             onChange={(e) => update('pipeline', { vendorNormalizationMinVendors: Math.max(1, Number(e.target.value) || 1) })}
-            className="mt-2 w-28 border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
+            className="nayara-input mt-2 w-28"
           />
         </div>
       </section>
 
-      <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Opera Sync</h2>
+      <section className="nayara-card p-4 space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--charcoal)' }}>Opera Sync</h2>
         <Toggle
           label="Enable manual Opera sync trigger"
           value={settings.opera.manualSyncEnabled}
@@ -194,20 +202,20 @@ export default function DataCurationSettingsPage() {
           value={settings.opera.autoSyncEnabled}
           onChange={(v) => update('opera', { autoSyncEnabled: v })}
         />
-        <div className="p-3 rounded-lg border border-gray-200">
-          <label className="text-sm font-medium text-gray-800">Sync log retention (days)</label>
+        <div className="p-3 rounded-lg" style={{ border: '1px solid var(--separator)' }}>
+          <label className="nayara-label">Sync log retention (days)</label>
           <input
             type="number"
             min={1}
             value={settings.opera.logRetentionDays}
             onChange={(e) => update('opera', { logRetentionDays: Math.max(1, Number(e.target.value) || 1) })}
-            className="mt-2 w-28 border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
+            className="nayara-input mt-2 w-28"
           />
         </div>
       </section>
 
-      <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Import Defaults</h2>
+      <section className="nayara-card p-4 space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--charcoal)' }}>Import Defaults</h2>
         <Toggle
           label="Preserve legacy IDs during imports"
           value={settings.imports.preserveLegacyIds}
@@ -224,12 +232,12 @@ export default function DataCurationSettingsPage() {
           onChange={(v) => update('imports', { allowAutoCreateVendorsFromTransfers: v })}
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg border border-gray-200">
-            <label className="text-sm font-medium text-gray-800">Default vendor type</label>
+          <div className="p-3 rounded-lg" style={{ border: '1px solid var(--separator)' }}>
+            <label className="nayara-label">Default vendor type</label>
             <select
               value={settings.imports.defaultVendorType}
               onChange={(e) => update('imports', { defaultVendorType: e.target.value })}
-              className="mt-2 w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
+              className="nayara-input mt-2 w-full"
             >
               <option value="transfer">transfer</option>
               <option value="tour">tour</option>
@@ -238,19 +246,19 @@ export default function DataCurationSettingsPage() {
               <option value="other">other</option>
             </select>
           </div>
-          <div className="p-3 rounded-lg border border-gray-200">
-            <label className="text-sm font-medium text-gray-800">Default vendor color</label>
+          <div className="p-3 rounded-lg" style={{ border: '1px solid var(--separator)' }}>
+            <label className="nayara-label">Default vendor color</label>
             <input
               value={settings.imports.defaultVendorColor}
               onChange={(e) => update('imports', { defaultVendorColor: e.target.value })}
-              className="mt-2 w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm font-mono"
+              className="nayara-input mt-2 w-full font-mono"
             />
           </div>
         </div>
       </section>
 
-      <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Safety</h2>
+      <section className="nayara-card p-4 space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--charcoal)' }}>Safety</h2>
         <Toggle
           label="Show database reset section"
           value={settings.safety.enableDatabaseResetSection}
@@ -273,8 +281,8 @@ export default function DataCurationSettingsPage() {
         />
       </section>
 
-      <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">UI Behavior</h2>
+      <section className="nayara-card p-4 space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--charcoal)' }}>UI Behavior</h2>
         <Toggle
           label="Show system info section"
           value={settings.ux.showSystemInfoSection}
@@ -298,7 +306,7 @@ export default function DataCurationSettingsPage() {
       </section>
 
       {message ? (
-        <p className="text-sm text-gray-600">{message}</p>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>{message}</p>
       ) : null}
     </div>
   );
