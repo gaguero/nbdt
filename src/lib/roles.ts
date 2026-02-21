@@ -17,7 +17,8 @@ export const ROLES_CONFIG: Record<string, { label: string, permissions: Permissi
       P['orders:read'], P['orders:create'], P['orders:update'], P['orders:void'],
       P['staff:read'], P['staff:manage'],
       P['reports:view'],
-      P['menu:manage']
+      P['menu:manage'],
+      P['email:read'], P['email:read_all'], P['email:send'], P['email:manage']
     ]
   },
   front_desk: {
@@ -27,7 +28,8 @@ export const ROLES_CONFIG: Record<string, { label: string, permissions: Permissi
       P['reservations:read'], P['reservations:manage'],
       P['transfers:read'], P['transfers:create'], P['transfers:update'],
       P['tours:read'], P['tours:create'],
-      P['orders:read']
+      P['orders:read'],
+      P['email:read'], P['email:send']
     ]
   },
   concierge: {
@@ -37,7 +39,8 @@ export const ROLES_CONFIG: Record<string, { label: string, permissions: Permissi
       P['reservations:read'],
       P['transfers:read'], P['transfers:create'], P['transfers:update'],
       P['tours:read'], P['tours:create'], P['tours:update'],
-      P['orders:read'], P['orders:create']
+      P['orders:read'], P['orders:create'],
+      P['email:read'], P['email:send']
     ]
   },
   kitchen: {
