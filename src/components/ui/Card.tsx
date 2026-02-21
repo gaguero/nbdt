@@ -22,11 +22,9 @@ export interface CardFooterProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className = '', hover = false }) => {
-  const baseStyles = 'bg-card rounded-card border border-border transition-all duration-200';
-  const hoverStyles = hover ? 'hover:shadow-card-hover cursor-pointer' : 'shadow-card';
-
+  const hoverClass = hover ? 'nayara-card nayara-card-hover' : 'nayara-card';
   return (
-    <div className={`${baseStyles} ${hoverStyles} ${className}`}>
+    <div className={`${hoverClass} ${className}`}>
       {children}
     </div>
   );
@@ -34,7 +32,7 @@ export const Card: React.FC<CardProps> = ({ children, className = '', hover = fa
 
 export const CardHeader: React.FC<CardHeaderProps> = ({ children, className = '' }) => {
   return (
-    <div className={`px-6 py-4 border-b border-border ${className}`}>
+    <div className={`px-6 py-4 border-b border-[var(--separator)] ${className}`}>
       {children}
     </div>
   );
@@ -50,7 +48,7 @@ export const CardBody: React.FC<CardBodyProps> = ({ children, className = '' }) 
 
 export const CardFooter: React.FC<CardFooterProps> = ({ children, className = '' }) => {
   return (
-    <div className={`px-6 py-4 border-t border-border ${className}`}>
+    <div className={`px-6 py-4 border-t border-[var(--separator)] ${className}`}>
       {children}
     </div>
   );

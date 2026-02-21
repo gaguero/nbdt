@@ -131,27 +131,39 @@ export default function ImportWizardPage() {
       <DataCurationNav />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">{ls('Guest Import Wizard', 'Asistente de Importación')}</h1>
-          <p className="text-sm text-gray-500">{ls('Advanced CRM-ready guest data ingestion.', 'Ingestión avanzada de datos de huéspedes lista para CRM.')}</p>
+          <h1 className="text-2xl font-black tracking-tight" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>{ls('Guest Import Wizard', 'Asistente de Importación')}</h1>
+          <p className="text-sm" style={{ color: 'var(--muted-dim)' }}>{ls('Advanced CRM-ready guest data ingestion.', 'Ingestión avanzada de datos de huéspedes lista para CRM.')}</p>
         </div>
       </div>
 
       {!results && !analyzing && (
         <div
           onClick={() => fileRef.current?.click()}
-          className="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer group"
+          className="rounded-2xl p-12 text-center cursor-pointer group"
+          style={{
+            border: '2px dashed var(--separator)',
+            transition: 'border-color 0.2s, background 0.2s',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--gold)';
+            (e.currentTarget as HTMLDivElement).style.background = 'rgba(170,142,103,0.04)';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--separator)';
+            (e.currentTarget as HTMLDivElement).style.background = '';
+          }}
         >
-          <CloudArrowUpIcon className="h-16 w-16 text-gray-400 mx-auto mb-4 group-hover:text-blue-500 transition-colors" />
-          <p className="text-lg font-bold text-gray-700">{ls('Upload Guest CSV', 'Subir CSV de Huéspedes')}</p>
-          <p className="text-sm text-gray-400 mt-1">{ls('Only .csv files supported', 'Solo archivos .csv soportados')}</p>
+          <CloudArrowUpIcon className="h-16 w-16 mx-auto mb-4" style={{ color: 'var(--muted-dim)' }} />
+          <p className="text-lg font-bold" style={{ color: 'var(--muted)' }}>{ls('Upload Guest CSV', 'Subir CSV de Huéspedes')}</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>{ls('Only .csv files supported', 'Solo archivos .csv soportados')}</p>
           <input ref={fileRef} type="file" accept=".csv" onChange={handleUpload} className="hidden" />
         </div>
       )}
 
       {analyzing && (
         <div className="p-20 text-center space-y-4">
-          <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
-          <p className="font-black text-gray-900 uppercase tracking-widest">{ls('Analyzing Data Structure...', 'Analizando Datos...')}</p>
+          <div className="animate-spin h-12 w-12 border-4 border-t-transparent rounded-full mx-auto" style={{ borderColor: 'var(--gold)', borderTopColor: 'transparent' }}></div>
+          <p className="font-black uppercase tracking-widest" style={{ color: 'var(--charcoal)' }}>{ls('Analyzing Data Structure...', 'Analizando Datos...')}</p>
         </div>
       )}
 
@@ -159,40 +171,36 @@ export default function ImportWizardPage() {
         <div className="space-y-6 animate-in fade-in duration-500">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <SummaryCard label={ls('Total Rows', 'Total')} value={results.summary.total} icon={TableCellsIcon} color="gray" />
-            <SummaryCard label={ls('New Profiles', 'Nuevos')} value={results.summary.create} icon={UserPlusIcon} color="green" />
-            <SummaryCard label={ls('Updates', 'Actualizaciones')} value={results.summary.update} icon={ArrowPathIcon} color="blue" />
-            <SummaryCard label={ls('Conflicts', 'Conflictos')} value={results.summary.conflict} icon={ExclamationCircleIcon} color="red" />
+            <SummaryCard label={ls('Total Rows', 'Total')} value={results.summary.total} icon={TableCellsIcon} color="muted" />
+            <SummaryCard label={ls('New Profiles', 'Nuevos')} value={results.summary.create} icon={UserPlusIcon} color="sage" />
+            <SummaryCard label={ls('Updates', 'Actualizaciones')} value={results.summary.update} icon={ArrowPathIcon} color="gold" />
+            <SummaryCard label={ls('Conflicts', 'Conflictos')} value={results.summary.conflict} icon={ExclamationCircleIcon} color="terra" />
           </div>
-
 
           {/* Main Table */}
           {mainTableRows.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            <div className="nayara-card overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-[10px] font-black tracking-widest">
+                <table className="nayara-table w-full text-sm">
+                  <thead>
                     <tr>
                       <th className="px-6 py-4 text-left">{ls('CSV Record', 'Registro CSV')}</th>
                       <th className="px-6 py-4 text-left">{ls('Match in System', 'Coincidencia')}</th>
                       <th className="px-6 py-4 text-center">{ls('Action', 'Acción')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     {mainTableRows.map((item: any, i: number) => (
-                      <tr
-                        key={i}
-                        className="transition-colors hover:bg-gray-50/50"
-                      >
+                      <tr key={i}>
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
-                              <span className="font-black text-gray-900">{item.csv.fullName}</span>
+                              <span className="font-black" style={{ color: 'var(--charcoal)' }}>{item.csv.fullName}</span>
                               {item.inferredProfileType && item.inferredProfileType !== 'guest' && (
                                 <ProfileTypeBadge type={item.inferredProfileType} />
                               )}
                             </div>
-                            <span className="text-xs text-gray-500">{item.csv.email || ls('No email', 'Sin email')}</span>
+                            <span className="text-xs" style={{ color: 'var(--muted-dim)' }}>{item.csv.email || ls('No email', 'Sin email')}</span>
                             <div className="flex gap-2 mt-1 flex-wrap">
                               {item.csv.companion && (
                                 <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold uppercase ${
@@ -202,7 +210,7 @@ export default function ImportWizardPage() {
                                 </span>
                               )}
                               {item.csv.vip > 0 && (
-                                <span className="text-[9px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded border border-yellow-200 font-black tracking-tighter">
+                                <span className="text-[9px] px-1.5 py-0.5 rounded border font-black tracking-tighter" style={{ background: 'rgba(170,142,103,0.12)', color: 'var(--gold)', borderColor: 'rgba(170,142,103,0.3)' }}>
                                   VIP {item.csv.vip}
                                 </span>
                               )}
@@ -212,23 +220,23 @@ export default function ImportWizardPage() {
                         <td className="px-6 py-4">
                           {item.match ? (
                             <div className="flex flex-col opacity-70">
-                              <span className="font-bold text-gray-700">{item.match.fullName}</span>
-                              <span className="text-[10px] text-gray-400">ID: {item.match.legacyId || item.match.id.slice(0, 8)}</span>
+                              <span className="font-bold" style={{ color: 'var(--muted)' }}>{item.match.fullName}</span>
+                              <span className="text-[10px]" style={{ color: 'var(--muted-dim)' }}>ID: {item.match.legacyId || item.match.id.slice(0, 8)}</span>
                             </div>
                           ) : (
-                            <span className="text-gray-300 italic text-xs">{ls('No match found', 'Sin coincidencia')}</span>
+                            <span className="italic text-xs" style={{ color: 'var(--muted-dim)' }}>{ls('No match found', 'Sin coincidencia')}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-center">
                           <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest border ${
-                            item.action === 'CREATE' ? 'bg-green-50 text-green-700 border-green-200' :
-                            item.action === 'UPDATE' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                            item.action === 'CONFLICT' ? 'bg-red-50 text-red-700 border-red-200' :
-                            'bg-gray-50 text-gray-700 border-gray-200'
+                            item.action === 'CREATE' ? 'nayara-badge nayara-badge-confirmed' :
+                            item.action === 'UPDATE' ? 'nayara-badge nayara-badge-pending' :
+                            item.action === 'CONFLICT' ? 'nayara-badge nayara-badge-cancelled' :
+                            'nayara-badge'
                           }`}>
                             {item.action}
                           </span>
-                          <p className="text-[9px] text-gray-400 mt-1 uppercase font-bold">{item.reason}</p>
+                          <p className="text-[9px] mt-1 uppercase font-bold" style={{ color: 'var(--muted-dim)' }}>{item.reason}</p>
                         </td>
                       </tr>
                     ))}
@@ -240,27 +248,28 @@ export default function ImportWizardPage() {
 
           {/* Skipped Rows Collapsible Section */}
           {skipRows.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            <div className="nayara-card overflow-hidden">
               <button
                 onClick={() => setExpandedSkip(!expandedSkip)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors border-b border-gray-200"
+                className="w-full px-6 py-4 flex items-center justify-between"
+                style={{ borderBottom: expandedSkip ? '1px solid var(--separator)' : 'none' }}
               >
                 <div className="flex items-center gap-3">
-                  <ExclamationCircleIcon className="h-5 w-5 text-gray-400" />
-                  <span className="font-bold text-gray-700">
+                  <ExclamationCircleIcon className="h-5 w-5" style={{ color: 'var(--muted-dim)' }} />
+                  <span className="font-bold" style={{ color: 'var(--muted)' }}>
                     {skipRows.length} {ls('rows excluded — click to review', 'filas omitidas — haz clic para revisar')}
                   </span>
                 </div>
-                <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${expandedSkip ? 'rotate-180' : ''}`} />
+                <ChevronDownIcon className={`h-5 w-5 transition-transform ${expandedSkip ? 'rotate-180' : ''}`} style={{ color: 'var(--muted-dim)' }} />
               </button>
 
               {expandedSkip && (
-                <div className="divide-y divide-gray-100">
+                <div style={{ borderTop: '1px solid var(--separator)' }}>
                   {skipRows.map((item: any, i: number) => (
-                    <div key={i} className="px-6 py-4 bg-gray-50/50 flex items-center justify-between gap-4">
+                    <div key={i} className="px-6 py-4 flex items-center justify-between gap-4" style={{ borderBottom: '1px solid var(--separator)', background: 'var(--elevated)' }}>
                       <div className="flex-1">
-                        <p className="font-bold text-gray-700">{item.csv.fullName}</p>
-                        <p className="text-xs text-gray-500 mt-1">{item.reason}</p>
+                        <p className="font-bold" style={{ color: 'var(--muted)' }}>{item.csv.fullName}</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--muted-dim)' }}>{item.reason}</p>
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
                         <RescueDropdown
@@ -277,7 +286,7 @@ export default function ImportWizardPage() {
             </div>
           )}
 
-          <div className="flex justify-between items-center bg-gray-900 p-6 rounded-2xl shadow-xl sticky bottom-6 text-white animate-in slide-in-from-bottom duration-500">
+          <div className="flex justify-between items-center p-6 rounded-2xl shadow-xl sticky bottom-6 text-white animate-in slide-in-from-bottom duration-500" style={{ background: 'var(--sidebar-bg)' }}>
             <div>
               <p className="text-xl font-black">
                 {results.summary.create} {ls('will be created', 'serán creados')}, {results.summary.update} {ls('updated', 'actualizados')}
@@ -289,14 +298,17 @@ export default function ImportWizardPage() {
             <div className="flex gap-4">
               <button
                 onClick={() => setResults(null)}
-                className="px-6 py-3 border border-white/20 rounded-xl font-bold hover:bg-white/10 transition-colors"
+                className="px-6 py-3 rounded-xl font-bold"
+                style={{ border: '1px solid rgba(255,255,255,0.2)', transition: 'background 0.2s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.1)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = ''}
               >
                 {ls('Cancel', 'Cancelar')}
               </button>
               <button
                 onClick={executeImport}
                 disabled={importing || (results.summary.create + results.summary.update) === 0}
-                className="px-8 py-3 bg-blue-600 text-white rounded-xl font-black hover:bg-blue-500 transition-all flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="nayara-btn nayara-btn-primary px-8 py-3 disabled:opacity-50"
               >
                 {importing ? ls('Importing...', 'Importando...') : ls('Confirm & Import', 'Confirmar e Importar')}
               </button>
@@ -306,7 +318,11 @@ export default function ImportWizardPage() {
       )}
 
       {message && (
-        <div className={`p-4 rounded-xl flex items-center gap-3 ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+        <div className="p-4 rounded-xl flex items-center gap-3" style={
+          message.type === 'success'
+            ? { background: 'rgba(78,94,62,0.10)', color: 'var(--sage)', border: '1px solid rgba(78,94,62,0.2)' }
+            : { background: 'rgba(236,108,75,0.10)', color: 'var(--terra)', border: '1px solid rgba(236,108,75,0.2)' }
+        }>
           <CheckCircleIcon className="h-6 w-6" />
           <span className="font-bold">{message.text}</span>
           <button onClick={() => setMessage(null)} className="ml-auto text-xs underline">{ls('Dismiss', 'Cerrar')}</button>
@@ -317,17 +333,15 @@ export default function ImportWizardPage() {
 }
 
 function SummaryCard({ label, value, icon: Icon, color }: any) {
-  const colors: any = {
-    gray: 'bg-gray-50 text-gray-600 border-gray-200',
-    green: 'bg-green-50 text-green-700 border-green-200',
-    blue: 'bg-blue-50 text-blue-700 border-blue-200',
-    red: 'bg-red-50 text-red-700 border-red-200',
-    orange: 'bg-orange-50 text-orange-700 border-orange-200',
-    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  const styles: Record<string, React.CSSProperties> = {
+    muted: { background: 'var(--elevated)', color: 'var(--muted)', border: '1px solid var(--separator)' },
+    sage: { background: 'rgba(78,94,62,0.08)', color: 'var(--sage)', border: '1px solid rgba(78,94,62,0.2)' },
+    gold: { background: 'rgba(170,142,103,0.08)', color: 'var(--gold)', border: '1px solid rgba(170,142,103,0.2)' },
+    terra: { background: 'rgba(236,108,75,0.08)', color: 'var(--terra)', border: '1px solid rgba(236,108,75,0.2)' },
   };
   return (
-    <div className={`p-4 rounded-2xl border ${colors[color]} flex items-center gap-4 shadow-sm`}>
-      <div className={`p-2 rounded-xl bg-white/50`}>
+    <div className="p-4 rounded-2xl flex items-center gap-4" style={styles[color]}>
+      <div className="p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.5)' }}>
         <Icon className="h-6 w-6" />
       </div>
       <div>
@@ -360,45 +374,45 @@ function RescueDropdown({ onRescue }: { onRescue: (type: string) => void }) {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="px-3 py-1.5 text-xs font-bold bg-white text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+        className="nayara-btn nayara-btn-ghost px-3 py-1.5 text-xs font-bold"
       >
         Rescue
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+        <div className="absolute right-0 mt-2 w-40 rounded-lg shadow-lg z-10" style={{ background: 'var(--surface)', border: '1px solid var(--separator)' }}>
           <button
-            onClick={() => {
-              onRescue('guest');
-              setOpen(false);
-            }}
-            className="w-full text-left px-4 py-2 text-xs hover:bg-gray-50 border-b border-gray-100"
+            onClick={() => { onRescue('guest'); setOpen(false); }}
+            className="w-full text-left px-4 py-2 text-xs"
+            style={{ borderBottom: '1px solid var(--separator)', color: 'var(--muted)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--elevated)'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = ''}
           >
             Create as Guest
           </button>
           <button
-            onClick={() => {
-              onRescue('staff');
-              setOpen(false);
-            }}
-            className="w-full text-left px-4 py-2 text-xs hover:bg-gray-50 border-b border-gray-100"
+            onClick={() => { onRescue('staff'); setOpen(false); }}
+            className="w-full text-left px-4 py-2 text-xs"
+            style={{ borderBottom: '1px solid var(--separator)', color: 'var(--muted)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--elevated)'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = ''}
           >
             Create as Staff
           </button>
           <button
-            onClick={() => {
-              onRescue('visitor');
-              setOpen(false);
-            }}
-            className="w-full text-left px-4 py-2 text-xs hover:bg-gray-50 border-b border-gray-100"
+            onClick={() => { onRescue('visitor'); setOpen(false); }}
+            className="w-full text-left px-4 py-2 text-xs"
+            style={{ borderBottom: '1px solid var(--separator)', color: 'var(--muted)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--elevated)'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = ''}
           >
             Create as Visitor
           </button>
           <button
-            onClick={() => {
-              onRescue('other');
-              setOpen(false);
-            }}
-            className="w-full text-left px-4 py-2 text-xs hover:bg-gray-50"
+            onClick={() => { onRescue('other'); setOpen(false); }}
+            className="w-full text-left px-4 py-2 text-xs"
+            style={{ color: 'var(--muted)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--elevated)'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = ''}
           >
             Create as Other
           </button>
