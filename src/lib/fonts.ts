@@ -1,22 +1,20 @@
-import { Montserrat } from 'next/font/google';
-
-/**
- * BRAND SUBSTITUTE CONFIGURATION:
- * We are using Montserrat as the high-quality substitute for both Gotham and Proxima Nova.
- * Montserrat perfectly matches the geometric proportions of the Metropolis and Milliard 
- * alternatives suggested by the Brand Book sources.
- */
+import { Montserrat, Gelasio, Figtree } from 'next/font/google';
 
 export const gotham = Montserrat({
   subsets: ['latin'],
-  // Gotham weights: Black (900), Bold (700), Book (400)
   weight: ['400', '700', '900'],
   variable: '--font-gotham',
 });
 
-export const proximaNova = Montserrat({
+export const gelasio = Gelasio({
   subsets: ['latin'],
-  // Proxima Nova weights: Light (300), Regular (400), Semibold (600)
-  weight: ['300', '400', '600'],
+  weight: ['400', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-gelasio',
+});
+
+export const proximaNova = Figtree({
+  subsets: ['latin'],
+  weight: ['300', '400', '600', '700'],
   variable: '--font-proxima-nova',
 });

@@ -122,15 +122,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // V13 Slate Botanical fonts
-        playfair: ["Playfair Display", "serif"],
-        'dm-sans': ["DM Sans", "system-ui", "sans-serif"],
-        'dm-mono': ["DM Mono", "Menlo", "monospace"],
-        // Primary Heading Font
-        heading: ["Playfair Display", "serif"],
-        // Body Copy Font
-        sans: ["DM Sans", "Lato", "system-ui", "sans-serif"],
-        // Monospace for code
+        heading: ["var(--font-gotham)", "Montserrat", "Tahoma", "sans-serif"],
+        subheading: ["var(--font-gelasio)", "Georgia", "serif"],
+        sans: ["var(--font-proxima-nova)", "Figtree", "Arial", "sans-serif"],
         mono: ["DM Mono", "var(--font-geist-mono)", "Menlo", "monospace"],
       },
       fontSize: {

@@ -30,6 +30,8 @@ import {
   CurrencyDollarIcon,
   PrinterIcon,
   CircleStackIcon,
+  EnvelopeIcon,
+  IdentificationIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -79,6 +81,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
       items: [
         { name: ls('Reservations', 'Reservaciones'), href: `/${locale}/staff/reservations`, icon: CalendarDaysIcon, permission: 'reservations:read' },
         { name: ls('Guests', 'Huéspedes'), href: `/${locale}/staff/guests`, icon: UsersIcon, permission: 'guests:read' },
+        { name: ls('Profiles', 'Perfiles'), href: `/${locale}/staff/profiles`, icon: IdentificationIcon, permission: 'guests:read' },
         { name: ls('Transfers', 'Traslados'), href: `/${locale}/staff/transfers`, icon: TruckIcon, permission: 'transfers:read' },
         { name: ls('Tours & Activities', 'Tours y Actividades'), href: `/${locale}/staff/tour-bookings`, icon: MapIcon, permission: 'tours:read' },
         { name: ls('Special Requests', 'Solicitudes'), href: `/${locale}/staff/special-requests`, icon: SparklesIcon, permission: 'reservations:manage' },
@@ -102,6 +105,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
       icon: ChatBubbleLeftRightIcon,
       items: [
         { name: ls('Messages', 'Mensajes'), href: `/${locale}/staff/messages`, icon: ChatBubbleLeftRightIcon },
+        { name: ls('Email', 'Correo'), href: `/${locale}/staff/email`, icon: EnvelopeIcon },
       ],
     },
     {
@@ -125,7 +129,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     }))
     .filter(g => g.items.length > 0 && (!g.permission || can(g.permission)));
 
-  const dashboardHref = '/dashboard.html';
+  const dashboardHref = '/home.html';
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   const findActiveGroup = useCallback((): string | null => {
@@ -186,24 +190,25 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
             className="flex items-center justify-center flex-shrink-0"
             style={{ height: 64, borderBottom: '1px solid rgba(255,255,255,0.07)' }}
           >
-            <Link
+            <a
               href={dashboardHref}
               className="flex items-center justify-center rounded-full transition-shadow"
               style={{
                 width: 38,
                 height: 38,
                 background: 'linear-gradient(135deg, var(--gold) 0%, #8a7352 100%)',
-                fontFamily: "'Playfair Display', serif",
+                fontFamily: "var(--font-gelasio), Georgia, serif",
                 fontStyle: 'italic',
                 fontWeight: 700,
                 fontSize: 14,
                 color: '#fff',
+                textDecoration: 'none',
               }}
               onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 16px rgba(170,142,103,0.35)')}
               onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
             >
               N
-            </Link>
+            </a>
           </div>
 
           {/* Nav icons */}
@@ -213,7 +218,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
               icon={HomeIcon}
               label={ls('Dashboard', 'Panel')}
               active={isDashboardActive}
-              onClick={() => { closePanel(); setActiveGroup(null); router.push(dashboardHref); }}
+              onClick={() => { closePanel(); setActiveGroup(null); window.location.href = dashboardHref; }}
               showTooltip={!panelOpen}
             />
 
@@ -284,7 +289,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
                 <span
                   className="font-bold italic"
                   style={{
-                    fontFamily: "'Playfair Display', serif",
+                    fontFamily: "var(--font-gelasio), Georgia, serif",
                     fontSize: 15,
                     color: 'var(--gold)',
                     whiteSpace: 'nowrap',
@@ -401,7 +406,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
                 <span
                   className="hidden lg:block italic"
                   style={{
-                    fontFamily: "'Playfair Display', serif",
+                    fontFamily: "var(--font-gelasio), Georgia, serif",
                     fontSize: 15,
                     color: 'var(--charcoal)',
                   }}

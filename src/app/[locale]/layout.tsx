@@ -3,7 +3,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import type { Metadata } from 'next';
-import { gotham, proximaNova } from '@/lib/fonts';
+import { gotham, gelasio, proximaNova } from '@/lib/fonts';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
@@ -46,7 +46,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
-      <body className={`${gotham.variable} ${proximaNova.variable} antialiased`}>
+      <body className={`${gotham.variable} ${gelasio.variable} ${proximaNova.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>
