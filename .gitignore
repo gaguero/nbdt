@@ -56,3 +56,5 @@ nvapi-*
 TASK_*.md
 progress.md
 task_plan.md
+.worktrees
+worktrees
