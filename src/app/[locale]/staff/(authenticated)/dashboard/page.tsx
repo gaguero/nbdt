@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import {
@@ -13,6 +13,61 @@ import {
   Cog6ToothIcon,
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
+
+interface PulseData {
+  occupancy: {
+    total: number;
+    occupied: number;
+    percentage: number;
+    arriving: number;
+    departing: number;
+    byCategory: { label: string; occupied: number; total: number }[];
+  };
+  arrivals: { count: number; nextGuest: string | null; nextTime: string | null };
+  departures: { count: number; billed: number; pending: number };
+  openRequests: { count: number; highPriority: number };
+  unreadMessages: { total: number; assigned: number; open: number };
+  modules: {
+    arrivals: number; transfers: number; tours: number;
+    orders: number; dinners: number; unread: number;
+    requests: number; pendingBills: number;
+  };
+  recentActivity: { type: string; title: string; description: string; meta: string; time: string }[];
+  comingUpToday: { type: string; title: string; description: string; meta: string; time: string }[];
+}
+
+const POLL_INTERVAL = 30_000;
+
+const dotColors: Record<string, string> = {
+  message: '#4A90D9',
+  order: 'var(--sage)',
+  transfer: 'var(--gold)',
+  request: 'var(--terra)',
+  checkin: 'var(--gold)',
+  checkout: 'var(--sage)',
+  tour: 'var(--sage)',
+  dinner: 'var(--gold)',
+  departure: '#4A90D9',
+};
+
+const feedTitle: Record<string, string> = {
+  message: 'New message',
+  order: 'Order placed',
+  transfer: 'Transfer update',
+  request: 'Special request',
+  checkin: 'Check-in completed',
+  checkout: 'Check-out',
+  tour: 'Tour',
+  dinner: 'Romantic dinner',
+  departure: 'Departure',
+};
+
+function occupancyBadge(pct: number): { label: string; bg: string; border: string; color: string } {
+  if (pct >= 95) return { label: 'Full', bg: 'rgba(236,108,75,0.14)', border: 'rgba(236,108,75,0.25)', color: 'var(--terra)' };
+  if (pct >= 80) return { label: 'Near Full', bg: 'rgba(78,94,62,0.14)', border: 'rgba(78,94,62,0.2)', color: 'var(--sage)' };
+  if (pct >= 50) return { label: 'Moderate', bg: 'rgba(170,142,103,0.14)', border: 'rgba(170,142,103,0.2)', color: 'var(--gold)' };
+  return { label: 'Low', bg: 'rgba(124,142,103,0.12)', border: 'rgba(124,142,103,0.2)', color: 'var(--muted-dim)' };
+}
 
 function OccBar({ label, fill, count }: { label: string; fill: string; count: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -125,15 +180,56 @@ function FeedItem({ dot, text, meta, time }: { dot: string; text: React.ReactNod
   );
 }
 
+function EmptyFeed({ message }: { message: string }) {
+  return (
+    <div style={{ padding: '20px 16px', textAlign: 'center', fontSize: 11, color: 'var(--muted-dim)', fontStyle: 'italic' }}>
+      {message}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const locale = useLocale();
+  const [data, setData] = useState<PulseData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const isFirstLoad = useRef(true);
+
+  const todayDate = new Date().toISOString().split('T')[0];
 
   const today = new Date().toLocaleDateString(locale === 'es' ? 'es-CR' : 'en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 
+  const fetchPulse = useCallback(() => {
+    fetch(`/api/admin/dashboard-pulse?date=${todayDate}`)
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(d => {
+        setData(d);
+        if (isFirstLoad.current) {
+          setLoading(false);
+          isFirstLoad.current = false;
+        }
+      })
+      .catch(() => {
+        if (isFirstLoad.current) {
+          setLoading(false);
+          isFirstLoad.current = false;
+        }
+      });
+  }, [todayDate]);
+
+  useEffect(() => {
+    fetchPulse();
+    const interval = setInterval(fetchPulse, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchPulse]);
+
+  const d = data;
+  const occ = d?.occupancy;
+  const badge = occupancyBadge(occ?.percentage ?? 0);
+
   return (
-    <div style={{ padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14, opacity: loading ? 0.5 : 1, transition: 'opacity 0.3s ease' }}>
 
       {/* PROPERTY PULSE */}
       <div>
@@ -148,26 +244,80 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontSize: 42, fontWeight: 700, color: 'var(--gold)', lineHeight: 1 }}>
-                  89<span style={{ fontSize: 18, color: 'var(--muted-dim)' }}>%</span>
+                  {occ?.percentage ?? 0}<span style={{ fontSize: 18, color: 'var(--muted-dim)' }}>%</span>
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--muted-dim)', marginTop: -4 }}>33 of 37 villas · +4 arriving · −3 departing</div>
+                <div style={{ fontSize: 10, color: 'var(--muted-dim)', marginTop: -4 }}>
+                  {occ?.occupied ?? 0} of {occ?.total ?? 0} villas · +{occ?.arriving ?? 0} arriving · &minus;{occ?.departing ?? 0} departing
+                </div>
               </div>
-              <span style={{ background: 'rgba(78,94,62,0.14)', border: '1px solid rgba(78,94,62,0.2)', color: 'var(--sage)', fontSize: 9, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20 }}>Near Full</span>
+              <span style={{ background: badge.bg, border: `1px solid ${badge.border}`, color: badge.color, fontSize: 9, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20 }}>
+                {badge.label}
+              </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <OccBar label="Overwater" fill="80%" count="8/10" />
-              <OccBar label="Garden" fill="83%" count="5/6" />
-              <OccBar label="Beach" fill="75%" count="3/4" />
-              <OccBar label="Suite" fill="100%" count="2/2" />
+              {(occ?.byCategory ?? []).map(cat => {
+                const pct = cat.total > 0 ? Math.round((cat.occupied / cat.total) * 100) : 0;
+                return (
+                  <OccBar
+                    key={cat.label}
+                    label={cat.label}
+                    fill={`${pct}%`}
+                    count={`${cat.occupied}/${cat.total}`}
+                  />
+                );
+              })}
+              {(!occ || occ.byCategory.length === 0) && !loading && (
+                <div style={{ fontSize: 10, color: 'var(--muted-dim)', fontStyle: 'italic' }}>No occupancy data</div>
+              )}
             </div>
           </div>
 
           {/* 2x2 stats */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 10 }}>
-            <StatCard icon={ArrowUpTrayIcon} iconColor="var(--gold)" iconBg="rgba(170,142,103,0.15)" num={4} numColor="var(--gold)" label="Arrivals Today" hint={<>Next: <strong style={{ color: 'var(--gold)' }}>Martínez</strong> · 2:00 PM</>} />
-            <StatCard icon={NewspaperIcon} iconColor="var(--sage)" iconBg="rgba(78,94,62,0.14)" num={3} numColor="var(--sage)" label="Departures" hint={<><span style={{ color: 'var(--sage)', fontWeight: 600 }}>2 billed</span> · 1 pending</>} />
-            <StatCard icon={ExclamationTriangleIcon} iconColor="var(--terra)" iconBg="rgba(236,108,75,0.12)" num={3} numColor="var(--terra)" label="Open Requests" hint={<strong style={{ color: 'var(--terra)' }}>2 high priority</strong>} />
-            <StatCard icon={ChatBubbleLeftRightIcon} iconColor="#4A90D9" iconBg="rgba(74,144,217,0.10)" num={12} numColor="#4A90D9" label="Unread Messages" hint={<><span style={{ color: 'var(--sage)', fontWeight: 600 }}>5 assigned</span> · 7 open</>} />
+            <StatCard
+              icon={ArrowUpTrayIcon}
+              iconColor="var(--gold)"
+              iconBg="rgba(170,142,103,0.15)"
+              num={d?.arrivals.count ?? 0}
+              numColor="var(--gold)"
+              label="Arrivals Today"
+              hint={d?.arrivals.nextGuest
+                ? <>Next: <strong style={{ color: 'var(--gold)' }}>{d.arrivals.nextGuest}</strong>{d.arrivals.nextTime ? ` · ${d.arrivals.nextTime}` : ''}</>
+                : <span>&mdash;</span>}
+            />
+            <StatCard
+              icon={NewspaperIcon}
+              iconColor="var(--sage)"
+              iconBg="rgba(78,94,62,0.14)"
+              num={d?.departures.count ?? 0}
+              numColor="var(--sage)"
+              label="Departures"
+              hint={d
+                ? <><span style={{ color: 'var(--sage)', fontWeight: 600 }}>{d.departures.billed} billed</span> · {d.departures.pending} pending</>
+                : <span>&mdash;</span>}
+            />
+            <StatCard
+              icon={ExclamationTriangleIcon}
+              iconColor="var(--terra)"
+              iconBg="rgba(236,108,75,0.12)"
+              num={d?.openRequests.count ?? 0}
+              numColor="var(--terra)"
+              label="Open Requests"
+              hint={d?.openRequests.highPriority
+                ? <strong style={{ color: 'var(--terra)' }}>{d.openRequests.highPriority} high priority</strong>
+                : <span>&mdash;</span>}
+            />
+            <StatCard
+              icon={ChatBubbleLeftRightIcon}
+              iconColor="#4A90D9"
+              iconBg="rgba(74,144,217,0.10)"
+              num={d?.unreadMessages.total ?? 0}
+              numColor="#4A90D9"
+              label="Unread Messages"
+              hint={d
+                ? <><span style={{ color: 'var(--sage)', fontWeight: 600 }}>{d.unreadMessages.assigned} assigned</span> · {d.unreadMessages.open} open</>
+                : <span>&mdash;</span>}
+            />
           </div>
 
           {/* Rain radar */}
@@ -190,10 +340,10 @@ export default function DashboardPage() {
       <div>
         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-dim)', marginBottom: 8 }}>Modules</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-          <ModuleTile href={`/${locale}/staff/reservations`} icon={CalendarDaysIcon} name="Concierge" desc="Arrivals, departures, transfers, tours & guest requests." accent="var(--gold)" accentFaint="rgba(170,142,103,0.15)" stats={[{ num: 4, lbl: 'Arrivals' }, { num: 8, lbl: 'Transfers' }, { num: 6, lbl: 'Tours' }]} />
-          <ModuleTile href={`/${locale}/staff/orders`} icon={ShoppingCartIcon} name="Food & Beverage" desc="Orders, menus, romantic dinners & restaurant covers." accent="var(--sage)" accentFaint="rgba(78,94,62,0.14)" stats={[{ num: 7, lbl: 'Orders' }, { num: 3, lbl: 'Dinners' }]} />
-          <ModuleTile href={`/${locale}/staff/messages`} icon={ChatBubbleLeftRightIcon} name="Communications" desc="WhatsApp, SMS, email threads & guest inbox." accent="#4A90D9" accentFaint="rgba(74,144,217,0.10)" stats={[{ num: 12, lbl: 'Unread' }, { num: 5, lbl: 'Requests' }]} />
-          <ModuleTile href={`/${locale}/staff/users`} icon={Cog6ToothIcon} name="Admin" desc="Billing, vendors, staff & system settings." accent="var(--terra)" accentFaint="rgba(236,108,75,0.10)" stats={[{ num: 2, lbl: 'Pending Bills' }]} />
+          <ModuleTile href={`/${locale}/staff/reservations`} icon={CalendarDaysIcon} name="Concierge" desc="Arrivals, departures, transfers, tours & guest requests." accent="var(--gold)" accentFaint="rgba(170,142,103,0.15)" stats={[{ num: d?.modules.arrivals ?? 0, lbl: 'Arrivals' }, { num: d?.modules.transfers ?? 0, lbl: 'Transfers' }, { num: d?.modules.tours ?? 0, lbl: 'Tours' }]} />
+          <ModuleTile href={`/${locale}/staff/orders`} icon={ShoppingCartIcon} name="Food & Beverage" desc="Orders, menus, romantic dinners & restaurant covers." accent="var(--sage)" accentFaint="rgba(78,94,62,0.14)" stats={[{ num: d?.modules.orders ?? 0, lbl: 'Orders' }, { num: d?.modules.dinners ?? 0, lbl: 'Dinners' }]} />
+          <ModuleTile href={`/${locale}/staff/messages`} icon={ChatBubbleLeftRightIcon} name="Communications" desc="WhatsApp, SMS, email threads & guest inbox." accent="#4A90D9" accentFaint="rgba(74,144,217,0.10)" stats={[{ num: d?.modules.unread ?? 0, lbl: 'Unread' }, { num: d?.modules.requests ?? 0, lbl: 'Requests' }]} />
+          <ModuleTile href={`/${locale}/staff/users`} icon={Cog6ToothIcon} name="Admin" desc="Billing, vendors, staff & system settings." accent="var(--terra)" accentFaint="rgba(236,108,75,0.10)" stats={[{ num: d?.modules.pendingBills ?? 0, lbl: 'Pending Bills' }]} />
         </div>
       </div>
 
@@ -204,12 +354,17 @@ export default function DashboardPage() {
             <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Recent Activity</span>
             <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)' }}>See all</span>
           </div>
-          <FeedItem dot="var(--terra)" text={<><strong>Billing flagged</strong> — Villa Garden 2 checkout overdue</>} meta="Admin · Billing" time="8:39" />
-          <FeedItem dot="#4A90D9" text={<><strong>New message</strong> from García family — dietary request</>} meta="Communications · WhatsApp" time="8:31" />
-          <FeedItem dot="var(--gold)" text={<><strong>Transfer confirmed</strong> — Martínez · Liberia → Nayara</>} meta="Concierge · Transfers" time="8:15" />
-          <FeedItem dot="var(--sage)" text={<><strong>Order placed</strong> — Villa Overwater 5 · Breakfast for 2</>} meta="F&B · Orders" time="8:02" />
-          <FeedItem dot="var(--terra)" text={<><strong>Special request</strong> — Flower arrangement, Villa Suite 1</>} meta="Concierge · Requests" time="7:58" />
-          <FeedItem dot="var(--gold)" text={<><strong>Check-in completed</strong> — Johnson family · Villa Beach 2</>} meta="Concierge · Arrivals" time="7:44" />
+          {d?.recentActivity && d.recentActivity.length > 0
+            ? d.recentActivity.map((item, i) => (
+                <FeedItem
+                  key={i}
+                  dot={dotColors[item.type] || 'var(--muted-dim)'}
+                  text={<><strong>{feedTitle[item.type] || item.type}</strong> — {item.title}{item.description ? ` · ${item.description}` : ''}</>}
+                  meta={item.meta}
+                  time={item.time}
+                />
+              ))
+            : !loading && <EmptyFeed message="No recent activity" />}
         </div>
 
         <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -217,11 +372,17 @@ export default function DashboardPage() {
             <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Coming Up Today</span>
             <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)' }}>Full calendar</span>
           </div>
-          <FeedItem dot="var(--gold)" text={<><strong>Martínez</strong> arrival — transfer from Liberia</>} meta="Concierge · Transfer confirmed" time="2:00 PM" />
-          <FeedItem dot="var(--sage)" text={<><strong>Kayak tour</strong> — 6 guests · Bocas Town circuit</>} meta="Concierge · Tours" time="3:30 PM" />
-          <FeedItem dot="#4A90D9" text={<><strong>Williams family</strong> departure — flight 6:15 PM</>} meta="Concierge · Billing pending" time="4:00 PM" />
-          <FeedItem dot="var(--sage)" text={<><strong>Sunset cocktails</strong> — 12 in-house guests · Bar</>} meta="F&B · Orders open" time="5:30 PM" />
-          <FeedItem dot="var(--gold)" text={<><strong>Romantic dinner</strong> — García · Overwater deck</>} meta="F&B · Vendor confirmed" time="7:00 PM" />
+          {d?.comingUpToday && d.comingUpToday.length > 0
+            ? d.comingUpToday.map((item, i) => (
+                <FeedItem
+                  key={i}
+                  dot={dotColors[item.type] || 'var(--muted-dim)'}
+                  text={<><strong>{item.title}</strong>{item.description ? ` — ${item.description}` : ''}</>}
+                  meta={item.meta}
+                  time={item.time}
+                />
+              ))
+            : !loading && <EmptyFeed message="Nothing scheduled for today" />}
         </div>
       </div>
 
