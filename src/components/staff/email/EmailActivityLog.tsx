@@ -1,0 +1,45 @@
+'use client';
+
+interface Activity {
+  id: number;
+  action: string;
+  performer_name: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  assigned: 'Reassigned',
+  status_changed: 'Changed status',
+  replied: 'Replied',
+  forwarded: 'Forwarded',
+  note_added: 'Added note',
+  linked_guest: 'Linked guest',
+  tagged: 'Updated tags',
+  updated: 'Updated',
+};
+
+export default function EmailActivityLog({ activities }: { activities: Activity[] }) {
+  if (activities.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Activity</h4>
+      <div className="space-y-1">
+        {activities.map(a => (
+          <div key={a.id} className="flex items-start gap-2 text-xs">
+            <span className="text-slate-400 flex-shrink-0 w-28">
+              {new Date(a.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}{' '}
+              {new Date(a.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+            </span>
+            <span className="text-slate-600">
+              {a.performer_name || 'System'} {ACTION_LABELS[a.action] || a.action}
+              {a.details?.to_status ? ` to ${a.details.to_status}` : ''}
+              {a.details?.to ? ` to ${Array.isArray(a.details.to) ? (a.details.to as string[]).join(', ') : a.details.to}` : ''}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
