@@ -129,7 +129,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     }))
     .filter(g => g.items.length > 0 && (!g.permission || can(g.permission)));
 
-  const dashboardHref = '/home.html';
+  const dashboardHref = `/${locale}/staff/dashboard`;
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   const findActiveGroup = useCallback((): string | null => {
@@ -190,7 +190,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
             className="flex items-center justify-center flex-shrink-0"
             style={{ height: 64, borderBottom: '1px solid rgba(255,255,255,0.07)' }}
           >
-            <a
+            <Link
               href={dashboardHref}
               className="flex items-center justify-center rounded-full transition-shadow"
               style={{
@@ -208,7 +208,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
               onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
             >
               N
-            </a>
+            </Link>
           </div>
 
           {/* Nav icons */}
@@ -218,7 +218,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
               icon={HomeIcon}
               label={ls('Dashboard', 'Panel')}
               active={isDashboardActive}
-              onClick={() => { closePanel(); setActiveGroup(null); window.location.href = dashboardHref; }}
+              onClick={() => { closePanel(); setActiveGroup(null); router.push(dashboardHref); }}
               showTooltip={!panelOpen}
             />
 

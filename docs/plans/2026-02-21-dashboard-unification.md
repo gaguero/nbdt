@@ -1,3 +1,32 @@
+# Dashboard Unification — Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Replace the static HTML dashboard with a real Next.js page, unify all navigation inside the app, and ensure every page is accessible from the shared sidebar.
+
+**Architecture:** The existing `src/app/[locale]/staff/(authenticated)/dashboard/page.tsx` currently just redirects to `/dashboard.html`. We replace it with a full React component that mirrors the home.html design: Property Pulse grid, module tiles (linking to Next.js routes), and bottom feeds. The shared sidebar in `layout.tsx` points Dashboard → `/[locale]/staff/dashboard`. Static HTML files remain in `/public/` but are no longer navigation targets.
+
+**Tech Stack:** Next.js 15 App Router, React, Tailwind CSS, inline CSS vars (V13 Slate Botanical tokens), Heroicons
+
+---
+
+### Task 1: Rewrite the dashboard page
+
+**Files:**
+- Modify: `src/app/[locale]/staff/(authenticated)/dashboard/page.tsx`
+
+**What to build** (mirrors home.html exactly, using existing design tokens):
+
+The page is a client component with 3 sections:
+1. **Property Pulse** — 3-col grid: Occupancy card | 2×2 stat cards | Rain radar iframe
+2. **Module Tiles** — 4-col grid linking to Next.js routes
+3. **Bottom Feeds** — 2-col: Recent Activity | Coming Up Today
+
+All data is static/placeholder for now (same numbers as home.html). Use `useEffect` for the animated occupancy bars and live clock is already in the layout header.
+
+**Full implementation:**
+
+```tsx
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -14,6 +43,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 
+// ── Occupancy bars animate on mount ────────────────────────────────────────
 function OccBar({ label, fill, count }: { label: string; fill: string; count: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -37,6 +67,7 @@ function OccBar({ label, fill, count }: { label: string; fill: string; count: st
   );
 }
 
+// ── Stat card ───────────────────────────────────────────────────────────────
 function StatCard({
   icon: Icon,
   iconColor,
@@ -55,7 +86,19 @@ function StatCard({
   hint: React.ReactNode;
 }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, padding: '12px 14px', boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid rgba(124,142,103,0.14)',
+        borderRadius: 14,
+        padding: '12px 14px',
+        boxShadow: 'var(--card-shadow)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        cursor: 'default',
+      }}
+    >
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <div style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: iconBg, color: iconColor, flexShrink: 0 }}>
           <Icon style={{ width: 14, height: 14, strokeWidth: 1.8 }} />
@@ -68,6 +111,7 @@ function StatCard({
   );
 }
 
+// ── Module tile ─────────────────────────────────────────────────────────────
 function ModuleTile({
   href,
   icon: Icon,
@@ -75,6 +119,7 @@ function ModuleTile({
   desc,
   accent,
   accentFaint,
+  accentGlow,
   stats,
 }: {
   href: string;
@@ -83,14 +128,35 @@ function ModuleTile({
   desc: string;
   accent: string;
   accentFaint: string;
+  accentGlow: string;
   stats: { num: number | string; lbl: string }[];
 }) {
   return (
     <Link
       href={href}
-      style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, padding: '14px 15px', boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', gap: 8, position: 'relative', overflow: 'hidden', textDecoration: 'none', transition: 'border-color 0.22s ease, transform 0.22s ease' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(124,142,103,0.14)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      style={{
+        background: 'var(--surface)',
+        border: `1px solid rgba(124,142,103,0.14)`,
+        borderRadius: 14,
+        padding: '14px 15px',
+        boxShadow: 'var(--card-shadow)',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        position: 'relative',
+        overflow: 'hidden',
+        textDecoration: 'none',
+        transition: 'border-color 0.22s ease, transform 0.22s ease',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = accent;
+        e.currentTarget.style.transform = 'translateY(-2px)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'rgba(124,142,103,0.14)';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
     >
       <div style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: accentFaint, color: accent }}>
         <Icon style={{ width: 18, height: 18, strokeWidth: 1.6 }} />
@@ -112,9 +178,10 @@ function ModuleTile({
   );
 }
 
+// ── Feed item ───────────────────────────────────────────────────────────────
 function FeedItem({ dot, text, meta, time }: { dot: string; text: React.ReactNode; meta: string; time: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, padding: '8px 16px', borderBottom: '1px solid rgba(124,142,103,0.06)' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, padding: '8px 16px', borderBottom: '1px solid rgba(124,142,103,0.06)', cursor: 'default' }}>
       <div style={{ width: 6, height: 6, borderRadius: '50%', background: dot, marginTop: 5, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.45 }}>{text}</div>
@@ -125,6 +192,7 @@ function FeedItem({ dot, text, meta, time }: { dot: string; text: React.ReactNod
   );
 }
 
+// ── Main dashboard ──────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const locale = useLocale();
 
@@ -135,7 +203,7 @@ export default function DashboardPage() {
   return (
     <div style={{ padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-      {/* PROPERTY PULSE */}
+      {/* ── PROPERTY PULSE ── */}
       <div>
         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-dim)', marginBottom: 8 }}>
           Property Pulse — {today}
@@ -162,7 +230,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 2x2 stats */}
+          {/* 2×2 stats */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 10 }}>
             <StatCard icon={ArrowUpTrayIcon} iconColor="var(--gold)" iconBg="rgba(170,142,103,0.15)" num={4} numColor="var(--gold)" label="Arrivals Today" hint={<>Next: <strong style={{ color: 'var(--gold)' }}>Martínez</strong> · 2:00 PM</>} />
             <StatCard icon={NewspaperIcon} iconColor="var(--sage)" iconBg="rgba(78,94,62,0.14)" num={3} numColor="var(--sage)" label="Departures" hint={<><span style={{ color: 'var(--sage)', fontWeight: 600 }}>2 billed</span> · 1 pending</>} />
@@ -186,18 +254,18 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* MODULE TILES */}
+      {/* ── MODULE TILES ── */}
       <div>
         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-dim)', marginBottom: 8 }}>Modules</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-          <ModuleTile href={`/${locale}/staff/reservations`} icon={CalendarDaysIcon} name="Concierge" desc="Arrivals, departures, transfers, tours & guest requests." accent="var(--gold)" accentFaint="rgba(170,142,103,0.15)" stats={[{ num: 4, lbl: 'Arrivals' }, { num: 8, lbl: 'Transfers' }, { num: 6, lbl: 'Tours' }]} />
-          <ModuleTile href={`/${locale}/staff/orders`} icon={ShoppingCartIcon} name="Food & Beverage" desc="Orders, menus, romantic dinners & restaurant covers." accent="var(--sage)" accentFaint="rgba(78,94,62,0.14)" stats={[{ num: 7, lbl: 'Orders' }, { num: 3, lbl: 'Dinners' }]} />
-          <ModuleTile href={`/${locale}/staff/messages`} icon={ChatBubbleLeftRightIcon} name="Communications" desc="WhatsApp, SMS, email threads & guest inbox." accent="#4A90D9" accentFaint="rgba(74,144,217,0.10)" stats={[{ num: 12, lbl: 'Unread' }, { num: 5, lbl: 'Requests' }]} />
-          <ModuleTile href={`/${locale}/staff/users`} icon={Cog6ToothIcon} name="Admin" desc="Billing, vendors, staff & system settings." accent="var(--terra)" accentFaint="rgba(236,108,75,0.10)" stats={[{ num: 2, lbl: 'Pending Bills' }]} />
+          <ModuleTile href={`/${locale}/staff/reservations`} icon={CalendarDaysIcon} name="Concierge" desc="Arrivals, departures, transfers, tours & guest requests." accent="var(--gold)" accentFaint="rgba(170,142,103,0.15)" accentGlow="rgba(170,142,103,0.30)" stats={[{ num: 4, lbl: 'Arrivals' }, { num: 8, lbl: 'Transfers' }, { num: 6, lbl: 'Tours' }]} />
+          <ModuleTile href={`/${locale}/staff/orders`} icon={ShoppingCartIcon} name="Food & Beverage" desc="Orders, menus, romantic dinners & restaurant covers." accent="var(--sage)" accentFaint="rgba(78,94,62,0.14)" accentGlow="rgba(78,94,62,0.28)" stats={[{ num: 7, lbl: 'Orders' }, { num: 3, lbl: 'Dinners' }]} />
+          <ModuleTile href={`/${locale}/staff/messages`} icon={ChatBubbleLeftRightIcon} name="Communications" desc="WhatsApp, SMS, email threads & guest inbox." accent="#4A90D9" accentFaint="rgba(74,144,217,0.10)" accentGlow="rgba(74,144,217,0.15)" stats={[{ num: 12, lbl: 'Unread' }, { num: 5, lbl: 'Requests' }]} />
+          <ModuleTile href={`/${locale}/staff/users`} icon={Cog6ToothIcon} name="Admin" desc="Billing, vendors, staff & system settings." accent="var(--terra)" accentFaint="rgba(236,108,75,0.10)" accentGlow="rgba(236,108,75,0.13)" stats={[{ num: 2, lbl: 'Pending Bills' }]} />
         </div>
       </div>
 
-      {/* BOTTOM FEEDS */}
+      {/* ── BOTTOM FEEDS ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--separator)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -228,3 +296,58 @@ export default function DashboardPage() {
     </div>
   );
 }
+```
+
+---
+
+### Task 2: Update sidebar — Dashboard links to Next.js route, not static HTML
+
+**Files:**
+- Modify: `src/app/[locale]/staff/layout.tsx`
+
+**Step 1:** Change `dashboardHref` to use the locale-aware Next.js route:
+
+```ts
+const dashboardHref = `/${locale}/staff/dashboard`;
+```
+
+**Step 2:** Change the Dashboard `RailIcon` `onClick` back to `router.push` (since it's now a proper Next.js route):
+
+```tsx
+onClick={() => { closePanel(); setActiveGroup(null); router.push(dashboardHref); }}
+```
+
+**Step 3:** Change logo `<a>` back to `<Link>` with the new route:
+
+```tsx
+<Link
+  href={dashboardHref}
+  className="flex items-center justify-center rounded-full transition-shadow"
+  style={{ ... same styles ... textDecoration: 'none' }}
+  ...
+>
+  N
+</Link>
+```
+
+---
+
+### Task 3: Verify build and commit
+
+**Step 1:** Run build:
+```bash
+npm run build
+```
+Expected: clean build, no errors
+
+**Step 2:** Commit:
+```bash
+git add src/app/[locale]/staff/(authenticated)/dashboard/page.tsx \
+        src/app/[locale]/staff/layout.tsx
+git commit -m "feat: unify dashboard into Next.js app — remove static HTML dependency"
+```
+
+**Step 3:** Push to master:
+```bash
+git push origin master
+```
