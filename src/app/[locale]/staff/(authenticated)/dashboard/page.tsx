@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import {
@@ -13,6 +13,8 @@ import {
   Cog6ToothIcon,
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
+import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
+import { TransferModal } from '../transfers/TransferModal';
 
 function OccBar({ label, fill, count }: { label: string; fill: string; count: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -144,13 +146,16 @@ const EMPTY_DATA: DashData = { arrivals:[], departures:[], inhouse:[], requests:
 
 export default function DashboardPage() {
   const locale = useLocale();
+  const { openGuest } = useGuestDrawer();
   const [data, setData] = useState<DashData>(EMPTY_DATA);
+  const [editingTransfer, setEditingTransfer] = useState<any | null>(null);
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const today = new Date().toLocaleDateString(locale === 'es' ? 'es-CR' : 'en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 
-  useEffect(() => {
+  const fetchDashboardData = useCallback(() => {
     const date = toISO(new Date());
     Promise.all([
       fetch(`/api/reservations?filter=arrivals&date=${date}`).then(r => r.json()),
@@ -173,6 +178,10 @@ export default function DashboardPage() {
       });
     }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const unreadMsgs   = data.conversations.reduce((s: number, c: any) => s + parseInt(c.unread_count || '0'), 0);
   const openRequests = data.requests.filter((r: any) => r.status !== 'resolved' && r.status !== 'cancelled').length;
@@ -296,19 +305,32 @@ export default function DashboardPage() {
             <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Arrivals Today</span>
             <Link href={`/${locale}/staff/reservations`} style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}>See all</Link>
           </div>
-          {data.arrivals.length === 0 ? (
-            <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>No arrivals today</div>
-          ) : (
-            data.arrivals.slice(0, 6).map((r: any) => (
-              <FeedItem
-                key={r.id}
-                dot="var(--gold)"
-                text={<><strong>{r.guest_name || r.opera_guest_name || '—'}</strong> arrival — {r.room || 'Room TBD'}</>}
-                meta={`Concierge · ${r.transfer_booked ? 'Transfer confirmed' : 'No transfer'}`}
-                time={r.arrival || '—'}
-              />
-            ))
-          )}
+          <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+            {data.arrivals.length === 0 ? (
+              <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>No arrivals today</div>
+            ) : (
+              data.arrivals.slice(0, 6).map((r: any) => (
+                <div key={r.id} style={{ cursor: r.guest_id ? 'pointer' : 'default' }}>
+                  <FeedItem
+                    dot="var(--gold)"
+                    text={
+                      <>
+                        <strong
+                          onClick={() => r.guest_id && openGuest(r.guest_id)}
+                          style={{ cursor: r.guest_id ? 'pointer' : 'default', color: r.guest_id ? 'var(--sage)' : 'inherit', textDecoration: r.guest_id ? 'underline' : 'none', textDecorationColor: 'rgba(78,94,62,0.3)' }}
+                        >
+                          {r.guest_name || r.opera_guest_name || '—'}
+                        </strong>
+                        {' '}arrival — {r.room || 'Room TBD'}
+                      </>
+                    }
+                    meta={`Concierge · ${r.transfer_booked ? 'Transfer confirmed' : 'No transfer'}`}
+                    time={r.arrival || '—'}
+                  />
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {/* Coming up: transfers + tours */}
@@ -317,30 +339,39 @@ export default function DashboardPage() {
             <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Coming Up Today</span>
             <Link href={`/${locale}/staff/concierge`} style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}>Full view</Link>
           </div>
-          {data.transfers.slice(0, 3).map((t: any) => (
-            <FeedItem
-              key={`t-${t.id}`}
-              dot="var(--gold)"
-              text={<><strong>{t.guest_name || '—'}</strong> transfer — {t.origin} → {t.destination}</>}
-              meta={`Concierge · Transfers · ${t.vendor_name || '—'}`}
-              time={t.time?.slice(0, 5) || '—'}
-            />
-          ))}
-          {data.tours.slice(0, 3).map((t: any) => (
-            <FeedItem
-              key={`tour-${t.id}`}
-              dot="var(--sage)"
-              text={<><strong>{t.name_en || '—'}</strong> — {t.guest_name || '—'}</>}
-              meta={`Concierge · Tours · ${t.vendor_name || t.legacy_vendor_name || '—'}`}
-              time={t.start_time?.slice(0, 5) || '—'}
-            />
-          ))}
-          {data.transfers.length === 0 && data.tours.length === 0 && (
-            <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Nothing scheduled today</div>
-          )}
+          <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+            {data.transfers.slice(0, 3).map((t: any) => (
+              <div key={`t-${t.id}`} onClick={() => { setEditingTransfer(t); setTransferModalOpen(true); }} style={{ cursor: 'pointer' }}>
+                <FeedItem
+                  dot="var(--gold)"
+                  text={<><strong>{t.guest_name || '—'}</strong> transfer — {t.origin} → {t.destination}</>}
+                  meta={`Concierge · Transfers · ${t.vendor_name || '—'}`}
+                  time={t.time?.slice(0, 5) || '—'}
+                />
+              </div>
+            ))}
+            {data.tours.slice(0, 3).map((t: any) => (
+              <FeedItem
+                key={`tour-${t.id}`}
+                dot="var(--sage)"
+                text={<><strong>{t.name_en || '—'}</strong> — {t.guest_name || '—'}</>}
+                meta={`Concierge · Tours · ${t.vendor_name || t.legacy_vendor_name || '—'}`}
+                time={t.start_time?.slice(0, 5) || '—'}
+              />
+            ))}
+            {data.transfers.length === 0 && data.tours.length === 0 && (
+              <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Nothing scheduled today</div>
+            )}
+          </div>
         </div>
       </div>
 
+      <TransferModal
+        isOpen={transferModalOpen}
+        onClose={() => { setTransferModalOpen(false); setEditingTransfer(null); }}
+        transfer={editingTransfer}
+        onSuccess={() => { setTransferModalOpen(false); setEditingTransfer(null); fetchDashboardData(); }}
+      />
     </div>
   );
 }

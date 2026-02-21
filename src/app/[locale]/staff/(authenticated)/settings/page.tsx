@@ -35,7 +35,8 @@ type ModuleKey =
   | 'guestCleanup'
   | 'vendorCleanup'
   | 'email'
-  | 'configuration';
+  | 'configuration'
+  | 'propertyConfig';
 
 type Flash = { type: 'success' | 'error'; text: string };
 
@@ -414,9 +415,33 @@ export default function SettingsPage() {
       },
       { key: 'email' as ModuleKey, label: 'Email', icon: EnvelopeIcon, note: 'Departmental email accounts' },
       { key: 'configuration' as ModuleKey, label: 'Center Settings', icon: Cog6ToothIcon, note: 'Global behavior switches' },
+      { key: 'propertyConfig' as ModuleKey, label: 'Property Config', icon: Cog6ToothIcon, note: 'Hotel, rooms, brand' },
     ],
     [activeSettings.pipeline.vendorNormalizationMinVendors, getCount, guestNormLocked, transferLocked, vendorNormLocked]
   );
+
+  const [propConfig, setPropConfig] = useState<any>(null);
+  const [propConfigLoading, setPropConfigLoading] = useState(false);
+  const [propConfigSaving, setPropConfigSaving] = useState(false);
+  const [propConfigMsg, setPropConfigMsg] = useState<Flash | null>(null);
+
+  const fetchPropConfig = useCallback(async () => {
+    setPropConfigLoading(true);
+    try {
+      const res = await fetch('/api/admin/property-config');
+      if (res.ok) {
+        const d = await res.json();
+        setPropConfig(d);
+      }
+    } catch { /* non-fatal */ }
+    finally { setPropConfigLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    if (activeModule === 'propertyConfig' && !propConfig) {
+      void fetchPropConfig();
+    }
+  }, [activeModule, propConfig, fetchPropConfig]);
 
   const saveSettings = useCallback(async () => {
     if (!settings) return;
@@ -1997,6 +2022,171 @@ export default function SettingsPage() {
     );
   }
 
+  function renderPropertyConfigModule() {
+    if (propConfigLoading || !propConfig) {
+      return <p className="text-sm text-slate-500">Loading property config...</p>;
+    }
+    const s = propConfig.settings;
+    const rooms: any[] = s?.rooms?.categories ?? [];
+    const diningLocs: string[] = s?.dining?.locations ?? [];
+    const depts: string[] = s?.departments ?? [];
+
+    const update = (patch: any) => setPropConfig((prev: any) => ({ ...prev, ...patch }));
+    const updateSettings = (patch: any) => setPropConfig((prev: any) => ({ ...prev, settings: { ...prev.settings, ...patch } }));
+
+    const savePropConfig = async () => {
+      setPropConfigSaving(true);
+      setPropConfigMsg(null);
+      try {
+        const res = await fetch('/api/admin/property-config', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(propConfig),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setPropConfigMsg({ type: 'success', text: 'Property config saved.' });
+        } else {
+          setPropConfigMsg({ type: 'error', text: data.error || 'Failed to save.' });
+        }
+      } catch (err: unknown) {
+        setPropConfigMsg({ type: 'error', text: err instanceof Error ? err.message : 'Failed' });
+      } finally {
+        setPropConfigSaving(false);
+      }
+    };
+
+    return (
+      <div className="space-y-4">
+        <SectionTitle title="Property Configuration" subtitle="Hotel identity, rooms, brand, dining locations, and departments.">
+          <button type="button" onClick={() => void savePropConfig()} disabled={propConfigSaving} className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">
+            {propConfigSaving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </SectionTitle>
+
+        {propConfigMsg && (
+          <p className={`text-sm ${propConfigMsg.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>{propConfigMsg.text}</p>
+        )}
+
+        {/* Property Info */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+          <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">Property Info</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Name', key: 'name' },
+              { label: 'Code', key: 'code' },
+              { label: 'Timezone', key: 'timezone' },
+              { label: 'Currency', key: 'currency' },
+              { label: 'Location Label', key: 'locationLabel' },
+            ].map(({ label, key }) => (
+              <div key={key} className="rounded-lg border border-slate-200 bg-white p-3">
+                <label className="text-sm font-medium text-slate-800">{label}</label>
+                <input
+                  type="text"
+                  value={propConfig[key] ?? ''}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => update({ [key]: e.target.value })}
+                  className="mt-2 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                />
+              </div>
+            ))}
+            {[
+              { label: 'Latitude', key: 'locationLat' },
+              { label: 'Longitude', key: 'locationLon' },
+            ].map(({ label, key }) => (
+              <div key={key} className="rounded-lg border border-slate-200 bg-white p-3">
+                <label className="text-sm font-medium text-slate-800">{label}</label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={propConfig[key] ?? ''}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => update({ [key]: parseFloat(e.target.value) || 0 })}
+                  className="mt-2 w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Room Categories */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">
+              Room Categories <span className="text-xs font-normal text-slate-500 ml-2">Total: {rooms.reduce((a: number, r: any) => a + (r.total || 0), 0)} units</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => updateSettings({ rooms: { ...s.rooms, categories: [...rooms, { name: '', code: '', total: 0 }] } })}
+              className="text-xs font-semibold text-slate-700 border border-slate-300 rounded-lg px-2 py-1 hover:bg-slate-50"
+            >+ Add</button>
+          </div>
+          <table className="w-full text-sm">
+            <thead><tr className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b">
+              <th className="text-left pb-2">Name</th><th className="text-left pb-2">Code</th><th className="text-left pb-2">Units</th><th className="pb-2"></th>
+            </tr></thead>
+            <tbody>
+              {rooms.map((cat: any, i: number) => (
+                <tr key={i} className="border-b last:border-0">
+                  <td className="py-1.5 pr-2"><input type="text" value={cat.name} onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], name: e.target.value }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }} className="w-full rounded border border-slate-200 px-2 py-1 text-sm" /></td>
+                  <td className="py-1.5 pr-2"><input type="text" value={cat.code} onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], code: e.target.value }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }} className="w-24 rounded border border-slate-200 px-2 py-1 text-sm" /></td>
+                  <td className="py-1.5 pr-2"><input type="number" min={0} value={cat.total} onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], total: parseInt(e.target.value) || 0 }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }} className="w-20 rounded border border-slate-200 px-2 py-1 text-sm" /></td>
+                  <td className="py-1.5"><button type="button" onClick={() => { const next = rooms.filter((_: any, j: number) => j !== i); updateSettings({ rooms: { ...s.rooms, categories: next } }); }} className="text-red-400 hover:text-red-600"><TrashIcon className="h-4 w-4" /></button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Dining Locations */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">Dining Locations</p>
+            <button type="button" onClick={() => updateSettings({ dining: { locations: [...diningLocs, ''] } })} className="text-xs font-semibold text-slate-700 border border-slate-300 rounded-lg px-2 py-1 hover:bg-slate-50">+ Add</button>
+          </div>
+          <div className="space-y-2">
+            {diningLocs.map((loc: string, i: number) => (
+              <div key={i} className="flex items-center gap-2">
+                <input type="text" value={loc} onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...diningLocs]; next[i] = e.target.value; updateSettings({ dining: { locations: next } }); }} className="flex-1 rounded border border-slate-200 px-2 py-1.5 text-sm" />
+                <button type="button" onClick={() => updateSettings({ dining: { locations: diningLocs.filter((_: string, j: number) => j !== i) } })} className="text-red-400 hover:text-red-600"><TrashIcon className="h-4 w-4" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Departments */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">Departments</p>
+            <button type="button" onClick={() => updateSettings({ departments: [...depts, ''] })} className="text-xs font-semibold text-slate-700 border border-slate-300 rounded-lg px-2 py-1 hover:bg-slate-50">+ Add</button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {depts.map((dept: string, i: number) => (
+              <div key={i} className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1">
+                <input type="text" value={dept} onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...depts]; next[i] = e.target.value; updateSettings({ departments: next }); }} className="bg-transparent text-sm outline-none w-28" />
+                <button type="button" onClick={() => updateSettings({ departments: depts.filter((_: string, j: number) => j !== i) })} className="text-red-400 hover:text-red-600"><XMarkIcon className="h-3 w-3" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Brand Colors */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+          <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">Brand Colors</p>
+          <div className="grid grid-cols-3 gap-3">
+            {Object.entries(s?.brand?.colors ?? {}).map(([key, val]: [string, any]) => (
+              <div key={key} className="flex items-center gap-2">
+                <input type="color" value={val.startsWith('#') ? val : '#cccccc'} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSettings({ brand: { ...s.brand, colors: { ...s.brand.colors, [key]: e.target.value } } })} className="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-slate-700">{key}</p>
+                  <p className="text-xs text-slate-400">{val}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   function renderConfigurationModule() {
     if (settingsLoading || !settings) {
       return <p className="text-sm text-slate-500">Loading settings...</p>;
@@ -2508,6 +2698,8 @@ PUBSUB_TOPIC=projects/your-project/topics/gmail-notifications`}</pre>
         return renderEmailModule();
       case 'configuration':
         return renderConfigurationModule();
+      case 'propertyConfig':
+        return renderPropertyConfigModule();
       default:
         return null;
     }

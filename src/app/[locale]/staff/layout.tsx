@@ -5,6 +5,7 @@ import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { GuestDrawerProvider } from '@/contexts/GuestDrawerContext';
+import { PropertyConfigProvider } from '@/contexts/PropertyConfigContext';
 import { GuestDrawer } from '@/components/GuestDrawer';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -615,8 +616,10 @@ function RailIcon({
 
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   return (
-    <GuestDrawerProvider>
-      <StaffLayoutContent>{children}</StaffLayoutContent>
-    </GuestDrawerProvider>
+    <PropertyConfigProvider>
+      <GuestDrawerProvider>
+        <StaffLayoutContent>{children}</StaffLayoutContent>
+      </GuestDrawerProvider>
+    </PropertyConfigProvider>
   );
 }
