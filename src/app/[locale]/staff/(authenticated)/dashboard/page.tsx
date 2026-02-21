@@ -14,6 +14,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
+import { localDateString } from '@/lib/dates';
 import { TransferModal } from '../transfers/TransferModal';
 
 function OccBar({ label, fill, count }: { label: string; fill: string; count: string }) {
@@ -127,8 +128,8 @@ function FeedItem({ dot, text, meta, time }: { dot: string; text: React.ReactNod
   );
 }
 
-function toISO(d: Date) {
-  return d.toISOString().slice(0, 10);
+function toLocalDate(d: Date) {
+  return localDateString(d);
 }
 
 interface DashData {
@@ -156,7 +157,7 @@ export default function DashboardPage() {
   });
 
   const fetchDashboardData = useCallback(() => {
-    const date = toISO(new Date());
+    const date = toLocalDate(new Date());
     Promise.all([
       fetch(`/api/reservations?filter=arrivals&date=${date}`).then(r => r.json()),
       fetch(`/api/reservations?filter=departures&date=${date}`).then(r => r.json()),

@@ -14,16 +14,14 @@ export async function GET(request: NextRequest) {
     const product_id = searchParams.get('product_id');
     const vendor_id_param = searchParams.get('vendor_id');
 
-    // vendor filter: explicit param or auto from vendor token
-    const effectiveVendorId = (auth as any).propertyId || vendor_id_param;
-
     let whereClause = 'WHERE 1=1';
     const params: any[] = [];
     let idx = 1;
 
     if (product_id) { whereClause += ` AND tb.product_id = $${idx++}`; params.push(product_id); }
 
-    if (effectiveVendorId) { whereClause += ` AND tp.vendor_id = $${idx++}`; params.push(effectiveVendorId); }
+    // If an explicit vendor_id filter is passed, apply it
+    if (vendor_id_param) { whereClause += ` AND tp.vendor_id = $${idx++}`; params.push(vendor_id_param); }
 
     if (filter === 'today') whereClause += ` AND COALESCE(ts.date, tb.activity_date) = CURRENT_DATE`;
     else if (filter === 'upcoming') whereClause += ` AND COALESCE(ts.date, tb.activity_date) >= CURRENT_DATE`;
