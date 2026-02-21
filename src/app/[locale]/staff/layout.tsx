@@ -149,7 +149,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   const groupDashboards: Record<string, string> = {
-    concierge: `/${locale}/staff/daily-sheet`,
+    concierge: `/${locale}/staff/concierge`,
     fnb:       `/${locale}/staff/orders`,
     comms:     `/${locale}/staff/messages`,
     admin:     `/${locale}/staff/users`,
