@@ -27,12 +27,12 @@ type GroupDecision =
 
 type Step = 'generate' | 'paste' | 'review' | 'executing' | 'done';
 
-const TYPE_COLORS: Record<string, string> = {
-  transfer: 'bg-blue-100 text-blue-700',
-  tour: 'bg-green-100 text-green-700',
-  spa: 'bg-purple-100 text-purple-700',
-  restaurant: 'bg-orange-100 text-orange-700',
-  other: 'bg-gray-100 text-gray-600',
+const TYPE_STYLES: Record<string, React.CSSProperties> = {
+  transfer: { background: 'rgba(170,142,103,0.1)', color: 'var(--gold)' },
+  tour: { background: 'rgba(78,94,62,0.1)', color: 'var(--sage)' },
+  spa: { background: 'rgba(170,142,103,0.07)', color: 'var(--gold)' },
+  restaurant: { background: 'rgba(236,108,75,0.1)', color: 'var(--terra)' },
+  other: { background: 'var(--elevated)', color: 'var(--muted-dim)' },
 };
 
 export default function VendorNormalizationPage() {
@@ -194,7 +194,7 @@ export default function VendorNormalizationPage() {
     { key: 'review', label: 'Review & Confirm' },
     { key: 'done', label: 'Results' },
   ];
-  const stepIndex = { generate: 0, paste: 1, review: 2, executing: 2, done: 3 };
+  const stepIndex: Record<string, number> = { generate: 0, paste: 1, review: 2, executing: 2, done: 3 };
   const currentIndex = stepIndex[step];
 
   return (
@@ -202,8 +202,8 @@ export default function VendorNormalizationPage() {
       <DataCurationNav />
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Vendor Normalization</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>Vendor Normalization</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>
           Detect and merge duplicate vendor records using any AI assistant — no API key needed.
         </p>
       </div>
@@ -212,31 +212,36 @@ export default function VendorNormalizationPage() {
       <div className="flex items-center gap-2 text-sm">
         {stepLabels.map((s, i) => (
           <div key={s.key} className="flex items-center gap-2">
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-              i === currentIndex ? 'bg-orange-500 text-white' :
-              i < currentIndex ? 'bg-green-500 text-white' :
-              'bg-gray-200 text-gray-500'
-            }`}>{i + 1}</span>
-            <span className={i === currentIndex ? 'font-medium text-gray-900' : 'text-gray-400'}>
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+              style={
+                i === currentIndex
+                  ? { background: 'var(--gold)', color: '#fff' }
+                  : i < currentIndex
+                  ? { background: 'var(--sage)', color: '#fff' }
+                  : { background: 'var(--elevated)', color: 'var(--muted-dim)' }
+              }
+            >{i + 1}</span>
+            <span style={{ color: i === currentIndex ? 'var(--charcoal)' : 'var(--muted-dim)', fontWeight: i === currentIndex ? 500 : 400 }}>
               {s.label}
             </span>
-            {i < stepLabels.length - 1 && <span className="text-gray-300">→</span>}
+            {i < stepLabels.length - 1 && <span style={{ color: 'var(--muted-dim)' }}>→</span>}
           </div>
         ))}
       </div>
 
       {/* ── Step 1: Generate Prompt ── */}
       {step === 'generate' && (
-        <div className="bg-white rounded-xl border border-gray-200 p-10 text-center space-y-5">
-          <div className="w-16 h-16 mx-auto rounded-full bg-orange-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="nayara-card p-10 text-center space-y-5">
+          <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center" style={{ background: 'rgba(170,142,103,0.1)' }}>
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--gold)' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
           <div className="max-w-md mx-auto">
-            <p className="text-base font-semibold text-gray-800">How it works</p>
-            <ol className="text-sm text-gray-500 mt-3 text-left space-y-2 list-decimal list-inside">
+            <p className="text-base font-semibold" style={{ color: 'var(--charcoal)' }}>How it works</p>
+            <ol className="text-sm mt-3 text-left space-y-2 list-decimal list-inside" style={{ color: 'var(--muted-dim)' }}>
               <li>Click <strong>Generate Prompt</strong> — we build a prompt from your vendor database.</li>
               <li>Copy the prompt and paste it into any AI (ChatGPT, Claude, Gemini, etc.).</li>
               <li>Copy the AI response and paste it back here.</li>
@@ -244,12 +249,12 @@ export default function VendorNormalizationPage() {
             </ol>
           </div>
           {promptError && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2 inline-block">{promptError}</p>
+            <p className="text-sm rounded-lg px-4 py-2 inline-block" style={{ background: 'rgba(236,108,75,0.1)', color: 'var(--terra)' }}>{promptError}</p>
           )}
           <button
             onClick={handleGeneratePrompt}
             disabled={loadingPrompt}
-            className="px-8 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50 flex items-center gap-2 mx-auto"
+            className="nayara-btn nayara-btn-primary flex items-center gap-2 mx-auto px-8 py-3 disabled:opacity-50"
           >
             {loadingPrompt ? (
               <>
@@ -265,16 +270,12 @@ export default function VendorNormalizationPage() {
       {step === 'paste' && (
         <div className="space-y-5">
           {/* Prompt box */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <div className="nayara-card p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-800">1. Copy this prompt</h2>
+              <h2 className="font-semibold" style={{ color: 'var(--charcoal)' }}>1. Copy this prompt</h2>
               <button
                 onClick={handleCopy}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  copied
-                    ? 'bg-green-500 text-white'
-                    : 'bg-orange-500 text-white hover:bg-orange-600'
-                }`}
+                className={`nayara-btn ${copied ? 'nayara-btn-secondary' : 'nayara-btn-primary'} flex items-center gap-1.5 px-4 py-1.5`}
               >
                 {copied ? (
                   <>
@@ -294,21 +295,22 @@ export default function VendorNormalizationPage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs" style={{ color: 'var(--muted-dim)' }}>
               Paste into ChatGPT, Claude, Gemini, or any AI assistant. Ask it to return only the JSON.
             </p>
             <textarea
               readOnly
               value={prompt}
               rows={10}
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 font-mono resize-none focus:outline-none"
+              className="nayara-input w-full px-3 py-2 text-xs font-mono resize-none"
+              style={{ background: 'var(--elevated)' }}
             />
           </div>
 
           {/* Paste response */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-            <h2 className="font-semibold text-gray-800">2. Paste the AI response here</h2>
-            <p className="text-xs text-gray-500">
+          <div className="nayara-card p-5 space-y-3">
+            <h2 className="font-semibold" style={{ color: 'var(--charcoal)' }}>2. Paste the AI response here</h2>
+            <p className="text-xs" style={{ color: 'var(--muted-dim)' }}>
               The AI should return a JSON array. Paste the entire response — we will extract the JSON automatically.
             </p>
             <textarea
@@ -316,22 +318,22 @@ export default function VendorNormalizationPage() {
               onChange={e => setPastedResponse(e.target.value)}
               rows={10}
               placeholder='Paste the AI response here...'
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="nayara-input w-full px-3 py-2 text-xs font-mono resize-y"
             />
             {parseError && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{parseError}</p>
+              <p className="text-sm rounded-lg px-3 py-2" style={{ background: 'rgba(236,108,75,0.1)', color: 'var(--terra)' }}>{parseError}</p>
             )}
             <div className="flex justify-between items-center pt-1">
               <button
                 onClick={() => setStep('generate')}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                className="nayara-btn nayara-btn-ghost px-4 py-2 text-sm"
               >
                 ← Back
               </button>
               <button
                 onClick={handleParseResponse}
                 disabled={!pastedResponse.trim()}
-                className="px-6 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50"
+                className="nayara-btn nayara-btn-primary px-6 py-2 disabled:opacity-50"
               >
                 Parse &amp; Review →
               </button>
@@ -344,17 +346,17 @@ export default function VendorNormalizationPage() {
       {step === 'review' && (
         <div className="space-y-5">
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-orange-50 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-orange-600">{vendors.length}</p>
-              <p className="text-sm text-orange-500">Total vendors</p>
+            <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(170,142,103,0.08)', border: '1px solid rgba(170,142,103,0.2)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>{vendors.length}</p>
+              <p className="text-sm" style={{ color: 'var(--gold)', opacity: 0.8 }}>Total vendors</p>
             </div>
-            <div className="bg-red-50 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-red-600">{groups.length}</p>
-              <p className="text-sm text-red-500">Duplicate groups found</p>
+            <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(236,108,75,0.08)', border: '1px solid rgba(236,108,75,0.2)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--terra)' }}>{groups.length}</p>
+              <p className="text-sm" style={{ color: 'var(--terra)', opacity: 0.8 }}>Duplicate groups found</p>
             </div>
-            <div className="bg-green-50 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{totalDuplicatesToDeactivate}</p>
-              <p className="text-sm text-green-500">Will be deactivated</p>
+            <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(78,94,62,0.08)', border: '1px solid rgba(78,94,62,0.2)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--sage)' }}>{totalDuplicatesToDeactivate}</p>
+              <p className="text-sm" style={{ color: 'var(--sage)', opacity: 0.8 }}>Will be deactivated</p>
             </div>
           </div>
 
@@ -367,14 +369,13 @@ export default function VendorNormalizationPage() {
               return (
                 <div
                   key={g.groupId}
-                  className={`bg-white rounded-xl border-2 p-5 space-y-3 transition-colors ${
-                    isMerge ? 'border-orange-300' : 'border-gray-200'
-                  }`}
+                  className="nayara-card p-5 space-y-3"
+                  style={{ borderColor: isMerge ? 'rgba(170,142,103,0.4)' : 'var(--separator)' }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">Group {g.groupId}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 italic">{g.reason}</p>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--charcoal)' }}>Group {g.groupId}</p>
+                      <p className="text-xs mt-0.5 italic" style={{ color: 'var(--muted-dim)' }}>{g.reason}</p>
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -385,21 +386,25 @@ export default function VendorNormalizationPage() {
                             [g.groupId]: { action: 'merge', masterId: suggested?.id ?? g.vendors[0].id },
                           }));
                         }}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                        className="px-3 py-1 rounded-full text-xs font-medium"
+                        style={
                           isMerge
-                            ? 'bg-orange-500 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-700'
-                        }`}
+                            ? { background: 'var(--gold)', color: '#fff' }
+                            : { background: 'var(--elevated)', color: 'var(--muted-dim)' }
+                        }
+                        onMouseEnter={e => { if (!isMerge) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(170,142,103,0.15)'; }}
+                        onMouseLeave={e => { if (!isMerge) (e.currentTarget as HTMLButtonElement).style.background = 'var(--elevated)'; }}
                       >
                         Merge
                       </button>
                       <button
                         onClick={() => setDecisions(prev => ({ ...prev, [g.groupId]: { action: 'skip' } }))}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                        className="px-3 py-1 rounded-full text-xs font-medium"
+                        style={
                           !isMerge
-                            ? 'bg-gray-500 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                            ? { background: 'var(--muted)', color: '#fff' }
+                            : { background: 'var(--elevated)', color: 'var(--muted-dim)' }
+                        }
                       >
                         Skip
                       </button>
@@ -417,37 +422,36 @@ export default function VendorNormalizationPage() {
                               setDecisions(prev => ({ ...prev, [g.groupId]: { action: 'merge', masterId: v.id } }));
                             }
                           }}
-                          className={`rounded-lg border-2 p-3 transition-all ${
-                            isMerge ? 'cursor-pointer' : ''
-                          } ${
-                            isMaster
-                              ? 'border-orange-400 bg-orange-50'
-                              : isMerge
-                              ? 'border-red-200 bg-red-50/30 opacity-70'
-                              : 'border-gray-200 bg-gray-50/50'
-                          }`}
+                          className="rounded-lg border-2 p-3"
+                          style={{
+                            cursor: isMerge ? 'pointer' : 'default',
+                            borderColor: isMaster ? 'var(--gold)' : isMerge ? 'rgba(236,108,75,0.3)' : 'var(--separator)',
+                            background: isMaster ? 'rgba(170,142,103,0.08)' : isMerge ? 'rgba(236,108,75,0.04)' : 'var(--elevated)',
+                            opacity: isMerge && !isMaster ? 0.7 : 1,
+                            transition: 'border-color 0.2s, background 0.2s',
+                          }}
                         >
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[v.type] ?? 'bg-gray-100 text-gray-600'}`}>
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={TYPE_STYLES[v.type] ?? TYPE_STYLES.other}>
                               {v.type}
                             </span>
                             {isMaster && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500 text-white font-semibold">MASTER</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: 'var(--gold)', color: '#fff' }}>MASTER</span>
                             )}
                             {!isMaster && isMerge && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">MERGE</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(236,108,75,0.1)', color: 'var(--terra)' }}>MERGE</span>
                             )}
                           </div>
-                          <p className="text-sm font-semibold text-gray-900 leading-tight">{v.name}</p>
-                          {v.email && <p className="text-xs text-gray-500 mt-1">{v.email}</p>}
-                          {v.phone && <p className="text-xs text-gray-500">{v.phone}</p>}
-                          <div className="flex gap-3 mt-2 text-xs text-gray-400">
+                          <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--charcoal)' }}>{v.name}</p>
+                          {v.email && <p className="text-xs mt-1" style={{ color: 'var(--muted-dim)' }}>{v.email}</p>}
+                          {v.phone && <p className="text-xs" style={{ color: 'var(--muted-dim)' }}>{v.phone}</p>}
+                          <div className="flex gap-3 mt-2 text-xs" style={{ color: 'var(--muted-dim)' }}>
                             <span>{v.transfer_count} transfers</span>
                             <span>{v.tour_product_count} tours</span>
-                            {!v.is_active && <span className="text-red-400">inactive</span>}
+                            {!v.is_active && <span style={{ color: 'var(--terra)' }}>inactive</span>}
                           </div>
                           {isMerge && !isMaster && (
-                            <p className="text-xs text-orange-500 mt-1.5">Click to make master</p>
+                            <p className="text-xs mt-1.5" style={{ color: 'var(--gold)' }}>Click to make master</p>
                           )}
                         </div>
                       );
@@ -459,21 +463,21 @@ export default function VendorNormalizationPage() {
           </div>
 
           <div className="flex justify-between items-center pt-2">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm" style={{ color: 'var(--muted-dim)' }}>
               {mergeCount} group{mergeCount !== 1 ? 's' : ''} to merge &middot; {skipCount} skipped &middot;{' '}
               {totalDuplicatesToDeactivate} vendor{totalDuplicatesToDeactivate !== 1 ? 's' : ''} will be deactivated
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setStep('paste')}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                className="nayara-btn nayara-btn-ghost px-4 py-2 text-sm"
               >
                 ← Back
               </button>
               <button
                 onClick={handleExecute}
                 disabled={mergeCount === 0}
-                className="px-6 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50"
+                className="nayara-btn nayara-btn-primary px-6 py-2 disabled:opacity-50"
               >
                 Merge {mergeCount} Group{mergeCount !== 1 ? 's' : ''} →
               </button>
@@ -484,58 +488,58 @@ export default function VendorNormalizationPage() {
 
       {/* ── Executing spinner ── */}
       {step === 'executing' && (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="animate-spin w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-700 font-medium">Merging vendors…</p>
-          <p className="text-sm text-gray-500 mt-1">Updating transfers, tour products, and users</p>
+        <div className="nayara-card p-12 text-center">
+          <div className="animate-spin w-10 h-10 border-4 border-t-transparent rounded-full mx-auto mb-4" style={{ borderColor: 'var(--gold)', borderTopColor: 'transparent' }} />
+          <p className="font-medium" style={{ color: 'var(--charcoal)' }}>Merging vendors…</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>Updating transfers, tour products, and users</p>
         </div>
       )}
 
       {/* ── Done ── */}
       {step === 'done' && executeResult && (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 space-y-5">
+        <div className="nayara-card p-8 space-y-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,94,62,0.15)' }}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--sage)' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Normalization Complete</h2>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--charcoal)' }}>Normalization Complete</h2>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-orange-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-orange-600">{executeResult.groupsProcessed}</p>
-              <p className="text-xs text-orange-500 mt-1">Groups merged</p>
+            <div className="rounded-lg p-4 text-center" style={{ background: 'rgba(170,142,103,0.08)', border: '1px solid rgba(170,142,103,0.2)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--gold)' }}>{executeResult.groupsProcessed}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--gold)', opacity: 0.8 }}>Groups merged</p>
             </div>
-            <div className="bg-red-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-red-600">{executeResult.vendorsDeactivated}</p>
-              <p className="text-xs text-red-500 mt-1">Vendors deactivated</p>
+            <div className="rounded-lg p-4 text-center" style={{ background: 'rgba(236,108,75,0.08)', border: '1px solid rgba(236,108,75,0.2)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--terra)' }}>{executeResult.vendorsDeactivated}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--terra)', opacity: 0.8 }}>Vendors deactivated</p>
             </div>
-            <div className="bg-blue-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-blue-600">{executeResult.transfersUpdated}</p>
-              <p className="text-xs text-blue-500 mt-1">Transfers re-linked</p>
+            <div className="rounded-lg p-4 text-center" style={{ background: 'rgba(78,94,62,0.08)', border: '1px solid rgba(78,94,62,0.2)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--sage)' }}>{executeResult.transfersUpdated}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--sage)', opacity: 0.8 }}>Transfers re-linked</p>
             </div>
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{executeResult.tourProductsUpdated}</p>
-              <p className="text-xs text-green-500 mt-1">Tour products re-linked</p>
+            <div className="rounded-lg p-4 text-center" style={{ background: 'rgba(78,94,62,0.06)', border: '1px solid rgba(78,94,62,0.15)' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--sage)' }}>{executeResult.tourProductsUpdated}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--sage)', opacity: 0.8 }}>Tour products re-linked</p>
             </div>
           </div>
 
           {executeResult.errors.length > 0 && (
-            <div className="bg-red-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-red-700 mb-2">{executeResult.errors.length} error{executeResult.errors.length !== 1 ? 's' : ''}:</p>
-              <ul className="text-xs text-red-600 space-y-1 max-h-32 overflow-y-auto">
+            <div className="rounded-lg p-4" style={{ background: 'rgba(236,108,75,0.08)', border: '1px solid rgba(236,108,75,0.2)' }}>
+              <p className="text-sm font-medium mb-2" style={{ color: 'var(--terra)' }}>{executeResult.errors.length} error{executeResult.errors.length !== 1 ? 's' : ''}:</p>
+              <ul className="text-xs space-y-1 max-h-32 overflow-y-auto" style={{ color: 'var(--terra)' }}>
                 {executeResult.errors.map((e, i) => <li key={i}>{e}</li>)}
               </ul>
             </div>
           )}
 
-          <p className="text-sm text-gray-500">
+          <p className="text-sm" style={{ color: 'var(--muted-dim)' }}>
             Duplicate vendors are now inactive (marked [MERGED]). You can review them in the Vendors page.
           </p>
 
-          <button onClick={reset} className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600">
+          <button onClick={reset} className="nayara-btn nayara-btn-primary px-4 py-2 text-sm">
             Run Again
           </button>
         </div>

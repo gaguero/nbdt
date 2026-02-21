@@ -168,10 +168,10 @@ export default function VendorImportWizardPage() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <DataCurationNav />
       <div>
-        <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+        <h1 className="text-2xl font-black tracking-tight" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>
           {ls('Vendor Import Wizard', 'Asistente de Importacion de Vendedores')}
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm" style={{ color: 'var(--muted-dim)' }}>
           {ls(
             'Upload, review, and import vendors while preserving legacy AppSheet vendor IDs.',
             'Sube, revisa e importa vendedores preservando los IDs legacy de AppSheet.'
@@ -182,19 +182,28 @@ export default function VendorImportWizardPage() {
       {!results && !analyzing && (
         <div
           onClick={() => fileRef.current?.click()}
-          className="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer group"
+          className="rounded-2xl p-12 text-center cursor-pointer group"
+          style={{ border: '2px dashed var(--separator)', transition: 'border-color 0.2s, background 0.2s' }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--gold)';
+            (e.currentTarget as HTMLDivElement).style.background = 'rgba(170,142,103,0.04)';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--separator)';
+            (e.currentTarget as HTMLDivElement).style.background = '';
+          }}
         >
-          <CloudArrowUpIcon className="h-16 w-16 text-gray-400 mx-auto mb-4 group-hover:text-blue-500 transition-colors" />
-          <p className="text-lg font-bold text-gray-700">{ls('Upload Vendor CSV', 'Subir CSV de Vendedores')}</p>
-          <p className="text-sm text-gray-400 mt-1">{ls('Only .csv files supported', 'Solo archivos .csv soportados')}</p>
+          <CloudArrowUpIcon className="h-16 w-16 mx-auto mb-4" style={{ color: 'var(--muted-dim)' }} />
+          <p className="text-lg font-bold" style={{ color: 'var(--muted)' }}>{ls('Upload Vendor CSV', 'Subir CSV de Vendedores')}</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>{ls('Only .csv files supported', 'Solo archivos .csv soportados')}</p>
           <input ref={fileRef} type="file" accept=".csv" onChange={handleUpload} className="hidden" />
         </div>
       )}
 
       {analyzing && (
         <div className="p-20 text-center space-y-4">
-          <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto" />
-          <p className="font-black text-gray-900 uppercase tracking-widest">
+          <div className="animate-spin h-12 w-12 border-4 border-t-transparent rounded-full mx-auto" style={{ borderColor: 'var(--gold)', borderTopColor: 'transparent' }} />
+          <p className="font-black uppercase tracking-widest" style={{ color: 'var(--charcoal)' }}>
             {ls('Analyzing Vendor Data...', 'Analizando Datos de Vendedores...')}
           </p>
         </div>
@@ -203,42 +212,42 @@ export default function VendorImportWizardPage() {
       {results && (
         <div className="space-y-6 animate-in fade-in duration-500">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <SummaryCard label={ls('Total Rows', 'Total')} value={results.summary.total} icon={TableCellsIcon} color="gray" />
-            <SummaryCard label={ls('Creates', 'Nuevos')} value={results.summary.create} icon={UserPlusIcon} color="green" />
-            <SummaryCard label={ls('Updates', 'Actualizaciones')} value={results.summary.update} icon={ArrowPathIcon} color="blue" />
-            <SummaryCard label={ls('Conflicts', 'Conflictos')} value={results.summary.conflict} icon={ExclamationCircleIcon} color="red" />
-            <SummaryCard label={ls('Legacy IDs', 'IDs Legacy')} value={results.summary.withLegacyId} icon={IdentificationIcon} color="orange" />
+            <SummaryCard label={ls('Total Rows', 'Total')} value={results.summary.total} icon={TableCellsIcon} color="muted" />
+            <SummaryCard label={ls('Creates', 'Nuevos')} value={results.summary.create} icon={UserPlusIcon} color="sage" />
+            <SummaryCard label={ls('Updates', 'Actualizaciones')} value={results.summary.update} icon={ArrowPathIcon} color="gold" />
+            <SummaryCard label={ls('Conflicts', 'Conflictos')} value={results.summary.conflict} icon={ExclamationCircleIcon} color="terra" />
+            <SummaryCard label={ls('Legacy IDs', 'IDs Legacy')} value={results.summary.withLegacyId} icon={IdentificationIcon} color="gold" />
           </div>
 
           {mainRows.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            <div className="nayara-card overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-[10px] font-black tracking-widest">
+                <table className="nayara-table w-full text-sm">
+                  <thead>
                     <tr>
                       <th className="px-6 py-4 text-left">{ls('CSV Vendor', 'Vendedor CSV')}</th>
                       <th className="px-6 py-4 text-left">{ls('Match in System', 'Coincidencia')}</th>
                       <th className="px-6 py-4 text-center">{ls('Action', 'Accion')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     {mainRows.map((item, index) => {
                       const sourceIndex = results.analysis.indexOf(item);
                       return (
-                        <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                        <tr key={index}>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
-                              <span className="font-black text-gray-900">{item.csv.name}</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="font-black" style={{ color: 'var(--charcoal)' }}>{item.csv.name}</span>
+                              <span className="text-xs" style={{ color: 'var(--muted-dim)' }}>
                                 {item.csv.email || ls('No email', 'Sin correo')} {item.csv.phone ? `| ${item.csv.phone}` : ''}
                               </span>
                               <div className="flex gap-2 mt-1 flex-wrap">
                                 {item.csv.legacyId && (
-                                  <span className="text-[9px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 font-bold">
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded border font-bold" style={{ background: 'rgba(170,142,103,0.1)', color: 'var(--gold)', borderColor: 'rgba(170,142,103,0.25)' }}>
                                     legacy: {item.csv.legacyId}
                                   </span>
                                 )}
-                                <span className="text-[9px] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded border border-gray-200 font-bold">
+                                <span className="text-[9px] px-1.5 py-0.5 rounded border font-bold" style={{ background: 'var(--elevated)', color: 'var(--muted)', borderColor: 'var(--separator)' }}>
                                   {item.csv.type}
                                 </span>
                               </div>
@@ -247,45 +256,52 @@ export default function VendorImportWizardPage() {
                           <td className="px-6 py-4">
                             {item.match ? (
                               <div className="flex flex-col opacity-75">
-                                <span className="font-bold text-gray-700">{item.match.name}</span>
-                                <span className="text-[10px] text-gray-400">
+                                <span className="font-bold" style={{ color: 'var(--muted)' }}>{item.match.name}</span>
+                                <span className="text-[10px]" style={{ color: 'var(--muted-dim)' }}>
                                   {item.match.legacyId ? `legacy: ${item.match.legacyId}` : `id: ${item.match.id.slice(0, 8)}`}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-gray-300 italic text-xs">{ls('No match found', 'Sin coincidencia')}</span>
+                              <span className="italic text-xs" style={{ color: 'var(--muted-dim)' }}>{ls('No match found', 'Sin coincidencia')}</span>
                             )}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <span
-                              className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest border ${
-                                item.action === 'CREATE'
-                                  ? 'bg-green-50 text-green-700 border-green-200'
-                                  : item.action === 'UPDATE'
-                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                  : 'bg-red-50 text-red-700 border-red-200'
-                              }`}
-                            >
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest ${
+                              item.action === 'CREATE'
+                                ? 'nayara-badge nayara-badge-confirmed'
+                                : item.action === 'UPDATE'
+                                ? 'nayara-badge nayara-badge-pending'
+                                : 'nayara-badge nayara-badge-cancelled'
+                            }`}>
                               {item.action}
                             </span>
-                            <p className="text-[9px] text-gray-400 mt-1 uppercase font-bold">{item.reason}</p>
+                            <p className="text-[9px] mt-1 uppercase font-bold" style={{ color: 'var(--muted-dim)' }}>{item.reason}</p>
                             {item.action === 'CONFLICT' && (
                               <div className="flex justify-center gap-2 mt-2">
                                 <button
                                   onClick={() => setRowAction(sourceIndex, 'UPDATE', 'Conflict resolved manually')}
-                                  className="px-2 py-1 text-[10px] font-bold rounded border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                                  className="px-2 py-1 text-[10px] font-bold rounded border"
+                                  style={{ borderColor: 'rgba(170,142,103,0.3)', color: 'var(--gold)', background: 'rgba(170,142,103,0.08)' }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(170,142,103,0.15)'}
+                                  onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(170,142,103,0.08)'}
                                 >
                                   {ls('Set Update', 'Actualizar')}
                                 </button>
                                 <button
                                   onClick={() => setRowAction(sourceIndex, 'CREATE', 'Conflict resolved manually')}
-                                  className="px-2 py-1 text-[10px] font-bold rounded border border-green-200 text-green-700 bg-green-50 hover:bg-green-100"
+                                  className="px-2 py-1 text-[10px] font-bold rounded border"
+                                  style={{ borderColor: 'rgba(78,94,62,0.3)', color: 'var(--sage)', background: 'rgba(78,94,62,0.08)' }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(78,94,62,0.15)'}
+                                  onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(78,94,62,0.08)'}
                                 >
                                   {ls('Set Create', 'Crear')}
                                 </button>
                                 <button
                                   onClick={() => setRowAction(sourceIndex, 'SKIP', 'Skipped manually')}
-                                  className="px-2 py-1 text-[10px] font-bold rounded border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100"
+                                  className="px-2 py-1 text-[10px] font-bold rounded border"
+                                  style={{ borderColor: 'var(--separator)', color: 'var(--muted-dim)', background: 'var(--elevated)' }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--separator)'}
+                                  onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--elevated)'}
                                 >
                                   {ls('Skip', 'Omitir')}
                                 </button>
@@ -302,26 +318,29 @@ export default function VendorImportWizardPage() {
           )}
 
           {skipRows.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            <div className="nayara-card overflow-hidden">
               <button
                 onClick={() => setExpandedSkip((value) => !value)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors border-b border-gray-200"
+                className="w-full px-6 py-4 flex items-center justify-between"
+                style={{ borderBottom: expandedSkip ? '1px solid var(--separator)' : 'none' }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--elevated)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = ''}
               >
                 <div className="flex items-center gap-3">
-                  <ExclamationCircleIcon className="h-5 w-5 text-gray-400" />
-                  <span className="font-bold text-gray-700">
+                  <ExclamationCircleIcon className="h-5 w-5" style={{ color: 'var(--muted-dim)' }} />
+                  <span className="font-bold" style={{ color: 'var(--muted)' }}>
                     {skipRows.length} {ls('rows excluded - click to review', 'filas omitidas - clic para revisar')}
                   </span>
                 </div>
-                <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${expandedSkip ? 'rotate-180' : ''}`} />
+                <ChevronDownIcon className={`h-5 w-5 transition-transform ${expandedSkip ? 'rotate-180' : ''}`} style={{ color: 'var(--muted-dim)' }} />
               </button>
 
               {expandedSkip && (
-                <div className="divide-y divide-gray-100">
+                <div>
                   {skipRows.map(({ item, index }) => (
-                    <div key={index} className="px-6 py-4 bg-gray-50/50">
-                      <p className="font-bold text-gray-700">{item.csv.name || ls('(empty name)', '(nombre vacio)')}</p>
-                      <p className="text-xs text-gray-500 mt-1">{item.reason}</p>
+                    <div key={index} className="px-6 py-4" style={{ borderBottom: '1px solid var(--separator)', background: 'var(--elevated)' }}>
+                      <p className="font-bold" style={{ color: 'var(--muted)' }}>{item.csv.name || ls('(empty name)', '(nombre vacio)')}</p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--muted-dim)' }}>{item.reason}</p>
                     </div>
                   ))}
                 </div>
@@ -329,7 +348,7 @@ export default function VendorImportWizardPage() {
             </div>
           )}
 
-          <div className="flex justify-between items-center bg-gray-900 p-6 rounded-2xl shadow-xl sticky bottom-6 text-white">
+          <div className="flex justify-between items-center p-6 rounded-2xl shadow-xl sticky bottom-6 text-white" style={{ background: 'var(--sidebar-bg)' }}>
             <div>
               <p className="text-xl font-black">
                 {actionableRows.length} {ls('rows ready to import', 'filas listas para importar')}
@@ -344,14 +363,17 @@ export default function VendorImportWizardPage() {
                   setResults(null);
                   if (fileRef.current) fileRef.current.value = '';
                 }}
-                className="px-6 py-3 border border-white/20 rounded-xl font-bold hover:bg-white/10 transition-colors"
+                className="px-6 py-3 rounded-xl font-bold"
+                style={{ border: '1px solid rgba(255,255,255,0.2)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.1)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = ''}
               >
                 {ls('Cancel', 'Cancelar')}
               </button>
               <button
                 onClick={executeImport}
                 disabled={importing || actionableRows.length === 0}
-                className="px-8 py-3 bg-blue-600 text-white rounded-xl font-black hover:bg-blue-500 transition-all disabled:opacity-50"
+                className="nayara-btn nayara-btn-primary px-8 py-3 disabled:opacity-50"
               >
                 {importing ? ls('Importing...', 'Importando...') : ls('Confirm & Import', 'Confirmar e Importar')}
               </button>
@@ -362,11 +384,12 @@ export default function VendorImportWizardPage() {
 
       {message && (
         <div
-          className={`p-4 rounded-xl flex items-center gap-3 ${
+          className="p-4 rounded-xl flex items-center gap-3"
+          style={
             message.type === 'success'
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
+              ? { background: 'rgba(78,94,62,0.10)', color: 'var(--sage)', border: '1px solid rgba(78,94,62,0.2)' }
+              : { background: 'rgba(236,108,75,0.10)', color: 'var(--terra)', border: '1px solid rgba(236,108,75,0.2)' }
+          }
         >
           <CheckCircleIcon className="h-6 w-6" />
           <span className="font-bold">{message.text}</span>
@@ -388,19 +411,18 @@ function SummaryCard({
   label: string;
   value: number;
   icon: React.ComponentType<{ className?: string }>;
-  color: 'gray' | 'green' | 'blue' | 'red' | 'orange';
+  color: 'muted' | 'sage' | 'gold' | 'terra';
 }) {
-  const colors: Record<string, string> = {
-    gray: 'bg-gray-50 text-gray-600 border-gray-200',
-    green: 'bg-green-50 text-green-700 border-green-200',
-    blue: 'bg-blue-50 text-blue-700 border-blue-200',
-    red: 'bg-red-50 text-red-700 border-red-200',
-    orange: 'bg-orange-50 text-orange-700 border-orange-200',
+  const styles: Record<string, React.CSSProperties> = {
+    muted: { background: 'var(--elevated)', color: 'var(--muted)', border: '1px solid var(--separator)' },
+    sage: { background: 'rgba(78,94,62,0.08)', color: 'var(--sage)', border: '1px solid rgba(78,94,62,0.2)' },
+    gold: { background: 'rgba(170,142,103,0.08)', color: 'var(--gold)', border: '1px solid rgba(170,142,103,0.2)' },
+    terra: { background: 'rgba(236,108,75,0.08)', color: 'var(--terra)', border: '1px solid rgba(236,108,75,0.2)' },
   };
 
   return (
-    <div className={`p-4 rounded-2xl border ${colors[color]} flex items-center gap-4 shadow-sm`}>
-      <div className="p-2 rounded-xl bg-white/50">
+    <div className="p-4 rounded-2xl flex items-center gap-4" style={styles[color]}>
+      <div className="p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.5)' }}>
         <Icon className="h-6 w-6" />
       </div>
       <div>

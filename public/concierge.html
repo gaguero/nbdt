@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nayara Bocas del Toro — Concierge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #C8BDA8; --surface: #F2EBE0; --elevated: #E8DED2;
+    --gold: #AA8E67; --gold-faint: rgba(170,142,103,0.15); --gold-glow: rgba(170,142,103,0.30);
+    --sage: #4E5E3E; --sage-faint: rgba(78,94,62,0.14); --sage-glow: rgba(78,94,62,0.28);
+    --charcoal: #1A1A1A; --muted: rgba(26,26,26,0.80); --muted-dim: rgba(26,26,26,0.60);
+    --forest: #4E5E3E; --terra: #EC6C4B; --sidebar-bg: #0E1A09;
+    --separator: rgba(78,94,62,0.18);
+    --card-shadow: 0 4px 24px rgba(78,94,62,0.12), 0 1px 6px rgba(26,26,26,0.10);
+    --sidebar-w: 72px; --spring: cubic-bezier(0.34,1.56,0.64,1);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--charcoal); min-height: 100vh; display: flex; overflow: hidden; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,142,103,0.2); border-radius: 4px; }
+  .sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); height: 100vh; background: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding: 20px 0 24px; position: relative; isolation: isolate; overflow: hidden; z-index: 100; flex-shrink: 0; }
+  .sidebar-leaf { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 60px; height: 80px; pointer-events: none; opacity: 0.4; }
+  .sidebar-logo { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid rgba(124,142,103,0.3); margin-bottom: 28px; overflow: hidden; cursor: pointer; transition: border-color 0.3s ease, box-shadow 0.3s ease; flex-shrink: 0; }
+  .sidebar-logo:hover { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(124,142,103,0.15); }
+  .sidebar-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .sidebar-nav { display: flex; flex-direction: column; align-items: center; width: 100%; flex: 1; gap: 2px; }
+  .sidebar-footer { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .nav-item { width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.38); position: relative; transition: color 0.2s ease; }
+  .nav-item::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%) scaleY(0); width: 3px; height: 24px; background: var(--sage); border-radius: 0 3px 3px 0; transition: transform 0.3s var(--spring); }
+  .nav-item::after { content: ''; position: absolute; inset: 0; background: rgba(124,142,103,0.08); opacity: 0; transition: opacity 0.2s ease; }
+  .nav-item.active { color: var(--sage); }
+  .nav-item.active::before { transform: translateY(-50%) scaleY(1); }
+  .nav-item.active::after { opacity: 1; }
+  .nav-item:hover { color: rgba(255,255,255,0.75); }
+  .nav-item svg { width: 20px; height: 20px; stroke-width: 1.6; position: relative; z-index: 1; }
+  .nav-tooltip { position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); background: #0E1A0B; color: rgba(255,255,255,0.9); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+  .nav-tooltip::before { content: ''; position: absolute; right: 100%; top: 50%; transform: translateY(-50%); border: 5px solid transparent; border-right-color: #0E1A0B; }
+  .nav-item:hover .nav-tooltip { opacity: 1; }
+  .sidebar-divider { width: 32px; height: 1px; background: rgba(255,255,255,0.12); margin: 8px 0; }
+  .main-wrap { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; z-index: 1; }
+  .header { height: 44px; min-height: 44px; background: var(--bg); border-bottom: 1px solid rgba(124,142,103,0.12); display: flex; align-items: center; gap: 16px; padding: 0 24px; flex-shrink: 0; position: relative; z-index: 50; }
+  .header-greeting { font-family: 'Playfair Display', serif; font-style: italic; font-size: 17px; color: var(--charcoal); letter-spacing: -0.01em; white-space: nowrap; flex-shrink: 0; }
+  .header-clock { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 700; color: var(--sage); letter-spacing: 0.05em; margin-left: auto; flex-shrink: 0; }
+  .header-right { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; }
+  .header-property { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+  .header-avatar { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--gold); background: var(--gold-faint); display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; color: var(--gold); letter-spacing: 0.04em; flex-shrink: 0; }
+  .mode-toggle { display: flex; border: 1.5px solid rgba(78,94,62,0.25); border-radius: 30px; overflow: hidden; flex-shrink: 0; }
+  .mode-btn { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; padding: 5px 14px; border: none; background: transparent; color: var(--muted-dim); cursor: pointer; transition: background 0.2s ease, color 0.2s ease; }
+  .mode-btn:hover { color: var(--muted); }
+  .mode-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+  .mode-btn:active { transform: scale(0.97); }
+  .mode-btn.active { background: var(--gold); color: #fff; }
+  .date-nav { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .date-btn { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 11px; border: 1.5px solid rgba(78,94,62,0.2); border-radius: 8px; background: transparent; color: var(--muted-dim); cursor: pointer; transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease; white-space: nowrap; }
+  .date-btn:hover { border-color: rgba(78,94,62,0.4); color: var(--muted); }
+  .date-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .date-btn:active { transform: scale(0.97); }
+  .date-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+  .date-label { font-family: 'Playfair Display', serif; font-style: italic; font-size: 13px; color: var(--sage); margin-left: 8px; white-space: nowrap; }
+  .date-picker { font-family: 'DM Sans', sans-serif; font-size: 11px; padding: 4px 8px; border: 1.5px solid rgba(78,94,62,0.2); border-radius: 8px; background: var(--surface); color: var(--muted); cursor: pointer; }
+  .service-tabs { display: flex; align-items: center; gap: 2px; flex-shrink: 0; overflow-x: auto; }
+  .service-tab { font-family: 'Playfair Display', serif; font-style: italic; font-size: 12px; padding: 5px 13px; border: none; background: transparent; color: var(--muted-dim); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.2s ease, border-color 0.2s ease; white-space: nowrap; }
+  .service-tab:hover { color: var(--muted); }
+  .service-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .service-tab:active { transform: scale(0.97); }
+  .service-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  /* overridden below */
+  .view-date, .view-service { display: none; flex-direction: column; gap: 10px; animation: fadeIn 0.2s ease; flex: 1; min-height: 0; }
+  .view-date.active, .view-service.active { display: flex; }
+  .content { flex: 1; overflow: hidden; padding: 14px 20px 20px; display: flex; flex-direction: column; gap: 0; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .kpi-strip { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; }
+  .kpi-tile { background: var(--surface); border: 1px solid rgba(124,142,103,0.12); border-radius: 12px; padding: 12px 12px 10px; cursor: pointer; transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease; animation: fadeUp 0.5s ease both; animation-delay: calc(var(--i) * 40ms); position: relative; overflow: hidden; }
+  .kpi-tile:hover { border-color: rgba(124,142,103,0.3); box-shadow: var(--card-shadow), 0 0 20px rgba(124,142,103,0.08); transform: translateY(-2px); }
+  .kpi-tile:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .kpi-tile:active { transform: translateY(0); }
+  .kpi-tile.highlight { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-faint), var(--card-shadow); }
+  .kpi-number { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--gold); text-shadow: 0 0 24px rgba(170,142,103,0.3); line-height: 1; margin-bottom: 5px; }
+  .kpi-label { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.10em; text-transform: uppercase; color: var(--muted-dim); }
+  .detail-area { overflow: hidden; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .detail-panel { display: none; background: var(--surface); border: 1px solid rgba(124,142,103,0.12); border-radius: 14px; padding: 20px 24px 24px; box-shadow: var(--card-shadow); animation: panelIn 0.2s ease both; flex: 1; min-height: 0; overflow-y: auto; }
+  .detail-panel.open { display: block; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .detail-panel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .detail-panel-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 20px; color: var(--sage); flex: 1; }
+  .detail-close { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(124,142,103,0.2); background: transparent; color: var(--muted-dim); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s ease, color 0.15s ease; line-height: 1; }
+  .detail-close:hover { background: rgba(124,142,103,0.1); color: var(--charcoal); }
+  .card-badge { background: var(--sage-faint); border: 1px solid rgba(124,142,103,0.2); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-dim); padding: 0 0 10px; text-align: left; border-bottom: 1px solid var(--separator); }
+  .data-table td { padding: 9px 0; border-bottom: 1px solid rgba(124,142,103,0.06); vertical-align: middle; font-size: 14px; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr { transition: background 0.15s ease; }
+  .data-table tbody tr[data-row-id] { cursor: pointer; }
+  .data-table tbody tr[data-row-id]:hover { background: rgba(124,142,103,0.07); }
+  .data-table tr:hover td { background: rgba(124,142,103,0.04); }
+  .request-item[data-row-id], .convo-item[data-row-id] { cursor: pointer; }
+  .guest-name { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--charcoal); display: block; }
+  .guest-villa { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted-dim); display: block; margin-top: 1px; }
+  .time-badge { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; color: var(--gold); background: rgba(170,142,103,0.1); border-radius: 6px; padding: 3px 8px; white-space: nowrap; display: inline-block; }
+  .driver-name, .route-text, .cell-text { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .status { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; padding: 3px 10px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; display: inline-block; position: relative; }
+  .status.confirmed { color: var(--sage); background: rgba(124,142,103,0.12); border: 1px solid rgba(124,142,103,0.3); }
+  .status.confirmed .status-dot { background: var(--sage); }
+  .status.en-route { color: var(--gold); background: rgba(170,142,103,0.12); border: 1px solid rgba(170,142,103,0.3); }
+  .status.en-route .status-dot { background: var(--gold); animation: blink 1.4s ease-in-out infinite; }
+  .status.completed { color: var(--forest); background: rgba(124,142,103,0.12); border: 1px solid rgba(124,142,103,0.25); }
+  .status.completed .status-dot { background: var(--forest); }
+  .status.pending { color: var(--terra); background: rgba(236,108,75,0.12); border: 1px solid rgba(236,108,75,0.25); position: relative; }
+  .status.pending .status-dot { background: var(--terra); }
+  .status.pending .status-dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--terra); animation: pulseRing 1.5s ease-out infinite; }
+  .priority-high { color: var(--terra); font-weight: 700; font-size: 13px; }
+  .priority-medium { color: var(--gold); font-weight: 600; font-size: 13px; }
+  .priority-low { color: var(--sage); font-weight: 500; font-size: 13px; }
+  .inhouse-big { font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 700; color: var(--gold); text-shadow: 0 0 24px rgba(170,142,103,0.3); line-height: 1; margin-bottom: 4px; }
+  .inhouse-sub { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--muted-dim); letter-spacing: 0.05em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .inhouse-sub-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted-dim); }
+  .occ-bars { display: flex; flex-direction: column; gap: 10px; }
+  .occ-row { display: flex; align-items: center; gap: 10px; }
+  .occ-label { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--muted-dim); width: 76px; flex-shrink: 0; }
+  .occ-track { flex: 1; height: 4px; background: rgba(124,142,103,0.10); border-radius: 2px; overflow: hidden; }
+  .occ-fill { height: 100%; background: linear-gradient(90deg, #7C8E67, rgba(124,142,103,0.5)); border-radius: 2px; width: 0; transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.3s; }
+  .occ-pct { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; color: var(--sage); width: 36px; text-align: right; flex-shrink: 0; }
+  .request-item { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid rgba(124,142,103,0.06); cursor: pointer; transition: background 0.15s ease; border-radius: 8px; }
+  .request-item:last-child { border-bottom: none; }
+  .request-item:hover { background: rgba(124,142,103,0.04); }
+  .request-info { flex: 1; min-width: 0; }
+  .request-text { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--charcoal); display: block; }
+  .request-meta { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted-dim); display: block; margin-top: 2px; }
+  .convo-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 4px; border-bottom: 1px solid rgba(124,142,103,0.06); cursor: pointer; transition: background 0.15s ease; border-radius: 8px; }
+  .convo-item:last-child { border-bottom: none; }
+  .convo-item:hover { background: rgba(124,142,103,0.04); }
+  .convo-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--sage-faint); border: 1px solid rgba(124,142,103,0.2); display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: var(--sage); flex-shrink: 0; }
+  .convo-body { flex: 1; min-width: 0; }
+  .convo-name { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--charcoal); display: block; }
+  .convo-snippet { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .convo-channel { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted-dim); white-space: nowrap; }
+  /* ─── DAY BRIEF ─── */
+  .day-brief-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; flex-shrink: 0; }
+  .day-brief-date { font-family: 'Playfair Display', serif; font-style: italic; font-size: 22px; color: var(--sage); letter-spacing: -0.02em; }
+  .day-brief-sub { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted-dim); letter-spacing: 0.06em; text-transform: uppercase; }
+  .day-brief { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr 1fr; gap: 10px; flex: 1; min-height: 0; }
+  .brief-card { background: var(--surface); border: 1px solid rgba(124,142,103,0.10); border-radius: 12px; padding: 14px 16px 14px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; overflow: hidden; cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease; min-height: 0; }
+  .brief-card:hover { border-color: rgba(124,142,103,0.25); box-shadow: var(--card-shadow), 0 0 16px rgba(124,142,103,0.08); }
+  .brief-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+  .brief-card-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 15px; font-weight: 700; color: var(--sage); }
+  .brief-badge { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; color: var(--gold); }
+  .brief-rows { flex: 1; display: flex; flex-direction: column; gap: 0; overflow-y: auto; min-height: 0; }
+  .brief-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(124,142,103,0.07); flex-shrink: 0; }
+  .brief-row:last-child { border-bottom: none; }
+  .brief-row-name { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--charcoal); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brief-row-sub { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted-dim); white-space: nowrap; flex-shrink: 0; }
+  .brief-row-2line { flex-direction: column; align-items: stretch; gap: 2px; padding: 7px 0; }
+  .brief-row-main { display: flex; align-items: center; gap: 6px; }
+  .brief-row-detail { display: flex; align-items: center; gap: 5px; }
+  .brief-row-2line .brief-row-name { font-size: 12px; font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brief-row-room { font-size: 10px; color: var(--muted-dim); background: rgba(124,142,103,0.12); padding: 1px 5px; border-radius: 3px; flex-shrink: 0; white-space: nowrap; }
+  .brief-row-route { font-size: 10px; color: var(--muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .brief-more { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted-dim); padding-top: 6px; text-align: right; flex-shrink: 0; }
+  /* ─── TICKER (scroll-based) ─── */
+  .brief-ticker-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    position: relative;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+  }
+  .brief-ticker-track {
+    display: flex;
+    flex-direction: column;
+  }
+  .brief-ticker-track .brief-row { flex-shrink: 0; border-bottom: 1px solid rgba(124,142,103,0.07); }
+  .brief-ticker-track .brief-row:last-child { border-bottom: 1px solid rgba(124,142,103,0.07); }
+  .brief-occ { flex: 1; display: flex; flex-direction: column; gap: 7px; overflow: hidden; }
+  .brief-occ-num { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: 2px; }
+  .brief-occ-sub { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--muted-dim); margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .time-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; flex: 1; min-height: 0; }
+  .time-col { background: var(--surface); border: 1px solid rgba(124,142,103,0.10); border-radius: 16px; padding: 0; box-shadow: var(--card-shadow); overflow: hidden; opacity: 0.85; transition: opacity 0.2s ease; display: flex; flex-direction: column; min-height: 0; }
+  .time-col.today { opacity: 1; border-top: 3px solid var(--gold); }
+  .time-col-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--separator); display: flex; align-items: center; justify-content: space-between; }
+  .time-col-date { font-family: 'Playfair Display', serif; font-style: italic; font-size: 15px; color: var(--sage); }
+  .time-col-count { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: var(--muted-dim); background: var(--sage-faint); padding: 3px 9px; border-radius: 20px; }
+  .time-col-body { padding: 16px 20px 20px; flex: 1; min-height: 0; overflow-y: auto; }
+  .version-nav { background: var(--elevated); border-top: 1px solid rgba(124,142,103,0.12); padding: 10px 28px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; z-index: 50; }
+  .version-nav-label { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-dim); }
+  .version-nav-links { display: flex; align-items: center; gap: 8px; }
+  .version-btn { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: var(--muted-dim); text-decoration: none; padding: 4px 10px; border-radius: 6px; border: 1px solid transparent; transition: color 0.2s ease, border-color 0.2s ease; }
+  .version-btn:hover { color: var(--muted); }
+  .version-btn.active { color: var(--sage); border-color: rgba(124,142,103,0.3); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+  @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.2); opacity: 0; } }
+  .brief-row { cursor: pointer; }
+  .brief-row:hover { background: rgba(124,142,103,0.06); border-radius: 6px; }
+  /* ─── HOVER TOOLTIP ─── */
+  .row-tooltip {
+    position: fixed; z-index: 9998;
+    background: var(--elevated);
+    border: 1px solid rgba(124,142,103,0.28);
+    border-radius: 10px; padding: 10px 14px;
+    box-shadow: 0 8px 32px rgba(26,26,26,0.18), 0 2px 8px rgba(78,94,62,0.12);
+    min-width: 190px; max-width: 270px;
+    pointer-events: none;
+    opacity: 0; transform: translateY(4px);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .row-tooltip.visible { opacity: 1; transform: translateY(0); }
+  .row-tooltip-name { font-size: 13px; font-weight: 700; color: var(--charcoal); margin-bottom: 7px; }
+  .row-tooltip-field { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted-dim); margin-top: 3px; }
+  .row-tooltip-label { font-weight: 600; color: var(--muted); min-width: 50px; flex-shrink: 0; }
+  /* ─── MODAL OVERLAY ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(14,26,9,0.52);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid rgba(124,142,103,0.22);
+    border-radius: 18px;
+    box-shadow: 0 28px 80px rgba(14,26,9,0.32), 0 4px 20px rgba(26,26,26,0.14);
+    width: 520px; max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 80px);
+    display: flex; flex-direction: column;
+    transform: translateY(16px) scale(0.97);
+    transition: transform 0.24s var(--spring);
+    overflow: hidden;
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+  .modal-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--separator); flex-shrink: 0;
+  }
+  .modal-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 20px; color: var(--sage); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .modal-type-badge { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-dim); background: var(--sage-faint); border: 1px solid rgba(124,142,103,0.2); padding: 3px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+  .modal-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(124,142,103,0.2); background: transparent; color: var(--muted-dim); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; line-height: 1; flex-shrink: 0; }
+  .modal-close:hover { background: rgba(124,142,103,0.1); color: var(--charcoal); }
+  .modal-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .modal-fields { display: flex; flex-direction: column; gap: 14px; }
+  .modal-field { display: flex; flex-direction: column; gap: 5px; }
+  .modal-field-label { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-dim); }
+  .modal-field-value { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--charcoal); }
+  .modal-field input, .modal-field select {
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--charcoal);
+    background: var(--elevated); border: 1.5px solid rgba(124,142,103,0.25);
+    border-radius: 8px; padding: 8px 12px; outline: none; width: 100%;
+    transition: border-color 0.15s;
+  }
+  .modal-field input:focus { border-color: var(--gold); }
+  .linked-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--gold-faint); border: 1px solid rgba(170,142,103,0.25);
+    color: var(--gold); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    padding: 4px 11px; border-radius: 20px; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .linked-chip:hover { background: rgba(170,142,103,0.25); border-color: var(--gold); }
+  .linked-chip svg { width: 11px; height: 11px; flex-shrink: 0; opacity: 0.7; }
+  .modal-footer {
+    padding: 14px 24px 20px;
+    border-top: 1px solid var(--separator);
+    display: flex; align-items: center; gap: 10px; flex-shrink: 0; flex-wrap: wrap;
+  }
+  .modal-btn {
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.04em; padding: 8px 18px; border-radius: 10px;
+    border: none; cursor: pointer;
+    transition: background 0.15s, opacity 0.15s, transform 0.1s; white-space: nowrap;
+  }
+  .modal-btn:active { transform: scale(0.97); }
+  .modal-btn-primary { background: var(--gold); color: #fff; }
+  .modal-btn-primary:hover { background: #9a7e55; }
+  .modal-btn-secondary { background: var(--sage-faint); color: var(--sage); border: 1px solid rgba(124,142,103,0.25); }
+  .modal-btn-secondary:hover { background: rgba(124,142,103,0.2); }
+  .modal-btn-danger { background: rgba(236,108,75,0.10); color: var(--terra); border: 1px solid rgba(236,108,75,0.25); }
+  .modal-btn-danger:hover { background: rgba(236,108,75,0.20); }
+  .modal-btn-ghost { background: transparent; color: var(--muted-dim); margin-left: auto; border: none; }
+  .modal-btn-ghost:hover { color: var(--muted); }
+  .modal-confirm { padding: 12px 16px; background: rgba(236,108,75,0.07); border: 1px solid rgba(236,108,75,0.2); border-radius: 10px; margin-bottom: 14px; }
+  .modal-confirm-text { font-size: 13px; font-weight: 600; color: var(--terra); }
+  /* ─── USER MENU ─── */
+  .header-avatar { cursor: pointer; position: relative; }
+  .header-avatar:hover { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-faint); }
+  .user-menu-dropdown {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    background: var(--surface); border: 1px solid rgba(124,142,103,0.2);
+    border-radius: 12px; box-shadow: 0 12px 40px rgba(14,26,9,0.22), 0 2px 8px rgba(26,26,26,0.12);
+    min-width: 200px; z-index: 10000; overflow: hidden;
+    opacity: 0; transform: translateY(-6px) scale(0.97);
+    transition: opacity 0.18s ease, transform 0.18s var(--spring);
+    pointer-events: none;
+  }
+  .user-menu-dropdown.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+  .user-menu-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--separator); }
+  .user-menu-name { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--charcoal); }
+  .user-menu-role { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted-dim); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 2px; }
+  .user-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--muted);
+    transition: background 0.15s ease, color 0.15s ease; text-decoration: none;
+  }
+  .user-menu-item:hover { background: var(--sage-faint); color: var(--charcoal); }
+  .user-menu-item svg { width: 15px; height: 15px; opacity: 0.6; }
+  .user-menu-item.danger { color: var(--terra); }
+  .user-menu-item.danger:hover { background: rgba(236,108,75,0.08); }
+  .user-menu-divider { height: 1px; background: var(--separator); margin: 4px 0; }
+  /* ─── LAST UPDATED ─── */
+  .last-updated { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted-dim); letter-spacing: 0.04em; flex-shrink: 0; }
+  /* ─── NAV LINK STYLE ─── */
+  .nav-item a { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: inherit; text-decoration: none; }
+  /* ─── SIDEBAR PANEL ─── */
+  .sidebar-container { display: flex; height: 100vh; flex-shrink: 0; position: relative; z-index: 100; }
+  .sidebar-panel { width: 0; background: #121f0d; border-right: 1px solid rgba(255,255,255,0.06); overflow: hidden; transition: width 0.28s var(--spring); box-shadow: 4px 0 24px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+  .sidebar-panel.open { width: 210px; }
+  .panel-header { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; min-width: 210px; }
+  .panel-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 15px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+  .panel-close { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.06); border-radius: 8px; color: rgba(255,255,255,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.12s ease, color 0.12s ease; }
+  .panel-close:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+  .panel-close svg { width: 14px; height: 14px; }
+  .panel-items { flex: 1; padding: 8px; overflow-y: auto; min-width: 210px; }
+  .panel-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); cursor: pointer; transition: background 0.12s ease, color 0.12s ease; text-decoration: none; white-space: nowrap; position: relative; }
+  .panel-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+  .panel-item.active { background: rgba(170,142,103,0.15); color: var(--gold); font-weight: 600; }
+  .panel-item.active::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px; background: var(--gold); border-radius: 2px; }
+  .panel-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.6; stroke-width: 1.5; }
+  .panel-item.active svg { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="sidebar-container">
+<aside class="sidebar">
+  <svg class="sidebar-leaf" viewBox="0 0 60 80" fill="none" aria-hidden="true">
+    <path d="M30 78 C30 78 4 55 4 32 C4 15 15 4 30 4 C45 4 56 15 56 32 C56 55 30 78 30 78Z" stroke="rgba(164,196,200,0.4)" stroke-width="1.2" fill="none"/>
+    <path d="M30 78 L30 4" stroke="rgba(164,196,200,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+    <path d="M30 28 C24 22 12 22 8 26" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 38 C36 30 50 30 54 34" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 48 C22 40 10 42 7 48" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+    <path d="M30 58 C38 50 52 52 54 58" stroke="rgba(164,196,200,0.4)" stroke-width="0.7" fill="none"/>
+  </svg>
+  <div class="sidebar-logo"><img src="brand_assets/nayara-logo-round.png" alt="Nayara" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="width:100%;height:100%;object-fit:cover"><span style="display:none;font-family:'Playfair Display',serif;font-style:italic;font-size:17px;font-weight:700;color:var(--gold)">N</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-item" onclick="window.location.href='/home.html'" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 12l8.954-8.955a1.5 1.5 0 012.092 0L22.25 12M4.5 9.75v10.125A1.125 1.125 0 005.625 21h4.5a1.125 1.125 0 001.125-1.125V14.25a1.125 1.125 0 011.125-1.125h2.25a1.125 1.125 0 011.125 1.125v5.625A1.125 1.125 0 0016.875 21h4.5A1.125 1.125 0 0022.5 19.875V9.75"/></svg>
+      <span class="nav-tooltip">Home</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="nav-item active" data-group="concierge" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+      <span class="nav-tooltip">Concierge</span>
+    </div>
+    <div class="nav-item" onclick="window.location.href='/fnb.html'" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 22.5l-.75-3m-4.5 3l.75-3m0 0l-.375-1.5M15 19.5l.375-1.5M15 19.5H9m6 0l.375-1.5m-6.75 0H9m0 0L8.625 16.5M12 13.5l-3.75 3h7.5L12 13.5z"/></svg>
+      <span class="nav-tooltip">Food &amp; Beverage</span>
+    </div>
+    <div class="nav-item" onclick="window.location.href='/comms.html'" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+      <span class="nav-tooltip">Communications</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="nav-item" style="opacity:0.35;cursor:default">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="nav-tooltip">Admin — Coming Soon</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="nav-tooltip">Profile</span>
+    </div>
+  </div>
+</aside>
+
+<!-- Expandable Panel -->
+<div class="sidebar-panel" id="sidebarPanel">
+  <div class="panel-header">
+    <span class="panel-title" id="panelTitle"></span>
+    <button class="panel-close" onclick="closeSidebarPanel()"><svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>
+  </div>
+  <div class="panel-items" id="panelItems"></div>
+</div>
+</div><!-- /sidebar-container -->
+
+<div class="main-wrap">
+
+  <header class="header">
+    <div class="header-greeting" id="headerGreeting">Good Evening</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="date">By Date</button>
+      <button class="mode-btn" data-mode="service">By Service</button>
+    </div>
+    <div class="date-nav" id="dateNav">
+      <button class="date-btn" data-offset="-1">&larr; Yesterday</button>
+      <button class="date-btn active" data-offset="0">Today</button>
+      <button class="date-btn" data-offset="1">Tomorrow &rarr;</button>
+      <input type="date" class="date-picker" id="datePicker">
+      <span class="date-label" id="dateLabel"></span>
+    </div>
+    <div class="service-tabs" id="serviceTabs" style="display:none">
+      <button class="service-tab active" data-svc="transfers">Transfers</button>
+      <button class="service-tab" data-svc="tours">Tours</button>
+      <button class="service-tab" data-svc="arrivals">Arrivals</button>
+      <button class="service-tab" data-svc="departures">Departures</button>
+      <button class="service-tab" data-svc="dinners">Dinners</button>
+      <button class="service-tab" data-svc="requests">Requests</button>
+      <button class="service-tab" data-svc="conversations">Conversations</button>
+      <button class="service-tab" data-svc="orders">Orders</button>
+    </div>
+    <div class="header-clock" id="clock">00:00:00</div>
+    <span class="last-updated" id="lastUpdated" style="display:none"></span>
+    <div class="header-right">
+      <span class="header-property">Nayara Bocas del Toro</span>
+      <div class="header-avatar" id="userAvatar" onclick="toggleUserMenu(event)">
+        <span id="userInitials">…</span>
+        <div class="user-menu-dropdown" id="userMenuDropdown">
+          <div class="user-menu-header">
+            <div class="user-menu-name" id="userFullName">Loading…</div>
+            <div class="user-menu-role" id="userRoleBadge"></div>
+          </div>
+          <a class="user-menu-item" id="userProfileLink" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Profile</a>
+          <a class="user-menu-item" id="userSettingsLink" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Settings</a>
+          <div class="user-menu-divider"></div>
+          <div class="user-menu-item danger" onclick="doLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign Out</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="view-date active" id="viewDate">
+      <div class="kpi-strip">
+        <div class="kpi-tile" style="--i:0" data-panel="panel-arrivals" tabindex="0"><div class="kpi-number" data-target="4">0</div><div class="kpi-label">Arrivals</div></div>
+        <div class="kpi-tile" style="--i:1" data-panel="panel-inhouse" tabindex="0"><div class="kpi-number" data-target="34">0</div><div class="kpi-label">In-House</div></div>
+        <div class="kpi-tile" style="--i:2" data-panel="panel-departures" tabindex="0"><div class="kpi-number" data-target="3">0</div><div class="kpi-label">Departures</div></div>
+        <div class="kpi-tile" style="--i:3" data-panel="panel-transfers" tabindex="0"><div class="kpi-number" data-target="8">0</div><div class="kpi-label">Transfers</div></div>
+        <div class="kpi-tile" style="--i:4" data-panel="panel-tours" tabindex="0"><div class="kpi-number" data-target="6">0</div><div class="kpi-label">Tours</div></div>
+        <div class="kpi-tile" style="--i:5" data-panel="panel-requests" tabindex="0"><div class="kpi-number" data-target="5">0</div><div class="kpi-label">Requests</div></div>
+        <div class="kpi-tile" style="--i:6" data-panel="panel-messages" tabindex="0"><div class="kpi-number" data-target="12">0</div><div class="kpi-label">Messages</div></div>
+        <div class="kpi-tile" style="--i:7" data-panel="panel-dinners" tabindex="0"><div class="kpi-number" data-target="3">0</div><div class="kpi-label">Dinners</div></div>
+      </div>
+
+      <!-- DAY BRIEF (default summary, hidden when detail panel is open) -->
+      <div id="dayBrief" style="display:flex; flex-direction:column; flex:1; min-height:0;">
+        <div class="day-brief-header">
+          <span class="day-brief-date" id="briefDateLabel">Thursday, February 19</span>
+          <span class="day-brief-sub">Day at a Glance</span>
+        </div>
+        <div class="day-brief">
+
+          <!-- Arrivals -->
+          <div class="brief-card" data-panel="panel-arrivals">
+            <div class="brief-card-header"><span class="brief-card-title">Arrivals</span><span class="brief-badge">4</span></div>
+            <div class="brief-rows">
+              <div class="brief-row"><span class="brief-row-name">Dr. &amp; Mrs. Chen</span><span class="time-badge" style="font-size:11px;padding:2px 6px">16:00</span><span class="status en-route" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>En Route</span></div>
+              <div class="brief-row"><span class="brief-row-name">Sophia &amp; James Webb</span><span class="time-badge" style="font-size:11px;padding:2px 6px">17:30</span><span class="status pending" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Pending</span></div>
+              <div class="brief-row"><span class="brief-row-name">Isabella Rodriguez</span><span class="time-badge" style="font-size:11px;padding:2px 6px">18:45</span><span class="status confirmed" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Confirmed</span></div>
+              <div class="brief-row"><span class="brief-row-name">The O'Brien Party</span><span class="time-badge" style="font-size:11px;padding:2px 6px">20:00</span><span class="status pending" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Pending</span></div>
+            </div>
+          </div>
+
+          <!-- In-House -->
+          <div class="brief-card" data-panel="panel-inhouse">
+            <div class="brief-card-header"><span class="brief-card-title">In-House Guests</span><span class="brief-badge">Tonight</span></div>
+            <div class="brief-occ">
+              <div class="brief-occ-num" data-target="34" id="briefInhouse">0</div>
+              <div class="brief-occ-sub">
+                <span>18 villas</span>
+                <span style="color:var(--sage);font-weight:700">+4 arriving</span>
+                <span style="color:var(--terra);font-weight:700">-3 departing</span>
+              </div>
+              <div class="occ-bars">
+                <div class="occ-row"><span class="occ-label">Overwater</span><div class="occ-track"><div class="occ-fill" data-width="80%"></div></div><span class="occ-pct">8/10</span></div>
+                <div class="occ-row"><span class="occ-label">Garden</span><div class="occ-track"><div class="occ-fill" data-width="83%"></div></div><span class="occ-pct">5/6</span></div>
+                <div class="occ-row"><span class="occ-label">Beach</span><div class="occ-track"><div class="occ-fill" data-width="75%"></div></div><span class="occ-pct">3/4</span></div>
+                <div class="occ-row"><span class="occ-label">Suite</span><div class="occ-track"><div class="occ-fill" data-width="100%"></div></div><span class="occ-pct">2/2</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Departures -->
+          <div class="brief-card" data-panel="panel-departures">
+            <div class="brief-card-header"><span class="brief-card-title">Departures</span><span class="brief-badge">3</span></div>
+            <div class="brief-rows">
+              <div class="brief-row"><span class="brief-row-name">The Morrison Group</span><span class="time-badge" style="font-size:11px;padding:2px 6px">11:00</span><span class="status completed" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Done</span></div>
+              <div class="brief-row"><span class="brief-row-name">The Nakamura Family</span><span class="time-badge" style="font-size:11px;padding:2px 6px">09:00</span><span class="status completed" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Done</span></div>
+              <div class="brief-row"><span class="brief-row-name">Mr. &amp; Mrs. Delacroix</span><span class="time-badge" style="font-size:11px;padding:2px 6px">07:30</span><span class="status pending" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Bill Pending</span></div>
+            </div>
+          </div>
+
+          <!-- Transfers -->
+          <div class="brief-card" data-panel="panel-transfers">
+            <div class="brief-card-header"><span class="brief-card-title">Transfers</span><span class="brief-badge">8</span></div>
+            <div class="brief-rows">
+              <div class="brief-row"><span class="brief-row-name">Harrington &rarr; Resort</span><span class="time-badge" style="font-size:11px;padding:2px 6px">14:30</span><span class="status confirmed" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Confirmed</span></div>
+              <div class="brief-row"><span class="brief-row-name">Chen &rarr; Resort</span><span class="time-badge" style="font-size:11px;padding:2px 6px">16:00</span><span class="status en-route" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>En Route</span></div>
+              <div class="brief-row"><span class="brief-row-name">Webb &rarr; Resort</span><span class="time-badge" style="font-size:11px;padding:2px 6px">17:30</span><span class="status pending" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Pending</span></div>
+              <div class="brief-row"><span class="brief-row-name">Rodriguez &rarr; Resort</span><span class="time-badge" style="font-size:11px;padding:2px 6px">18:45</span><span class="status confirmed" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Confirmed</span></div>
+              <div class="brief-more">+4 more &rarr;</div>
+            </div>
+          </div>
+
+          <!-- Tours -->
+          <div class="brief-card" data-panel="panel-tours">
+            <div class="brief-card-header"><span class="brief-card-title">Tours</span><span class="brief-badge">6</span></div>
+            <div class="brief-rows">
+              <div class="brief-row"><span class="brief-row-name">Dolphin Bay Snorkel</span><span class="time-badge" style="font-size:11px;padding:2px 6px">08:00</span><span class="status en-route" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>En Route</span></div>
+              <div class="brief-row"><span class="brief-row-name">Red Frog Beach Hike</span><span class="time-badge" style="font-size:11px;padding:2px 6px">09:30</span><span class="status confirmed" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Confirmed</span></div>
+              <div class="brief-row"><span class="brief-row-name">Chocolate Farm Tour</span><span class="time-badge" style="font-size:11px;padding:2px 6px">10:00</span><span class="status completed" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Done</span></div>
+              <div class="brief-row"><span class="brief-row-name">Catamaran Sunset</span><span class="time-badge" style="font-size:11px;padding:2px 6px">17:30</span><span class="status confirmed" style="font-size:10px;padding:2px 8px"><span class="status-dot"></span>Confirmed</span></div>
+              <div class="brief-more">+2 more &rarr;</div>
+            </div>
+          </div>
+
+          <!-- Requests -->
+          <div class="brief-card" data-panel="panel-requests">
+            <div class="brief-card-header"><span class="brief-card-title">Special Requests</span><span class="brief-badge">5</span></div>
+            <div class="brief-rows">
+              <div class="brief-row"><span class="brief-row-name">Late checkout &mdash; Sunday</span><span class="brief-row-sub">Harrington</span><span class="priority-high" style="font-size:11px;flex-shrink:0">High</span></div>
+              <div class="brief-row"><span class="brief-row-name">Extra candles — beach dinner</span><span class="brief-row-sub">Dr. Chen</span><span class="priority-medium" style="font-size:11px;flex-shrink:0">Medium</span></div>
+              <div class="brief-row"><span class="brief-row-name">Champagne chilled 18:30</span><span class="brief-row-sub">Webb</span><span class="priority-medium" style="font-size:11px;flex-shrink:0">Medium</span></div>
+              <div class="brief-row"><span class="brief-row-name">Spa availability AM</span><span class="brief-row-sub">Rodriguez</span><span class="priority-low" style="font-size:11px;flex-shrink:0">Low</span></div>
+              <div class="brief-row"><span class="brief-row-name">Vegan menu options</span><span class="brief-row-sub">Rodriguez</span><span class="priority-medium" style="font-size:11px;flex-shrink:0">Medium</span></div>
+            </div>
+          </div>
+
+          <!-- Messages -->
+          <div class="brief-card" data-panel="panel-messages">
+            <div class="brief-card-header"><span class="brief-card-title">Messages</span><span class="brief-badge">12 unread</span></div>
+            <div class="brief-rows">
+              <div class="brief-row"><span class="brief-row-name">The Harrington Family</span><span class="brief-row-sub">WhatsApp</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">3</span></div>
+              <div class="brief-row"><span class="brief-row-name">Dr. Chen</span><span class="brief-row-sub">WhatsApp</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">2</span></div>
+              <div class="brief-row"><span class="brief-row-name">Nakamura Family</span><span class="brief-row-sub">SMS</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">1</span></div>
+              <div class="brief-row"><span class="brief-row-name">James Webb</span><span class="brief-row-sub">WhatsApp</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">2</span></div>
+              <div class="brief-row"><span class="brief-row-name">Isabella Rodriguez</span><span class="brief-row-sub">WhatsApp</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">1</span></div>
+            </div>
+          </div>
+
+          <!-- Dinners -->
+          <div class="brief-card" data-panel="panel-dinners">
+            <div class="brief-card-header"><span class="brief-card-title">Romantic Dinners</span><span class="brief-badge">3</span></div>
+            <div class="brief-rows">
+              <div class="brief-row"><span class="brief-row-name">Villa 12 &middot; Harrington</span><span class="time-badge" style="font-size:11px;padding:2px 6px">19:30</span><span class="brief-row-sub">Overwater Terrace</span></div>
+              <div class="brief-row"><span class="brief-row-name">Villa 7 &middot; Chen</span><span class="time-badge" style="font-size:11px;padding:2px 6px">20:00</span><span class="brief-row-sub">Beach Torches</span></div>
+              <div class="brief-row"><span class="brief-row-name">Villa 15 &middot; Webb</span><span class="time-badge" style="font-size:11px;padding:2px 6px">19:00</span><span class="brief-row-sub">Garden Pavilion</span></div>
+            </div>
+          </div>
+
+        </div><!-- /day-brief grid -->
+      </div><!-- /dayBrief -->
+
+      <div class="detail-area" id="detailArea" style="display:none;">
+        <div class="detail-panel" id="panel-arrivals">
+          <div class="detail-panel-header"><div class="detail-panel-title">Arrivals</div><span class="card-badge">4 today</span><button class="detail-close" data-close="panel-arrivals">&#xD7;</button></div>
+          <table class="data-table"><thead><tr><th>Guest / Villa</th><th>ETA</th><th>Transfer Status</th><th>Notes</th></tr></thead><tbody>
+            <tr><td><span class="guest-name">Dr. &amp; Mrs. Chen</span><span class="guest-villa">Villa 7</span></td><td><span class="time-badge">16:00</span></td><td><span class="status en-route"><span class="status-dot"></span>En Route</span></td><td><span class="cell-text">Anniversary setup</span></td></tr>
+            <tr><td><span class="guest-name">Sophia &amp; James Webb</span><span class="guest-villa">Villa 15</span></td><td><span class="time-badge">17:30</span></td><td><span class="status pending"><span class="status-dot"></span>Pending</span></td><td><span class="cell-text">Honeymoon pkg</span></td></tr>
+            <tr><td><span class="guest-name">Isabella Rodriguez</span><span class="guest-villa">Villa 4</span></td><td><span class="time-badge">18:45</span></td><td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td><td><span class="cell-text">Vegan menu req</span></td></tr>
+            <tr><td><span class="guest-name">The O'Brien Party</span><span class="guest-villa">Villa 11</span></td><td><span class="time-badge">20:00</span></td><td><span class="status pending"><span class="status-dot"></span>Pending</span></td><td><span class="cell-text">Group of 6</span></td></tr>
+          </tbody></table></div>
+
+        <div class="detail-panel" id="panel-inhouse">
+          <div class="detail-panel-header"><div class="detail-panel-title">In-House Guests</div><span class="card-badge">Tonight</span><button class="detail-close" data-close="panel-inhouse">&#xD7;</button></div>
+          <div class="inhouse-big">34</div>
+          <div class="inhouse-sub"><span>18 villas</span><span class="inhouse-sub-dot"></span><span style="color:var(--sage)">+4 arriving</span><span class="inhouse-sub-dot"></span><span style="color:var(--terra)">-3 departing</span></div>
+          <div class="occ-bars"><div class="occ-row"><span class="occ-label">Overwater</span><div class="occ-track"><div class="occ-fill" data-width="80%"></div></div><span class="occ-pct">8/10</span></div>
+            <div class="occ-row"><span class="occ-label">Garden</span><div class="occ-track"><div class="occ-fill" data-width="83%"></div></div><span class="occ-pct">5/6</span></div>
+            <div class="occ-row"><span class="occ-label">Beach</span><div class="occ-track"><div class="occ-fill" data-width="75%"></div></div><span class="occ-pct">3/4</span></div>
+            <div class="occ-row"><span class="occ-label">Suite</span><div class="occ-track"><div class="occ-fill" data-width="100%"></div></div><span class="occ-pct">2/2</span></div></div></div>
+
+        <div class="detail-panel" id="panel-departures">
+          <div class="detail-panel-header"><div class="detail-panel-title">Departures</div><span class="card-badge">3 today</span><button class="detail-close" data-close="panel-departures">&#xD7;</button></div>
+          <table class="data-table"><thead><tr><th>Guest / Villa</th><th>Checkout</th><th>Transfer</th><th>Billing</th></tr></thead><tbody>
+            <tr><td><span class="guest-name">The Morrison Group</span><span class="guest-villa">Villa 3</span></td><td><span class="time-badge">11:00</span></td><td><span class="status completed"><span class="status-dot"></span>Done</span></td><td><span class="status confirmed"><span class="status-dot"></span>Settled</span></td></tr>
+            <tr><td><span class="guest-name">The Nakamura Family</span><span class="guest-villa">Villa 9</span></td><td><span class="time-badge">09:00</span></td><td><span class="status completed"><span class="status-dot"></span>Done</span></td><td><span class="status confirmed"><span class="status-dot"></span>Settled</span></td></tr>
+            <tr><td><span class="guest-name">Mr. &amp; Mrs. Delacroix</span><span class="guest-villa">Villa 6</span></td><td><span class="time-badge">07:30</span></td><td><span class="status completed"><span class="status-dot"></span>Done</span></td><td><span class="status pending"><span class="status-dot"></span>Pending</span></td></tr>
+          </tbody></table></div>
+
+        <div class="detail-panel" id="panel-transfers">
+          <div class="detail-panel-header"><div class="detail-panel-title">Transfers</div><span class="card-badge">8 today</span><button class="detail-close" data-close="panel-transfers">&#xD7;</button></div>
+          <div style="overflow-x:auto"><table class="data-table" style="min-width:500px"><thead><tr><th>Guest / Villa</th><th>Route</th><th>Time</th><th>Driver</th><th>Status</th></tr></thead><tbody>
+            <tr><td><span class="guest-name">The Harrington Family</span><span class="guest-villa">Villa 12</span></td><td><span class="route-text">Marina &rarr; Resort</span></td><td><span class="time-badge">14:30</span></td><td><span class="driver-name">Carlos M.</span></td><td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td></tr>
+            <tr><td><span class="guest-name">Dr. &amp; Mrs. Chen</span><span class="guest-villa">Villa 7</span></td><td><span class="route-text">Airport &rarr; Resort</span></td><td><span class="time-badge">16:00</span></td><td><span class="driver-name">Luis R.</span></td><td><span class="status en-route"><span class="status-dot"></span>En Route</span></td></tr>
+            <tr><td><span class="guest-name">The Morrison Group</span><span class="guest-villa">Villa 3</span></td><td><span class="route-text">Resort &rarr; Airport</span></td><td><span class="time-badge">11:00</span></td><td><span class="driver-name">Ana P.</span></td><td><span class="status completed"><span class="status-dot"></span>Completed</span></td></tr>
+            <tr><td><span class="guest-name">Sophia &amp; James Webb</span><span class="guest-villa">Villa 15</span></td><td><span class="route-text">Marina &rarr; Resort</span></td><td><span class="time-badge">17:30</span></td><td><span class="driver-name">Carlos M.</span></td><td><span class="status pending"><span class="status-dot"></span>Pending</span></td></tr>
+            <tr><td><span class="guest-name">The Nakamura Family</span><span class="guest-villa">Villa 9</span></td><td><span class="route-text">Resort &rarr; Marina</span></td><td><span class="time-badge">09:00</span></td><td><span class="driver-name">Luis R.</span></td><td><span class="status completed"><span class="status-dot"></span>Completed</span></td></tr>
+            <tr><td><span class="guest-name">Isabella Rodriguez</span><span class="guest-villa">Villa 4</span></td><td><span class="route-text">Airport &rarr; Resort</span></td><td><span class="time-badge">18:45</span></td><td><span class="driver-name">Ana P.</span></td><td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td></tr>
+            <tr><td><span class="guest-name">The O'Brien Party</span><span class="guest-villa">Villa 11</span></td><td><span class="route-text">Marina &rarr; Resort</span></td><td><span class="time-badge">20:00</span></td><td><span class="driver-name">Carlos M.</span></td><td><span class="status pending"><span class="status-dot"></span>Pending</span></td></tr>
+            <tr><td><span class="guest-name">Mr. &amp; Mrs. Delacroix</span><span class="guest-villa">Villa 6</span></td><td><span class="route-text">Resort &rarr; Airport</span></td><td><span class="time-badge">07:30</span></td><td><span class="driver-name">Luis R.</span></td><td><span class="status completed"><span class="status-dot"></span>Completed</span></td></tr>
+          </tbody></table></div></div>
+
+        <div class="detail-panel" id="panel-tours">
+          <div class="detail-panel-header"><div class="detail-panel-title">Tours</div><span class="card-badge">6 today</span><button class="detail-close" data-close="panel-tours">&#xD7;</button></div>
+          <table class="data-table"><thead><tr><th>Tour</th><th>Time</th><th>Guide</th><th>Capacity</th><th>Status</th></tr></thead><tbody>
+            <tr><td><span class="guest-name">Dolphin Bay Snorkel</span></td><td><span class="time-badge">08:00</span></td><td><span class="driver-name">Marco V.</span></td><td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">6/8</span></td><td><span class="status en-route"><span class="status-dot"></span>En Route</span></td></tr>
+            <tr><td><span class="guest-name">Red Frog Beach Hike</span></td><td><span class="time-badge">09:30</span></td><td><span class="driver-name">Sofia A.</span></td><td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">4/6</span></td><td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td></tr>
+            <tr><td><span class="guest-name">Starfish Beach Kayak</span></td><td><span class="time-badge">11:00</span></td><td><span class="driver-name">Marco V.</span></td><td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">8/10</span></td><td><span class="status pending"><span class="status-dot"></span>Pending</span></td></tr>
+            <tr><td><span class="guest-name">Night Jungle Walk</span></td><td><span class="time-badge">19:00</span></td><td><span class="driver-name">Carlos B.</span></td><td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">3/6</span></td><td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td></tr>
+            <tr><td><span class="guest-name">Chocolate Farm Tour</span></td><td><span class="time-badge">10:00</span></td><td><span class="driver-name">Sofia A.</span></td><td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">5/8</span></td><td><span class="status completed"><span class="status-dot"></span>Completed</span></td></tr>
+            <tr><td><span class="guest-name">Catamaran Sunset</span></td><td><span class="time-badge">17:30</span></td><td><span class="driver-name">Marco V.</span></td><td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">12/12</span></td><td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td></tr>
+          </tbody></table></div>
+
+        <div class="detail-panel" id="panel-requests">
+          <div class="detail-panel-header"><div class="detail-panel-title">Special Requests</div><span class="card-badge">5 open</span><button class="detail-close" data-close="panel-requests">&#xD7;</button></div>
+          <div class="request-item"><div class="request-info"><span class="request-text">Late checkout &mdash; Sunday</span><span class="request-meta">Harrington &middot; Concierge &middot; <span class="priority-high">High</span></span></div><span class="time-badge">2m</span></div>
+          <div class="request-item"><div class="request-info"><span class="request-text">Extra candles for beach dinner</span><span class="request-meta">Dr. Chen &middot; F&amp;B &middot; <span class="priority-medium">Medium</span></span></div><span class="time-badge">14m</span></div>
+          <div class="request-item"><div class="request-info"><span class="request-text">Champagne chilled by 18:30</span><span class="request-meta">Webb &middot; F&amp;B &middot; <span class="priority-medium">Medium</span></span></div><span class="time-badge">1h</span></div>
+          <div class="request-item"><div class="request-info"><span class="request-text">Spa availability tomorrow AM</span><span class="request-meta">Rodriguez &middot; Spa &middot; <span class="priority-low">Low</span></span></div><span class="time-badge">2h</span></div>
+          <div class="request-item"><div class="request-info"><span class="request-text">Vegan menu options for dinner</span><span class="request-meta">Rodriguez &middot; F&amp;B &middot; <span class="priority-medium">Medium</span></span></div><span class="time-badge">3h</span></div>
+        </div>
+
+        <div class="detail-panel" id="panel-messages">
+          <div class="detail-panel-header"><div class="detail-panel-title">Conversations</div><span class="card-badge">12 unread</span><button class="detail-close" data-close="panel-messages">&#xD7;</button></div>
+          <div class="convo-item"><div class="convo-avatar">TH</div><div class="convo-body"><span class="convo-name">The Harrington Family</span><span class="convo-snippet">Could we arrange a late check-out on Sunday?</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="convo-channel">WhatsApp</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px">3</span></div></div>
+          <div class="convo-item"><div class="convo-avatar">DC</div><div class="convo-body"><span class="convo-name">Dr. Chen</span><span class="convo-snippet">Please ensure the beach setup has extra candles</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="convo-channel">WhatsApp</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px">2</span></div></div>
+          <div class="convo-item"><div class="convo-avatar">NF</div><div class="convo-body"><span class="convo-name">Nakamura Family</span><span class="convo-snippet">Thank you for the wonderful stay</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="convo-channel">SMS</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px">1</span></div></div>
+          <div class="convo-item"><div class="convo-avatar">JW</div><div class="convo-body"><span class="convo-name">James Webb</span><span class="convo-snippet">We would love a bottle of champagne chilled by 18:30</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="convo-channel">WhatsApp</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px">2</span></div></div>
+          <div class="convo-item"><div class="convo-avatar">IR</div><div class="convo-body"><span class="convo-name">Isabella Rodriguez</span><span class="convo-snippet">Is there spa availability for tomorrow morning?</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="convo-channel">WhatsApp</span><span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px">1</span></div></div>
+        </div>
+
+        <div class="detail-panel" id="panel-dinners">
+          <div class="detail-panel-header"><div class="detail-panel-title">Romantic Dinners</div><span class="card-badge">3</span><button class="detail-close" data-close="panel-dinners">&#xD7;</button></div>
+          <table class="data-table"><thead><tr><th>Villa / Guest</th><th>Time</th><th>Location</th><th>Vendor</th><th>Status</th></tr></thead><tbody>
+            <tr><td><span class="guest-name">Villa 12 &middot; Harrington</span><span class="guest-villa">Anniversary</span></td><td><span class="time-badge">19:30</span></td><td><span class="cell-text">Overwater Terrace</span></td><td><span class="cell-text">In-house</span></td><td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td></tr>
+            <tr><td><span class="guest-name">Villa 7 &middot; Chen</span><span class="guest-villa">Proposal</span></td><td><span class="time-badge">20:00</span></td><td><span class="cell-text">Beach Torches</span></td><td><span class="cell-text">In-house</span></td><td><span class="status confirmed"><span class="status-dot"></span>Confirmed</span></td></tr>
+            <tr><td><span class="guest-name">Villa 15 &middot; Webb</span><span class="guest-villa">Honeymoon</span></td><td><span class="time-badge">19:00</span></td><td><span class="cell-text">Garden Pavilion</span></td><td><span class="cell-text">In-house</span></td><td><span class="status pending"><span class="status-dot"></span>Pending</span></td></tr>
+          </tbody></table></div>
+
+      </div><!-- /detail-area -->
+    </div><!-- /view-date -->
+
+    <div class="view-service" id="viewService">
+      <div class="time-grid" id="timeGrid"></div>
+    </div>
+
+  </div><!-- /content -->
+
+</div><!-- /main-wrap -->
+
+<script>
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
+
+  // ── DATE HELPERS ──
+  function getDateOffset(offset) { const d = new Date(); d.setDate(d.getDate() + offset); return d; }
+  function formatDateShort(d) { return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }); }
+  function formatDateFull(d) { return d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+
+  // ── LIVE CLOCK ──
+  function updateClock() {
+    const now = new Date();
+    $('#clock').textContent = [now.getHours(), now.getMinutes(), now.getSeconds()].map(v => String(v).padStart(2,'0')).join(':');
+  }
+  updateClock(); setInterval(updateClock, 1000);
+
+  // ── DATE LABEL ──
+  let currentDateOffset = 0;
+  function updateDateLabel() {
+    const d = getDateOffset(currentDateOffset);
+    $('#dateLabel').textContent = formatDateFull(d);
+    const briefEl = $('#briefDateLabel');
+    if (briefEl) {
+      const labels = { '-1': 'Yesterday — ', '0': 'Today — ', '1': 'Tomorrow — ' };
+      const prefix = labels[String(currentDateOffset)] || '';
+      briefEl.textContent = prefix + d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+  }
+  updateDateLabel();
+
+  // ── KPI COUNTER ANIMATION ──
+  function animateCounter(el, target, duration) {
+    const start = performance.now();
+    (function step(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(e * target);
+      if (p < 1) requestAnimationFrame(step);
+    })(start);
+  }
+  const kpiObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target, parseInt(entry.target.dataset.target, 10), 1200);
+        kpiObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  $$('.kpi-number[data-target]').forEach(el => kpiObserver.observe(el));
+
+  // ── BRIEF INHOUSE COUNTER ──
+  const briefInhouseEl = $('#briefInhouse');
+  if (briefInhouseEl) setTimeout(() => animateCounter(briefInhouseEl, 34, 1400), 300);
+
+  // ── OCCUPANCY BARS ──
+  setTimeout(() => { $$('.occ-fill').forEach(b => { b.style.width = b.dataset.width; }); }, 200);
+
+  // ── NAV ACTIVE ──
+  $$('.nav-item[data-nav]').forEach(item => {
+    item.addEventListener('click', () => { $$('.nav-item').forEach(n => n.classList.remove('active')); item.classList.add('active'); });
+  });
+
+  // ── KPI TILE / BRIEF CARD -> DETAIL PANEL TOGGLE ──
+  let activePanelId = null;
+
+  function openPanel(panelId, sourceTile) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    // same panel clicked again — collapse back to day brief
+    if (activePanelId === panelId) {
+      closePanelShowBrief();
+      return;
+    }
+    // close previous
+    if (activePanelId) {
+      const prev = document.getElementById(activePanelId);
+      if (prev) prev.classList.remove('open');
+    }
+    $$('.kpi-tile.highlight').forEach(t => t.classList.remove('highlight'));
+    // hide day brief, show detail area
+    $('#dayBrief').style.display = 'none';
+    $('#detailArea').style.display = 'block';
+    renderDetailPanel(panelId, currentDateOffset);
+    panel.classList.add('open');
+    if (sourceTile) sourceTile.classList.add('highlight');
+    activePanelId = panelId;
+  }
+
+  function closePanelShowBrief() {
+    if (activePanelId) {
+      const prev = document.getElementById(activePanelId);
+      if (prev) prev.classList.remove('open');
+    }
+    $$('.kpi-tile.highlight').forEach(t => t.classList.remove('highlight'));
+    activePanelId = null;
+    $('#detailArea').style.display = 'none';
+    $('#dayBrief').style.display = 'flex';
+  }
+
+  $$('.kpi-tile[data-panel]').forEach(tile => {
+    tile.addEventListener('click', () => openPanel(tile.dataset.panel, tile));
+    tile.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tile.click(); } });
+  });
+
+  $$('.brief-card[data-panel]').forEach(card => {
+    card.addEventListener('click', () => {
+      const tile = document.querySelector(`.kpi-tile[data-panel="${card.dataset.panel}"]`);
+      openPanel(card.dataset.panel, tile);
+    });
+  });
+
+  // ── DETAIL CLOSE BUTTONS ──
+  $$('.detail-close').forEach(btn => {
+    btn.addEventListener('click', closePanelShowBrief);
+  });
+
+  // ── PANEL -> SERVICE KEY MAP ──
+  const panelToSvc = {
+    'panel-arrivals':   'arrivals',
+    'panel-departures': 'departures',
+    'panel-transfers':  'transfers',
+    'panel-tours':      'tours',
+    'panel-requests':   'requests',
+    'panel-messages':   'conversations',
+    'panel-dinners':    'dinners',
+  };
+  const panelTitles = {
+    'panel-arrivals':   'Arrivals',
+    'panel-inhouse':    'In-House Guests',
+    'panel-departures': 'Departures',
+    'panel-transfers':  'Transfers',
+    'panel-tours':      'Tours',
+    'panel-requests':   'Special Requests',
+    'panel-messages':   'Conversations',
+    'panel-dinners':    'Romantic Dinners',
+  };
+
+  // ── OFFSET KEY ──
+  function offsetKey(o) { return o <= -1 ? 'yesterday' : o >= 1 ? 'tomorrow' : 'today'; }
+
+  // ── STATUS BADGE HTML ──
+  function sbadge(s) {
+    const map = { completed:'Completed', confirmed:'Confirmed', 'en-route':'En Route', pending:'Pending', high:'High', medium:'Medium', low:'Low' };
+    if (['high','medium','low'].includes(s)) return `<span class="priority-${s}">${map[s]}</span>`;
+    return `<span class="status ${s}"><span class="status-dot"></span>${map[s]||s}</span>`;
+  }
+
+  // ── RENDER DETAIL PANEL FROM DATA ──
+  function renderDetailPanel(panelId, offset) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    if (panelId === 'panel-inhouse') return; // static content
+
+    const svc = panelToSvc[panelId];
+    const data = serviceData[svc];
+    if (!data) return;
+
+    const key = offsetKey(offset);
+    const rows = data[key] || [];
+    const title = panelTitles[panelId];
+    const count = rows.length;
+
+    let bodyHtml = '';
+    if (panelId === 'panel-requests') {
+      const priorityCls = { high:'priority-high', medium:'priority-medium', low:'priority-low' };
+      bodyHtml = rows.map(r => {
+        const rid = ++rowIdCounter;
+        rowRegistry.set(rid, { data: r, svc, key });
+        return `<div class="request-item" data-row-id="${rid}">
+          <div class="request-info">
+            <span class="request-text">${r[0]}</span>
+            <span class="request-meta">${r[1]} &middot; ${r[2]} &middot; <span class="${priorityCls[r[3]]||''}">${r[3]}</span></span>
+          </div>
+          <span class="time-badge">${r[4]||''}</span>
+        </div>`;
+      }).join('');
+    } else if (panelId === 'panel-messages') {
+      bodyHtml = rows.map(r => {
+        const rid = ++rowIdCounter;
+        rowRegistry.set(rid, { data: r, svc, key });
+        const initials = r[0].split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        return `<div class="convo-item" data-row-id="${rid}">
+          <div class="convo-avatar">${initials}</div>
+          <div class="convo-body"><span class="convo-name">${r[0]}</span><span class="convo-snippet">${r[2]}</span></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <span class="convo-channel">${r[1]}</span>
+            ${r[3]!='0'?`<span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px">${r[3]}</span>`:''}
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      const tableRows = rows.map(r => {
+        const rid = ++rowIdCounter;
+        rowRegistry.set(rid, { data: r, svc, key });
+        return `<tr data-row-id="${rid}">${r.map((cell,i) => {
+          const isLast = i === r.length-1;
+          const isTime = i===1 && data.headers[1].toLowerCase().includes('time')||data.headers[1]==='ETA'||data.headers[1]==='Checkout';
+          if (isLast) return `<td>${sbadge(cell)}</td>`;
+          if (isTime) return `<td><span class="time-badge">${cell}</span></td>`;
+          if (i===0) return `<td><span class="guest-name">${cell}</span></td>`;
+          return `<td><span class="cell-text">${cell}</span></td>`;
+        }).join('')}</tr>`;
+      }).join('');
+      const ths = data.headers.map(h=>`<th>${h}</th>`).join('');
+      bodyHtml = rows.length ? `<div style="overflow-x:auto"><table class="data-table" style="min-width:420px"><thead><tr>${ths}</tr></thead><tbody>${tableRows}</tbody></table></div>` : `<div style="text-align:center;padding:32px 16px;color:var(--muted-dim);font-size:13px;font-style:italic">No records for this date</div>`;
+    }
+
+    if (!bodyHtml && rows.length === 0) {
+      bodyHtml = `<div style="text-align:center;padding:32px 16px;color:var(--muted-dim);font-size:13px;font-style:italic">No records for this date</div>`;
+    }
+
+    panel.innerHTML = `
+      <div class="detail-panel-header">
+        <div class="detail-panel-title">${title}</div>
+        <span class="card-badge">${count} ${key}</span>
+        <button class="modal-btn modal-btn-ghost" style="font-size:11px;padding:4px 12px;margin-left:auto" onclick="openNewFromPanel('${svc}')">+ New</button>
+        <button class="detail-close" data-close="${panelId}">&#xD7;</button>
+      </div>
+      ${bodyHtml}`;
+
+    // re-bind close
+    panel.querySelector('.detail-close').addEventListener('click', closePanelShowBrief);
+    // bind hover/click interactions on rows
+    bindRowInteractions(panel);
+  }
+
+  // ── RENDER DAY BRIEF FROM DATA ──
+  function renderDayBrief(offset) {
+    const key = offsetKey(offset);
+    const d = getDateOffset(offset);
+    const prefixMap = { yesterday:'Yesterday', today:'Today', tomorrow:'Tomorrow' };
+    const prefix = prefixMap[key] || '';
+    const dateStr = d.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    $('#briefDateLabel').textContent = `${prefix} — ${dateStr}`;
+
+    // KPI targets per date (approximate)
+    const kpiTargets = {
+      yesterday: [1,31,2,5,3,2,4,1],
+      today:     [4,34,3,8,6,5,12,3],
+      tomorrow:  [2,34,2,4,4,2,3,1],
+    };
+    const targets = kpiTargets[key];
+    $$('.kpi-number[data-target]').forEach((el,i) => {
+      const t = targets[i] || parseInt(el.dataset.target,10);
+      el.dataset.target = t;
+      animateCounter(el, t, 700);
+    });
+
+    // Re-render each brief card body
+    const briefDefs = [
+      { panelId:'panel-arrivals',   svc:'arrivals',   render:'rows', nameIdx:0, timeIdx:1, statusIdx:2 },
+      { panelId:'panel-departures', svc:'departures',  render:'rows', nameIdx:0, timeIdx:1, statusIdx:2 },
+      { panelId:'panel-transfers',  svc:'transfers',   render:'rows', nameIdx:0, timeIdx:2, statusIdx:4 },
+      { panelId:'panel-tours',      svc:'tours',       render:'rows', nameIdx:0, timeIdx:1, statusIdx:4 },
+      { panelId:'panel-requests',   svc:'requests',    render:'requests' },
+      { panelId:'panel-messages',   svc:'conversations',render:'messages' },
+      { panelId:'panel-dinners',    svc:'dinners',     render:'dinners' },
+    ];
+
+    briefDefs.forEach(def => {
+      const card = document.querySelector(`.brief-card[data-panel="${def.panelId}"]`);
+      if (!card) return;
+      const data = serviceData[def.svc];
+      if (!data) return;
+      const rows = data[key] || [];
+      const maxRows = def.maxRows || rows.length;
+      const shown = rows.slice(0, maxRows);
+      const extra = rows.length - shown.length;
+
+      // update badge
+      const badge = card.querySelector('.brief-badge');
+      if (badge) badge.textContent = rows.length;
+
+      const rowsEl = card.querySelector('.brief-rows');
+      if (!rowsEl) return;
+
+      function rowHtml(r) {
+        const rid = ++rowIdCounter;
+        rowRegistry.set(rid, { data: r, svc: def.svc, key });
+        const attr = `data-row-id="${rid}"`;
+        const statusLabels = {completed:'Done',confirmed:'Confirmed','en-route':'En Route',pending:'Pending',high:'High',medium:'Medium',low:'Low'};
+        const stHtml = (st) => st ? `<span class="status ${st}" style="font-size:10px;padding:2px 7px;flex-shrink:0"><span class="status-dot"></span>${statusLabels[st]||st}</span>` : '';
+        if (def.render === 'rows') {
+          const raw = r[def.nameIdx] || '';
+          const nameMatch = raw.match(/^(.*?)(?:<br\s*\/?><small[^>]*>(.*?)<\/small>)?$/i);
+          const guestName = (nameMatch[1]||raw).replace(/<[^>]+>/g,'').trim();
+          const sub = (nameMatch[2]||'').replace(/<[^>]+>/g,'').trim();
+          const status = def.statusIdx != null ? r[def.statusIdx] : '';
+          let timePart = '', subPart = sub;
+          if (def.svc === 'arrivals') {
+            timePart = fmtTime(r[1]);
+            const transferSt = r[2];
+            return `<div class="brief-row brief-row-2line" ${attr}>
+              <div class="brief-row-main">
+                <span class="brief-row-name">${guestName}</span>
+                ${sub ? `<span class="brief-row-room">${sub}</span>` : ''}
+              </div>
+              <div class="brief-row-detail">
+                <span class="time-badge" style="font-size:11px;padding:2px 6px">${timePart}</span>
+                ${stHtml(transferSt)}
+              </div>
+            </div>`;
+          } else if (def.svc === 'departures') {
+            timePart = fmtTime(r[1]);
+            return `<div class="brief-row brief-row-2line" ${attr}>
+              <div class="brief-row-main">
+                <span class="brief-row-name">${guestName}</span>
+                ${sub ? `<span class="brief-row-room">${sub}</span>` : ''}
+              </div>
+              <div class="brief-row-detail">
+                <span class="time-badge" style="font-size:11px;padding:2px 6px">${timePart}</span>
+                ${stHtml(r[2])}
+                ${stHtml(r[3])}
+              </div>
+            </div>`;
+          } else if (def.svc === 'transfers') {
+            timePart = fmtTime(r[2]);
+            const routeRaw = r[1] || '';
+            const routeParts = routeRaw.split('→').map(s => s.trim());
+            const route = routeParts.length === 2 ? fmtRoute(routeParts[0], routeParts[1]) : routeRaw.slice(0,28);
+            return `<div class="brief-row brief-row-2line" ${attr}>
+              <div class="brief-row-main">
+                <span class="brief-row-name">${guestName}</span>
+                ${sub ? `<span class="brief-row-room">${sub}</span>` : ''}
+              </div>
+              <div class="brief-row-detail">
+                <span class="brief-row-route">${route}</span>
+                <span class="time-badge" style="font-size:11px;padding:2px 6px">${timePart}</span>
+                ${stHtml(r[4])}
+              </div>
+            </div>`;
+          } else if (def.svc === 'tours') {
+            timePart = fmtTime(r[1]);
+            return `<div class="brief-row brief-row-2line" ${attr}>
+              <div class="brief-row-main">
+                <span class="brief-row-name">${guestName}</span>
+              </div>
+              <div class="brief-row-detail">
+                <span class="time-badge" style="font-size:11px;padding:2px 6px">${timePart}</span>
+                ${r[3] ? `<span style="font-size:10px;color:var(--muted-dim);flex-shrink:0">${r[3]} pax</span>` : ''}
+                ${stHtml(r[4])}
+              </div>
+            </div>`;
+          }
+          return `<div class="brief-row brief-row-2line" ${attr}>
+            <div class="brief-row-main"><span class="brief-row-name">${guestName}</span>${subPart?`<span class="brief-row-room">${subPart}</span>`:''}</div>
+            <div class="brief-row-detail">${def.timeIdx!=null?`<span class="time-badge" style="font-size:11px;padding:2px 6px">${fmtTime(r[def.timeIdx])}</span>`:''} ${stHtml(status)}</div>
+          </div>`;
+        } else if (def.render === 'requests') {
+          const deptColors = {concierge:'var(--gold)',fnb:'var(--sage)',maintenance:'var(--terra)',housekeeping:'#7B9EA8',front_desk:'var(--gold)',other:'var(--muted-dim)'};
+          const deptColor = deptColors[(r[2]||'').toLowerCase()] || 'var(--muted-dim)';
+          return `<div class="brief-row brief-row-2line" ${attr}>
+            <div class="brief-row-main">
+              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${deptColor};flex-shrink:0;border:1px solid ${deptColor};border-radius:3px;padding:1px 5px">${r[2]||'—'}</span>
+              <span class="brief-row-name" style="flex:1;min-width:0">${r[0]}</span>
+            </div>
+            <div class="brief-row-detail">
+              <span style="font-size:11px;color:var(--muted-dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[1]}</span>
+              <span class="priority-${r[3]||'low'}" style="font-size:10px;flex-shrink:0">${(r[3]||'normal').charAt(0).toUpperCase()+(r[3]||'normal').slice(1)}</span>
+            </div>
+          </div>`;
+        } else if (def.render === 'messages') {
+          const channelColors = {whatsapp:'#25D366',sms:'var(--gold)',email:'#4A90D9',app:'var(--sage)'};
+          const ch = (r[1]||'').toLowerCase();
+          const chColor = channelColors[ch] || 'var(--muted-dim)';
+          return `<div class="brief-row brief-row-2line" ${attr}>
+            <div class="brief-row-main">
+              <span class="brief-row-name">${r[0]}</span>
+              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${chColor};flex-shrink:0;border:1px solid ${chColor};border-radius:3px;padding:1px 5px">${r[1]||'—'}</span>
+              ${r[3]&&r[3]!='0'?`<span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">${r[3]}</span>`:''}
+            </div>
+            <div class="brief-row-detail">
+              <span style="font-size:11px;color:var(--muted-dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[2]||''}</span>
+            </div>
+          </div>`;
+        } else if (def.render === 'dinners') {
+          const raw2 = r[0] || '';
+          const nameMatch2 = raw2.match(/^(.*?)(?:<br\s*\/?><small[^>]*>(.*?)<\/small>)?$/i);
+          const dGuestName = (nameMatch2[1]||raw2).replace(/<[^>]+>/g,'').trim();
+          const dSub = (nameMatch2[2]||'').replace(/<[^>]+>/g,'').trim();
+          return `<div class="brief-row brief-row-2line" ${attr}>
+            <div class="brief-row-main">
+              <span class="brief-row-name">${dGuestName}</span>
+              <span class="time-badge" style="font-size:11px;padding:2px 6px;flex-shrink:0">${fmtTime(r[1])}</span>
+            </div>
+            <div class="brief-row-detail">
+              <span style="font-size:11px;color:var(--muted-dim);flex:1">${r[2]||dSub||'—'}</span>
+              ${stHtml(r[4])}
+            </div>
+          </div>`;
+        }
+        return '';
+      }
+
+      const useTicker = rows.length > 4;
+      if (useTicker) {
+        const allRowsHtml = rows.map(r => rowHtml(r)).join('');
+        rowsEl.innerHTML = `
+          <div class="brief-ticker-wrap">
+            <div class="brief-ticker-track">
+              ${allRowsHtml}
+            </div>
+          </div>`;
+        bindRowInteractions(rowsEl);
+      } else {
+        rowsEl.innerHTML = rows.map(r => rowHtml(r)).join('');
+        bindRowInteractions(rowsEl);
+      }
+    });
+
+    // occupancy bars animation
+    setTimeout(() => { $$('.occ-fill').forEach(b => { b.style.width = b.dataset.width; }); }, 100);
+  }
+
+  // ── DATE NAV ──
+  $$('.date-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.date-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentDateOffset = parseInt(btn.dataset.offset, 10);
+      applyDateChange();
+    });
+  });
+  $('#datePicker').addEventListener('change', function() {
+    const picked = new Date(this.value + 'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    currentDateOffset = Math.round((picked - today) / 86400000);
+    $$('.date-btn').forEach(b => b.classList.remove('active'));
+    applyDateChange();
+  });
+
+  // ── SERVICE DATA (cache — populated by live fetch) ──
+  const serviceData = {
+    transfers: {
+      headers: ['Guest / Villa', 'Route', 'Time', 'Driver', 'Status'],
+      yesterday: [
+        ['The Peterson Family<br><small>Villa 2</small>', 'Airport &rarr; Resort', '10:00', 'Carlos M.', 'completed'],
+        ['Mr. &amp; Mrs. Laurent<br><small>Villa 8</small>', 'Resort &rarr; Airport', '08:30', 'Luis R.', 'completed'],
+        ['Sarah Mitchell<br><small>Villa 5</small>', 'Marina &rarr; Resort', '15:00', 'Ana P.', 'completed'],
+        ['The Kim Group<br><small>Villa 14</small>', 'Resort &rarr; Marina', '12:00', 'Carlos M.', 'completed'],
+        ['Dr. Patel<br><small>Villa 1</small>', 'Airport &rarr; Resort', '17:30', 'Luis R.', 'completed'],
+      ],
+      today: [
+        ['The Harrington Family<br><small>Villa 12</small>', 'Marina &rarr; Resort', '14:30', 'Carlos M.', 'confirmed'],
+        ['Dr. &amp; Mrs. Chen<br><small>Villa 7</small>', 'Airport &rarr; Resort', '16:00', 'Luis R.', 'en-route'],
+        ['The Morrison Group<br><small>Villa 3</small>', 'Resort &rarr; Airport', '11:00', 'Ana P.', 'completed'],
+        ['Sophia &amp; James Webb<br><small>Villa 15</small>', 'Marina &rarr; Resort', '17:30', 'Carlos M.', 'pending'],
+        ['The Nakamura Family<br><small>Villa 9</small>', 'Resort &rarr; Marina', '09:00', 'Luis R.', 'completed'],
+        ['Isabella Rodriguez<br><small>Villa 4</small>', 'Airport &rarr; Resort', '18:45', 'Ana P.', 'confirmed'],
+        ['The O\'Brien Party<br><small>Villa 11</small>', 'Marina &rarr; Resort', '20:00', 'Carlos M.', 'pending'],
+        ['Mr. &amp; Mrs. Delacroix<br><small>Villa 6</small>', 'Resort &rarr; Airport', '07:30', 'Luis R.', 'completed'],
+      ],
+      tomorrow: [
+        ['The Williams Family<br><small>Villa 10</small>', 'Airport &rarr; Resort', '11:00', 'Ana P.', 'confirmed'],
+        ['Elena Vasquez<br><small>Villa 13</small>', 'Marina &rarr; Resort', '14:00', 'Carlos M.', 'confirmed'],
+        ['The Park Family<br><small>Villa 2</small>', 'Resort &rarr; Airport', '08:00', 'Luis R.', 'pending'],
+        ['Mr. Thompson<br><small>Villa 5</small>', 'Resort &rarr; Marina', '16:30', 'Ana P.', 'pending'],
+      ],
+    },
+    tours: {
+      headers: ['Tour Name', 'Time', 'Guide', 'Capacity', 'Status'],
+      yesterday: [
+        ['Mangrove Kayak', '08:00', 'Marco V.', '6/8', 'completed'],
+        ['Coral Reef Dive', '10:30', 'Sofia A.', '4/6', 'completed'],
+        ['Sunset Catamaran', '17:00', 'Marco V.', '10/12', 'completed'],
+      ],
+      today: [
+        ['Dolphin Bay Snorkel', '08:00', 'Marco V.', '6/8', 'en-route'],
+        ['Red Frog Beach Hike', '09:30', 'Sofia A.', '4/6', 'confirmed'],
+        ['Starfish Beach Kayak', '11:00', 'Marco V.', '8/10', 'pending'],
+        ['Chocolate Farm Tour', '10:00', 'Sofia A.', '5/8', 'completed'],
+        ['Night Jungle Walk', '19:00', 'Carlos B.', '3/6', 'confirmed'],
+        ['Catamaran Sunset', '17:30', 'Marco V.', '12/12', 'confirmed'],
+      ],
+      tomorrow: [
+        ['Bird Watching', '06:30', 'Carlos B.', '3/6', 'confirmed'],
+        ['Scuba Intro', '09:00', 'Marco V.', '4/4', 'confirmed'],
+        ['Island Hop', '11:00', 'Sofia A.', '8/10', 'pending'],
+        ['Night Snorkel', '20:00', 'Marco V.', '5/8', 'pending'],
+      ],
+    },
+    arrivals: {
+      headers: ['Guest / Villa', 'ETA', 'Transfer', 'Notes'],
+      yesterday: [
+        ['The Harrington Family<br><small>Villa 12</small>', '14:30', 'completed', 'Early check-in'],
+      ],
+      today: [
+        ['Dr. &amp; Mrs. Chen<br><small>Villa 7</small>', '16:00', 'en-route', 'Anniversary setup'],
+        ['Sophia &amp; James Webb<br><small>Villa 15</small>', '17:30', 'pending', 'Honeymoon pkg'],
+        ['Isabella Rodriguez<br><small>Villa 4</small>', '18:45', 'confirmed', 'Vegan menu req'],
+        ['The O\'Brien Party<br><small>Villa 11</small>', '20:00', 'pending', 'Group of 6'],
+      ],
+      tomorrow: [
+        ['The Williams Family<br><small>Villa 10</small>', '11:00', 'confirmed', 'Family suite'],
+        ['Elena Vasquez<br><small>Villa 13</small>', '14:00', 'confirmed', 'VIP welcome'],
+      ],
+    },
+    departures: {
+      headers: ['Guest / Villa', 'Checkout', 'Transfer', 'Billing'],
+      yesterday: [
+        ['Dr. Patel<br><small>Villa 1</small>', '10:00', 'completed', 'confirmed'],
+        ['The Peterson Family<br><small>Villa 2</small>', '11:30', 'completed', 'confirmed'],
+      ],
+      today: [
+        ['The Morrison Group<br><small>Villa 3</small>', '11:00', 'completed', 'confirmed'],
+        ['The Nakamura Family<br><small>Villa 9</small>', '09:00', 'completed', 'confirmed'],
+        ['Mr. &amp; Mrs. Delacroix<br><small>Villa 6</small>', '07:30', 'completed', 'pending'],
+      ],
+      tomorrow: [
+        ['The Park Family<br><small>Villa 2</small>', '10:00', 'pending', 'pending'],
+        ['Mr. Thompson<br><small>Villa 5</small>', '11:00', 'pending', 'confirmed'],
+      ],
+    },
+    dinners: {
+      headers: ['Villa / Guest', 'Time', 'Location', 'Vendor', 'Status'],
+      yesterday: [
+        ['Villa 3 &middot; Morrison', '20:00', 'Overwater Terrace', 'In-house', 'completed'],
+      ],
+      today: [
+        ['Villa 12 &middot; Harrington', '19:30', 'Overwater Terrace', 'In-house', 'confirmed'],
+        ['Villa 7 &middot; Chen', '20:00', 'Beach Torches', 'In-house', 'confirmed'],
+        ['Villa 15 &middot; Webb', '19:00', 'Garden Pavilion', 'In-house', 'pending'],
+      ],
+      tomorrow: [
+        ['Villa 13 &middot; Vasquez', '19:30', 'Overwater Terrace', 'In-house', 'confirmed'],
+      ],
+    },
+    requests: {
+      headers: ['Request', 'Guest', 'Dept', 'Priority', 'Status'],
+      yesterday: [
+        ['Wake-up call 06:00', 'Nakamura', 'Concierge', 'low', 'completed'],
+        ['Extra pillows', 'Morrison', 'Housekeeping', 'low', 'completed'],
+      ],
+      today: [
+        ['Late checkout &mdash; Sunday', 'Harrington', 'Concierge', 'high', 'pending'],
+        ['Extra candles for dinner', 'Dr. Chen', 'F&amp;B', 'medium', 'pending'],
+        ['Champagne by 18:30', 'Webb', 'F&amp;B', 'medium', 'pending'],
+        ['Spa availability AM', 'Rodriguez', 'Spa', 'low', 'pending'],
+        ['Vegan menu options', 'Rodriguez', 'F&amp;B', 'medium', 'pending'],
+      ],
+      tomorrow: [
+        ['Airport transfer 06:00', 'Park', 'Concierge', 'high', 'confirmed'],
+        ['Couples massage', 'Williams', 'Spa', 'medium', 'confirmed'],
+      ],
+    },
+    conversations: {
+      headers: ['Guest', 'Channel', 'Last Message', 'Unread'],
+      yesterday: [
+        ['The Morrison Group', 'WhatsApp', 'Thank you for everything', '0'],
+        ['Dr. Patel', 'SMS', 'Arrived safely', '0'],
+      ],
+      today: [
+        ['The Harrington Family', 'WhatsApp', 'Could we arrange a late check-out?', '3'],
+        ['Dr. Chen', 'WhatsApp', 'Please ensure extra candles for the beach', '2'],
+        ['Nakamura Family', 'SMS', 'Thank you for the wonderful stay', '1'],
+        ['James Webb', 'WhatsApp', 'Champagne chilled by 18:30 please', '2'],
+        ['Isabella Rodriguez', 'WhatsApp', 'Is there spa availability tomorrow?', '1'],
+      ],
+      tomorrow: [
+        ['The Williams Family', 'WhatsApp', 'Excited to arrive!', '1'],
+        ['Elena Vasquez', 'SMS', 'Please prepare the welcome gift', '2'],
+      ],
+    },
+    orders: {
+      headers: ['#', 'Villa', 'Items', 'Status'],
+      yesterday: [
+        ['#1038', 'Villa 3', '1x Champagne, 2x Canapes', 'completed'],
+        ['#1037', 'Villa 9', 'Room Service Dinner', 'completed'],
+      ],
+      today: [
+        ['#1042', 'Villa 12', '2x Cocktails, 1x Platter', 'en-route'],
+        ['#1041', 'Villa 7', '1x Champagne', 'confirmed'],
+        ['#1040', 'Villa 15', 'Room Service Dinner', 'pending'],
+        ['#1039', 'Villa 4', '1x Vegan Bowl, 1x Juice', 'confirmed'],
+      ],
+      tomorrow: [
+        ['#1043', 'Villa 10', 'Welcome fruit basket', 'confirmed'],
+        ['#1044', 'Villa 13', 'VIP welcome amenities', 'confirmed'],
+      ],
+    },
+  };
+
+  // ── RENDER SERVICE VIEW ──
+  function statusBadge(s) {
+    const labels = { 'completed':'Completed','confirmed':'Confirmed','en-route':'En Route','pending':'Pending','high':'High','medium':'Medium','low':'Low' };
+    if (['high','medium','low'].includes(s)) {
+      const cls = s === 'high' ? 'priority-high' : s === 'medium' ? 'priority-medium' : 'priority-low';
+      return `<span class="${cls}">${labels[s]||s}</span>`;
+    }
+    return `<span class="status ${s}"><span class="status-dot"></span>${labels[s]||s}</span>`;
+  }
+
+  function renderServiceView(svc) {
+    const data = serviceData[svc];
+    if (!data) return;
+    const grid = $('#timeGrid');
+    const cols = [
+      { key: 'yesterday', label: formatDateShort(getDateOffset(-1)), today: false },
+      { key: 'today',     label: formatDateShort(getDateOffset(0)),  today: true  },
+      { key: 'tomorrow',  label: formatDateShort(getDateOffset(1)),  today: false },
+    ];
+    grid.innerHTML = cols.map(col => {
+      const colRows = data[col.key] || [];
+      const rows = colRows.map(row => {
+        const rid = ++rowIdCounter;
+        rowRegistry.set(rid, { data: row, svc, key: col.key });
+        return `<tr data-row-id="${rid}">${row.map((cell, i) => {
+          const isStatus = i === data.headers.length - 1;
+          if (isStatus) return `<td>${statusBadge(cell)}</td>`;
+          if (i === 0) return `<td><span style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--charcoal)">${cell}</span></td>`;
+          if (i === 1 && col.key !== 'yesterday' && data.headers[1] !== 'Channel') return `<td><span class="time-badge">${cell}</span></td>`;
+          return `<td><span class="cell-text">${cell}</span></td>`;
+        }).join('')}</tr>`;
+      }).join('');
+      const tableOrEmpty = colRows.length ? `<table class="data-table">
+            <thead><tr>${data.headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+            <tbody>${rows}</tbody>
+          </table>` : `<div style="text-align:center;padding:32px 16px;color:var(--muted-dim);font-size:13px;font-style:italic">No records for this date</div>`;
+      return `<div class="time-col ${col.today ? 'today' : ''}">
+        <div class="time-col-header">
+          <span class="time-col-date">${col.label}</span>
+          <span class="time-col-count">${colRows.length}</span>
+        </div>
+        <div class="time-col-body">
+          ${tableOrEmpty}
+          <div style="text-align:center;padding:10px 0 0"><button class="modal-btn modal-btn-ghost" style="font-size:11px;padding:4px 12px" onclick="openNewFromPanel('${svc}')">+ New</button></div>
+        </div>
+      </div>`;
+    }).join('');
+    bindRowInteractions(grid);
+  }
+
+  // ── ROW REGISTRY ──
+  const rowRegistry = new Map();
+  let rowIdCounter = 0;
+
+  // ── TOOLTIP ──
+  const tooltipEl = document.createElement('div');
+  tooltipEl.className = 'row-tooltip';
+  document.body.appendChild(tooltipEl);
+
+  function cleanVal(v) {
+    return String(v||'').replace(/<br\s*\/?><small[^>]*>(.*?)<\/small>/gi,' · $1').replace(/<[^>]+>/g,'');
+  }
+
+  function showTooltip(e, rowId) {
+    const entry = rowRegistry.get(rowId);
+    if (!entry) return;
+    const { data: r, svc } = entry;
+    const svcData = serviceData[svc];
+    const headers = svcData ? svcData.headers : [];
+    const name = cleanVal(r[0]);
+    let fieldsHtml = '';
+    for (let i = 1; i < Math.min(r.length, 4); i++) {
+      const label = headers[i] || '';
+      const val = cleanVal(r[i]);
+      if (val && val !== '—') {
+        const isStatus = ['completed','confirmed','en-route','pending','high','medium','low'].includes(val);
+        fieldsHtml += `<div class="row-tooltip-field"><span class="row-tooltip-label">${label}</span><span>${isStatus ? sbadge(val) : val}</span></div>`;
+      }
+    }
+    tooltipEl.innerHTML = `<div class="row-tooltip-name">${name}</div>${fieldsHtml}`;
+    positionTooltip(e);
+    tooltipEl.classList.add('visible');
+  }
+
+  function positionTooltip(e) {
+    const x = e.clientX + 14;
+    const y = e.clientY + 14;
+    tooltipEl.style.left = Math.min(x, window.innerWidth - 290) + 'px';
+    tooltipEl.style.top = Math.min(y, window.innerHeight - 130) + 'px';
+  }
+
+  function hideTooltip() { tooltipEl.classList.remove('visible'); }
+
+  // ── MODAL ──
+  const modalOverlay = document.createElement('div');
+  modalOverlay.className = 'modal-overlay';
+  modalOverlay.innerHTML = `<div class="modal" id="recordModal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle"></div>
+      <span class="modal-type-badge" id="modalBadge"></span>
+      <button class="modal-close" id="modalClose">&#xD7;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>`;
+  document.body.appendChild(modalOverlay);
+
+  let currentModalEntry = null;
+
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  function closeModal() {
+    modalOverlay.classList.remove('open');
+    currentModalEntry = null;
+  }
+
+  const linkArrowSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
+  function isLinkedField(header) {
+    const h = (header||'').toLowerCase();
+    if (h.includes('driver') || h.includes('guide')) return 'staff';
+    if (h.includes('guest') || h.includes('villa')) return 'guest';
+    return null;
+  }
+
+  function renderModalView(entry) {
+    const { data: r, svc } = entry;
+    currentModalEntry = entry;
+    const svcData = serviceData[svc];
+    const headers = svcData ? svcData.headers : [];
+    const name = cleanVal(r[0]);
+    document.getElementById('modalTitle').textContent = name;
+    document.getElementById('modalBadge').textContent = svc.charAt(0).toUpperCase() + svc.slice(1);
+
+    let fieldsHtml = '<div class="modal-fields">';
+    r.forEach((val, i) => {
+      const header = headers[i] || `Field ${i+1}`;
+      const clean = cleanVal(val);
+      let displayVal;
+      const isStatusVal = ['completed','confirmed','en-route','pending','high','medium','low'].includes(val);
+      const linkType = isLinkedField(header);
+      if (isStatusVal) {
+        displayVal = sbadge(val);
+      } else if (linkType && clean && clean !== '—') {
+        displayVal = `<span class="linked-chip" data-link-type="${linkType}" data-link-value="${clean.replace(/"/g,'&quot;')}">${clean} ${linkArrowSvg}</span>`;
+      } else {
+        displayVal = `<span class="modal-field-value">${clean||'—'}</span>`;
+      }
+      fieldsHtml += `<div class="modal-field"><span class="modal-field-label">${header}</span>${displayVal}</div>`;
+    });
+    fieldsHtml += '</div>';
+    document.getElementById('modalBody').innerHTML = fieldsHtml;
+
+    const svcLabel = svc.replace(/s$/, '');
+    document.getElementById('modalFooter').innerHTML = `
+      <button class="modal-btn modal-btn-secondary" id="modalEditBtn">Edit</button>
+      <button class="modal-btn modal-btn-danger" id="modalDeleteBtn">Delete</button>
+      <button class="modal-btn modal-btn-ghost" id="modalNewBtn">+ New ${svcLabel}</button>`;
+
+    document.getElementById('modalEditBtn').addEventListener('click', () => renderModalEdit(entry));
+    document.getElementById('modalDeleteBtn').addEventListener('click', () => renderModalDelete(entry));
+    document.getElementById('modalNewBtn').addEventListener('click', () => renderModalNew(svc));
+
+    document.querySelectorAll('#modalBody .linked-chip').forEach(chip => {
+      chip.addEventListener('click', e => {
+        e.stopPropagation();
+        openLinkedModal(chip.dataset.linkType, chip.dataset.linkValue);
+      });
+    });
+  }
+
+  function renderModalEdit(entry) {
+    const { data: r, svc } = entry;
+    const svcData = serviceData[svc];
+    const headers = svcData ? svcData.headers : [];
+    let fieldsHtml = '<div class="modal-fields">';
+    r.forEach((val, i) => {
+      const header = headers[i] || `Field ${i+1}`;
+      const clean = cleanVal(val);
+      fieldsHtml += `<div class="modal-field"><span class="modal-field-label">${header}</span><input type="text" value="${clean.replace(/"/g,'&quot;')}" data-idx="${i}"></div>`;
+    });
+    fieldsHtml += '</div>';
+    document.getElementById('modalBody').innerHTML = fieldsHtml;
+    document.getElementById('modalFooter').innerHTML = `
+      <button class="modal-btn modal-btn-primary" id="modalSaveBtn">Save Changes</button>
+      <button class="modal-btn modal-btn-secondary" id="modalCancelEditBtn">Cancel</button>`;
+    document.getElementById('modalSaveBtn').addEventListener('click', () => {
+      document.querySelectorAll('#modalBody input[data-idx]').forEach(input => {
+        entry.data[parseInt(input.dataset.idx)] = input.value;
+      });
+      if ($('#viewService').classList.contains('active')) {
+        renderServiceView($('.service-tab.active')?.dataset.svc || entry.svc);
+      } else {
+        renderDayBrief(currentDateOffset);
+      }
+      renderModalView(entry);
+    });
+    document.getElementById('modalCancelEditBtn').addEventListener('click', () => renderModalView(entry));
+  }
+
+  function renderModalDelete(entry) {
+    const { data: r, svc, key } = entry;
+    const name = cleanVal(r[0]);
+    const existing = document.getElementById('modalBody').innerHTML;
+    document.getElementById('modalBody').innerHTML = `<div class="modal-confirm"><div class="modal-confirm-text">Delete "${name}"? This cannot be undone.</div></div>` + existing;
+    document.getElementById('modalFooter').innerHTML = `
+      <button class="modal-btn modal-btn-danger" id="modalConfirmDeleteBtn">Yes, Delete</button>
+      <button class="modal-btn modal-btn-secondary" id="modalCancelDeleteBtn">Cancel</button>`;
+    document.getElementById('modalConfirmDeleteBtn').addEventListener('click', () => {
+      const arr = serviceData[svc][key];
+      const idx = arr.indexOf(entry.data);
+      if (idx > -1) arr.splice(idx, 1);
+      closeModal();
+      if ($('#viewService').classList.contains('active')) {
+        renderServiceView($('.service-tab.active')?.dataset.svc || svc);
+      } else {
+        renderDayBrief(currentDateOffset);
+      }
+    });
+    document.getElementById('modalCancelDeleteBtn').addEventListener('click', () => renderModalView(entry));
+  }
+
+  function renderModalNew(svc) {
+    const svcData = serviceData[svc];
+    const headers = svcData ? svcData.headers : [];
+    const svcLabel = svc.replace(/s$/, '');
+    document.getElementById('modalTitle').textContent = `New ${svcLabel}`;
+    document.getElementById('modalBadge').textContent = 'Create';
+    let fieldsHtml = '<div class="modal-fields">';
+    headers.forEach((header, i) => {
+      fieldsHtml += `<div class="modal-field"><span class="modal-field-label">${header}</span><input type="text" placeholder="${header}" data-idx="${i}"></div>`;
+    });
+    fieldsHtml += '</div>';
+    document.getElementById('modalBody').innerHTML = fieldsHtml;
+    document.getElementById('modalFooter').innerHTML = `
+      <button class="modal-btn modal-btn-primary" id="modalCreateBtn">Create ${svcLabel}</button>
+      <button class="modal-btn modal-btn-secondary" id="modalCancelNewBtn">Cancel</button>`;
+    document.getElementById('modalCreateBtn').addEventListener('click', () => {
+      const newRow = [];
+      document.querySelectorAll('#modalBody input[data-idx]').forEach(input => {
+        newRow[parseInt(input.dataset.idx)] = input.value || '—';
+      });
+      const key = offsetKey(currentDateOffset);
+      if (!serviceData[svc][key]) serviceData[svc][key] = [];
+      serviceData[svc][key].push(newRow);
+      closeModal();
+      if ($('#viewService').classList.contains('active')) {
+        renderServiceView(svc);
+      } else {
+        renderDayBrief(currentDateOffset);
+      }
+    });
+    document.getElementById('modalCancelNewBtn').addEventListener('click', closeModal);
+  }
+
+  function openLinkedModal(linkType, value) {
+    document.getElementById('modalTitle').textContent = value;
+    document.getElementById('modalBadge').textContent = linkType === 'staff' ? 'Staff' : 'Guest';
+    let content = '<div class="modal-fields">';
+    if (linkType === 'staff') {
+      content += `
+        <div class="modal-field"><span class="modal-field-label">Name</span><span class="modal-field-value">${value}</span></div>
+        <div class="modal-field"><span class="modal-field-label">Role</span><span class="modal-field-value">Driver / Guide</span></div>
+        <div class="modal-field"><span class="modal-field-label">Status</span>${sbadge('confirmed')}</div>
+        <div class="modal-field"><span class="modal-field-label">Phone</span><span class="modal-field-value">+507 6000-0000</span></div>`;
+    } else {
+      content += `
+        <div class="modal-field"><span class="modal-field-label">Guest / Party</span><span class="modal-field-value">${value}</span></div>
+        <div class="modal-field"><span class="modal-field-label">Status</span>${sbadge('confirmed')}</div>
+        <div class="modal-field"><span class="modal-field-label">Stay</span><span class="modal-field-value">Feb 18 – Feb 22, 2026</span></div>
+        <div class="modal-field"><span class="modal-field-label">Notes</span><span class="modal-field-value">VIP — see concierge notes</span></div>`;
+    }
+    content += '</div>';
+    document.getElementById('modalBody').innerHTML = content;
+    document.getElementById('modalFooter').innerHTML = `
+      <button class="modal-btn modal-btn-secondary" id="modalBackBtn">Back</button>
+      <button class="modal-btn modal-btn-ghost" id="modalOpenProfileBtn">Open Full Profile</button>`;
+    document.getElementById('modalBackBtn').addEventListener('click', () => {
+      if (currentModalEntry) renderModalView(currentModalEntry);
+      else closeModal();
+    });
+    document.getElementById('modalOpenProfileBtn').addEventListener('click', () => {});
+  }
+
+  function openNewFromPanel(svc) {
+    renderModalNew(svc);
+    modalOverlay.classList.add('open');
+  }
+
+  function openModal(rowId) {
+    const entry = rowRegistry.get(rowId);
+    if (!entry) return;
+    renderModalView(entry);
+    modalOverlay.classList.add('open');
+  }
+
+  // ── BIND BRIEF ROW HOVER + CLICK ──
+  function bindRowInteractions(container) {
+    container.querySelectorAll('[data-row-id]').forEach(row => {
+      const rowId = parseInt(row.dataset.rowId, 10);
+      row.addEventListener('mouseenter', e => showTooltip(e, rowId));
+      row.addEventListener('mousemove', e => { if (tooltipEl.classList.contains('visible')) positionTooltip(e); });
+      row.addEventListener('mouseleave', hideTooltip);
+      row.addEventListener('click', e => {
+        e.stopPropagation();
+        hideTooltip();
+        openModal(rowId);
+      });
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // ── REAL API INTEGRATION ──
+  // ══════════════════════════════════════════════════════════
+
+  // ── DATE STRING HELPER ──
+  function getDateStr(offset) {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return d.toISOString().split('T')[0]; // YYYY-MM-DD
+  }
+
+  // ── STATUS NORMALIZER (API → dashboard CSS class) ──
+  function mapStatus(s) {
+    const m = {
+      confirmed: 'confirmed', approved: 'confirmed', checked_in: 'confirmed',
+      pending: 'pending', requested: 'pending', new: 'pending',
+      completed: 'completed', done: 'completed', resolved: 'completed', delivered: 'completed',
+      en_route: 'en-route', 'en-route': 'en-route', active: 'en-route', in_progress: 'en-route',
+      cancelled: 'pending', high: 'high', normal: 'low', low: 'low', medium: 'medium',
+    };
+    return m[(s||'').toLowerCase()] || 'pending';
+  }
+
+  // ── TIME FORMATTER ──
+  function fmtTime(t) {
+    if (!t) return '—';
+    const s = String(t);
+    // ISO datetime: "2026-02-20T16:00:00" or "2026-02-20T16:00:00.000Z"
+    const isoMatch = s.match(/T(\d{2}):(\d{2})/);
+    if (isoMatch) {
+      let h = parseInt(isoMatch[1], 10), m = isoMatch[2];
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${m} ${ampm}`;
+    }
+    // Time-only: "16:00:00" or "16:00"
+    const timeMatch = s.match(/^(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      let h = parseInt(timeMatch[1], 10), m = timeMatch[2];
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${m} ${ampm}`;
+    }
+    return s;
+  }
+
+  function fmtRoute(origin, dest) {
+    const abbr = s => (s||'').replace(/\s+(Airport|Hotel|Resort|Lodge|Beach)\b/gi, '').trim().slice(0, 18);
+    return `${abbr(origin)} → ${abbr(dest)}`;
+  }
+
+  // ── ROW NORMALIZER (API row → dashboard array format) ──
+  function normalizeRow(svc, r) {
+    const gv = (name, room) => room
+      ? `${name||'—'}<br><small>${room}</small>`
+      : (name || '—');
+    switch (svc) {
+      case 'transfers':
+        return [
+          gv(r.guest_name, r.room || r.room_number),
+          `${r.origin||'—'} → ${r.destination||'—'}`,
+          r.time || '—',
+          r.vendor_name || r.driver_name || '—',
+          mapStatus(r.guest_status || r.status),
+        ];
+      case 'tours':
+        return [
+          r.name_en || r.tour_name || r.name || '—',
+          r.start_time || r.time || '—',
+          r.vendor_name || r.guide_name || '—',
+          r.num_guests != null ? String(r.num_guests) : '—',
+          mapStatus(r.guest_status || r.status),
+        ];
+      case 'arrivals':
+        return [
+          gv(r.guest_name || `${r.first_name||''} ${r.last_name||''}`.trim(), r.room),
+          r.arrival_time || r.arrival || '—',
+          mapStatus(r.transfer_booked ? 'confirmed' : (r.status || 'pending')),
+          r.notes || r.special_requests || '',
+        ];
+      case 'departures':
+        return [
+          gv(r.guest_name || `${r.first_name||''} ${r.last_name||''}`.trim(), r.room),
+          r.departure_time || r.departure || '—',
+          mapStatus(r.transfer_booked ? 'confirmed' : 'completed'),
+          mapStatus(r.billing_status || r.status || 'pending'),
+        ];
+      case 'dinners':
+        return [
+          gv(r.guest_name, r.location || r.room),
+          r.time || '—',
+          r.location || '—',
+          r.vendor_name || 'In-house',
+          mapStatus(r.status),
+        ];
+      case 'requests':
+        return [
+          r.request || r.title || '—',
+          r.guest_name || '—',
+          r.department || '—',
+          mapStatus(r.priority || 'normal'),
+          r.status || 'pending',
+        ];
+      case 'conversations':
+        return [
+          r.guest_name || '—',
+          r.channel_label_en || r.channel || '—',
+          r.last_message || r.snippet || '—',
+          String(r.unread_count || r.unread || '0'),
+        ];
+      case 'orders':
+        return [
+          r.order_number || r.id?.slice(0,8) || '—',
+          r.room_number || r.room || '—',
+          (r.items||[]).map(i=>`${i.quantity||1}× ${i.name_en||i.name||''}`).join(', ') || '—',
+          mapStatus(r.status),
+        ];
+      default:
+        return Object.values(r).slice(0, 5).map(v => String(v||'—'));
+    }
+  }
+
+  // ── HEADERS PER SERVICE ──
+  const svcHeaders = {
+    transfers:     ['Guest / Villa', 'Route', 'Time', 'Driver', 'Status'],
+    tours:         ['Tour Name', 'Time', 'Guide', 'Guests', 'Status'],
+    arrivals:      ['Guest / Villa', 'ETA', 'Transfer', 'Notes'],
+    departures:    ['Guest / Villa', 'Checkout', 'Transfer', 'Billing'],
+    dinners:       ['Villa / Guest', 'Time', 'Location', 'Vendor', 'Status'],
+    requests:      ['Request', 'Guest', 'Dept', 'Priority', 'Status'],
+    conversations: ['Guest', 'Channel', 'Last Message', 'Unread'],
+    orders:        ['#', 'Villa', 'Items', 'Status'],
+  };
+
+  // ── LOADING STATE ──
+  function showCardLoading(card) {
+    const rowsEl = card.querySelector('.brief-rows');
+    if (rowsEl) rowsEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;flex:1;gap:8px;color:var(--muted-dim);font-size:12px"><span style="width:14px;height:14px;border:2px solid rgba(124,142,103,0.2);border-top-color:var(--sage);border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></span>Loading…</div>`;
+  }
+  function showCardError(card, msg) {
+    const rowsEl = card.querySelector('.brief-rows');
+    if (rowsEl) rowsEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--terra);font-size:12px">${msg}</div>`;
+  }
+
+  // ── API FETCH WITH AUTH CHECK ──
+  async function apiFetch(url) {
+    const res = await fetch(url, { credentials: 'include' });
+    if (res.status === 401) {
+      window.location.href = `/en/staff/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return null;
+    }
+    if (!res.ok) throw new Error(`API ${res.status}: ${url}`);
+    return res.json();
+  }
+
+  // ── FETCH SERVICE DATA FOR A DATE OFFSET ──
+  async function fetchSvcRows(svc, offset) {
+    const date = getDateStr(offset);
+    const p = `date_from=${date}&date_to=${date}`;
+    try {
+      let data, rows;
+      switch (svc) {
+        case 'arrivals': {
+          const f = offset === 0 ? 'arriving_today' : 'arrivals';
+          data = await apiFetch(`/api/reservations?filter=${f}&date=${date}`);
+          rows = data?.reservations || [];
+          break;
+        }
+        case 'departures': {
+          const f = offset === 0 ? 'departing_today' : 'departures';
+          data = await apiFetch(`/api/reservations?filter=${f}&date=${date}`);
+          rows = data?.reservations || [];
+          break;
+        }
+        case 'transfers':
+          data = await apiFetch(`/api/transfers?${p}`);
+          rows = data?.transfers || [];
+          break;
+        case 'tours':
+          data = await apiFetch(`/api/tour-bookings?${p}`);
+          rows = data?.tour_bookings || [];
+          break;
+        case 'dinners':
+          data = await apiFetch(`/api/romantic-dinners?${p}`);
+          rows = data?.romantic_dinners || [];
+          break;
+        case 'requests':
+          data = await apiFetch(`/api/special-requests?${offset === 0 ? 'filter=today' : `date_from=${date}&date_to=${date}`}`);
+          rows = data?.special_requests || [];
+          break;
+        case 'conversations':
+          data = await apiFetch(`/api/conversations`);
+          rows = (data?.conversations || []).filter(r => {
+            if (!r.updated_at) return true;
+            const d = new Date(r.updated_at); d.setHours(0,0,0,0);
+            const target = new Date(); target.setDate(target.getDate() + offset); target.setHours(0,0,0,0);
+            return d.getTime() === target.getTime();
+          });
+          break;
+        case 'orders':
+          data = await apiFetch(`/api/orders`);
+          rows = (data?.orders || []).filter(r => {
+            if (!r.created_at) return true;
+            return r.created_at.startsWith(date);
+          });
+          break;
+        default:
+          rows = [];
+      }
+      // Cache normalized rows into serviceData
+      const key = offsetKey(offset);
+      if (!serviceData[svc]) serviceData[svc] = { headers: svcHeaders[svc] || [], yesterday: [], today: [], tomorrow: [] };
+      serviceData[svc][key] = rows.map(r => normalizeRow(svc, r));
+      serviceData[svc]._raw = serviceData[svc]._raw || {};
+      serviceData[svc]._raw[key] = rows; // preserve originals for CRUD
+      return serviceData[svc][key];
+    } catch (e) {
+      console.warn(`fetchSvcRows(${svc}, ${offset}):`, e);
+      return null; // null = error, [] = empty
+    }
+  }
+
+  // ── ASYNC RENDER DAY BRIEF ──
+  async function renderDayBriefLive(offset) {
+    const key = offsetKey(offset);
+    const d = getDateOffset(offset);
+    const prefixMap = { yesterday:'Yesterday', today:'Today', tomorrow:'Tomorrow' };
+    const prefix = prefixMap[key] || '';
+    const dateStr = d.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    $('#briefDateLabel').textContent = `${prefix} — ${dateStr}`;
+
+    const briefDefs = [
+      { panelId:'panel-arrivals',   svc:'arrivals',      render:'rows',     nameIdx:0, timeIdx:1, statusIdx:2 },
+      { panelId:'panel-departures', svc:'departures',    render:'rows',     nameIdx:0, timeIdx:1, statusIdx:2 },
+      { panelId:'panel-transfers',  svc:'transfers',     render:'rows',     nameIdx:0, timeIdx:2, statusIdx:4 },
+      { panelId:'panel-tours',      svc:'tours',         render:'rows',     nameIdx:0, timeIdx:1, statusIdx:4 },
+      { panelId:'panel-requests',   svc:'requests',      render:'requests' },
+      { panelId:'panel-messages',   svc:'conversations', render:'messages' },
+      { panelId:'panel-dinners',    svc:'dinners',       render:'dinners' },
+    ];
+
+    // Show loading spinners immediately
+    briefDefs.forEach(def => {
+      const card = document.querySelector(`.brief-card[data-panel="${def.panelId}"]`);
+      if (card) showCardLoading(card);
+    });
+
+    // Fetch all in parallel
+    const results = await Promise.allSettled(
+      briefDefs.map(def => fetchSvcRows(def.svc, offset))
+    );
+
+    // Re-render each card with live data
+    briefDefs.forEach((def, idx) => {
+      const card = document.querySelector(`.brief-card[data-panel="${def.panelId}"]`);
+      if (!card) return;
+
+      const result = results[idx];
+      if (result.status === 'rejected' || result.value === null) {
+        showCardError(card, 'Could not load data');
+        return;
+      }
+
+      const rows = result.value;
+      const badge = card.querySelector('.brief-badge');
+      if (badge) badge.textContent = rows.length;
+
+      const rowsEl = card.querySelector('.brief-rows');
+      if (!rowsEl) return;
+
+      function rowHtml(r) {
+        const rid = ++rowIdCounter;
+        rowRegistry.set(rid, { data: r, svc: def.svc, key });
+        const attr = `data-row-id="${rid}"`;
+        const statusLabels = {completed:'Done',confirmed:'Confirmed','en-route':'En Route',pending:'Pending',high:'High',medium:'Medium',low:'Low'};
+        const stHtml = (st) => st ? `<span class="status ${st}" style="font-size:10px;padding:2px 7px;flex-shrink:0"><span class="status-dot"></span>${statusLabels[st]||st}</span>` : '';
+        if (def.render === 'rows') {
+          const raw = r[def.nameIdx] || '';
+          const nameMatch = raw.match(/^(.*?)(?:<br\s*\/?><small[^>]*>(.*?)<\/small>)?$/i);
+          const guestName = (nameMatch[1]||raw).replace(/<[^>]+>/g,'').trim();
+          const sub = (nameMatch[2]||'').replace(/<[^>]+>/g,'').trim();
+          if (def.svc === 'arrivals') {
+            return `<div class="brief-row brief-row-2line" ${attr}>
+              <div class="brief-row-main">
+                <span class="brief-row-name">${guestName}</span>
+                ${sub ? `<span class="brief-row-room">${sub}</span>` : ''}
+              </div>
+              <div class="brief-row-detail">
+                <span class="time-badge" style="font-size:11px;padding:2px 6px">${fmtTime(r[1])}</span>
+                ${stHtml(r[2])}
+              </div>
+            </div>`;
+          } else if (def.svc === 'departures') {
+            return `<div class="brief-row brief-row-2line" ${attr}>
+              <div class="brief-row-main">
+                <span class="brief-row-name">${guestName}</span>
+                ${sub ? `<span class="brief-row-room">${sub}</span>` : ''}
+              </div>
+              <div class="brief-row-detail">
+                <span class="time-badge" style="font-size:11px;padding:2px 6px">${fmtTime(r[1])}</span>
+                ${stHtml(r[2])}
+                ${stHtml(r[3])}
+              </div>
+            </div>`;
+          } else if (def.svc === 'transfers') {
+            const routeParts = (r[1]||'').split('→').map(s=>s.trim());
+            const route = routeParts.length===2 ? fmtRoute(routeParts[0],routeParts[1]) : (r[1]||'').slice(0,28);
+            return `<div class="brief-row brief-row-2line" ${attr}>
+              <div class="brief-row-main">
+                <span class="brief-row-name">${guestName}</span>
+                ${sub ? `<span class="brief-row-room">${sub}</span>` : ''}
+              </div>
+              <div class="brief-row-detail">
+                <span class="brief-row-route">${route}</span>
+                <span class="time-badge" style="font-size:11px;padding:2px 6px">${fmtTime(r[2])}</span>
+                ${stHtml(r[4])}
+              </div>
+            </div>`;
+          } else if (def.svc === 'tours') {
+            return `<div class="brief-row brief-row-2line" ${attr}>
+              <div class="brief-row-main">
+                <span class="brief-row-name">${guestName}</span>
+              </div>
+              <div class="brief-row-detail">
+                <span class="time-badge" style="font-size:11px;padding:2px 6px">${fmtTime(r[1])}</span>
+                ${r[3] ? `<span style="font-size:10px;color:var(--muted-dim);flex-shrink:0">${r[3]} pax</span>` : ''}
+                ${stHtml(r[4])}
+              </div>
+            </div>`;
+          }
+          const status = def.statusIdx != null ? r[def.statusIdx] : '';
+          return `<div class="brief-row brief-row-2line" ${attr}>
+            <div class="brief-row-main"><span class="brief-row-name">${guestName}</span>${sub?`<span class="brief-row-room">${sub}</span>`:''}</div>
+            <div class="brief-row-detail">${def.timeIdx!=null?`<span class="time-badge" style="font-size:11px;padding:2px 6px">${fmtTime(r[def.timeIdx])}</span>`:''} ${stHtml(status)}</div>
+          </div>`;
+        } else if (def.render === 'requests') {
+          const deptColors = {concierge:'var(--gold)',fnb:'var(--sage)',maintenance:'var(--terra)',housekeeping:'#7B9EA8',front_desk:'var(--gold)',other:'var(--muted-dim)'};
+          const deptColor = deptColors[(r[2]||'').toLowerCase()] || 'var(--muted-dim)';
+          return `<div class="brief-row brief-row-2line" ${attr}>
+            <div class="brief-row-main">
+              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${deptColor};flex-shrink:0;border:1px solid ${deptColor};border-radius:3px;padding:1px 5px">${r[2]||'—'}</span>
+              <span class="brief-row-name" style="flex:1;min-width:0">${r[0]}</span>
+            </div>
+            <div class="brief-row-detail">
+              <span style="font-size:11px;color:var(--muted-dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[1]}</span>
+              <span class="priority-${r[3]||'low'}" style="font-size:10px;flex-shrink:0">${(r[3]||'normal').charAt(0).toUpperCase()+(r[3]||'normal').slice(1)}</span>
+            </div>
+          </div>`;
+        } else if (def.render === 'messages') {
+          const channelColors = {whatsapp:'#25D366',sms:'var(--gold)',email:'#4A90D9',app:'var(--sage)'};
+          const ch = (r[1]||'').toLowerCase();
+          const chColor = channelColors[ch] || 'var(--muted-dim)';
+          return `<div class="brief-row brief-row-2line" ${attr}>
+            <div class="brief-row-main">
+              <span class="brief-row-name">${r[0]}</span>
+              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${chColor};flex-shrink:0;border:1px solid ${chColor};border-radius:3px;padding:1px 5px">${r[1]||'—'}</span>
+              ${r[3]&&r[3]!='0'?`<span style="background:var(--terra);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0">${r[3]}</span>`:''}
+            </div>
+            <div class="brief-row-detail">
+              <span style="font-size:11px;color:var(--muted-dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[2]||''}</span>
+            </div>
+          </div>`;
+        } else if (def.render === 'dinners') {
+          const raw2 = r[0] || '';
+          const nameMatch2 = raw2.match(/^(.*?)(?:<br\s*\/?><small[^>]*>(.*?)<\/small>)?$/i);
+          const dGuestName = (nameMatch2[1]||raw2).replace(/<[^>]+>/g,'').trim();
+          const dSub = (nameMatch2[2]||'').replace(/<[^>]+>/g,'').trim();
+          return `<div class="brief-row brief-row-2line" ${attr}>
+            <div class="brief-row-main">
+              <span class="brief-row-name">${dGuestName}</span>
+              <span class="time-badge" style="font-size:11px;padding:2px 6px;flex-shrink:0">${fmtTime(r[1])}</span>
+            </div>
+            <div class="brief-row-detail">
+              <span style="font-size:11px;color:var(--muted-dim);flex:1">${r[2]||dSub||'—'}</span>
+              ${stHtml(r[4])}
+            </div>
+          </div>`;
+        }
+        return '';
+      }
+
+      const useTicker = rows.length > 4;
+      if (useTicker) {
+        const allRowsHtml = rows.map(r => rowHtml(r)).join('');
+        rowsEl.innerHTML = `<div class="brief-ticker-wrap"><div class="brief-ticker-track">${allRowsHtml}</div></div>`;
+      } else if (rows.length === 0) {
+        rowsEl.innerHTML = `<div style="text-align:center;padding:20px 8px;color:var(--muted-dim);font-size:12px;font-style:italic">No records for this date</div>`;
+      } else {
+        rowsEl.innerHTML = rows.map(r => rowHtml(r)).join('');
+      }
+      bindRowInteractions(rowsEl);
+    });
+
+    // Update KPI counts from fetched data
+    const kpiMap = [
+      'arrivals','panel-inhouse','departures','transfers','tours','requests','conversations','dinners'
+    ];
+    $$('.kpi-number[data-target]').forEach((el, i) => {
+      const svc = kpiMap[i];
+      if (svc && svc !== 'panel-inhouse' && serviceData[svc]) {
+        const count = (serviceData[svc][key] || []).length;
+        el.dataset.target = count;
+        animateCounter(el, count, 700);
+      }
+    });
+
+    setTimeout(() => { $$('.occ-fill').forEach(b => { b.style.width = b.dataset.width; }); }, 100);
+  }
+
+  // ── ASYNC RENDER SERVICE VIEW ──
+  async function renderServiceViewLive(svc) {
+    const grid = $('#timeGrid');
+    grid.innerHTML = `<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:60px;gap:10px;color:var(--muted-dim);font-size:13px"><span style="width:18px;height:18px;border:2px solid rgba(124,142,103,0.2);border-top-color:var(--sage);border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></span>Loading ${svc}…</div>`;
+
+    await Promise.all([-1, 0, 1].map(offset => fetchSvcRows(svc, offset)));
+    renderServiceView(svc); // re-uses existing renderer now that serviceData is populated
+  }
+
+  // ── OVERRIDE: applyDateChange uses live fetch ──
+  function applyDateChange() {
+    updateDateLabel();
+    if (activePanelId) {
+      renderDetailPanel(activePanelId, currentDateOffset);
+    } else {
+      renderDayBriefLive(currentDateOffset);
+    }
+  }
+
+  // ── PATCH: mode toggle uses live fetch for service view ──
+  $$('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.mode;
+      if (mode === 'date') {
+        $('#viewDate').classList.add('active');
+        $('#viewService').classList.remove('active');
+        $('#dateNav').style.display = 'flex';
+        $('#serviceTabs').style.display = 'none';
+        closePanelShowBrief();
+        renderDayBriefLive(currentDateOffset);
+      } else {
+        $('#viewDate').classList.remove('active');
+        $('#viewService').classList.add('active');
+        $('#dateNav').style.display = 'none';
+        $('#serviceTabs').style.display = 'flex';
+        renderServiceViewLive($('.service-tab.active')?.dataset.svc || 'transfers');
+      }
+    });
+  });
+
+  // ── PATCH: service tab uses live fetch ──
+  $$('.service-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      $$('.service-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderServiceViewLive(tab.dataset.svc);
+    });
+  });
+
+  // ── CRUD WRITE-BACK ──
+  const svcToEndpoint = {
+    transfers: '/api/transfers', tours: '/api/tour-bookings',
+    dinners: '/api/romantic-dinners', requests: '/api/special-requests',
+    arrivals: '/api/reservations', departures: '/api/reservations',
+    conversations: '/api/conversations', orders: '/api/orders',
+  };
+
+  async function apiWrite(method, svc, body, id) {
+    const base = svcToEndpoint[svc] || `/api/${svc}`;
+    const url = (method === 'PUT' || method === 'DELETE') && id ? `${base}?id=${id}` : base;
+    const res = await fetch(url, {
+      method,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: method !== 'DELETE' ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401) { window.location.href = `/en/staff/login`; return null; }
+    return res.ok ? res.json().catch(() => ({})) : null;
+  }
+
+  // Patch modal save/create/delete to call real API then re-fetch
+  const _origSave = document.getElementById('modalClose'); // placeholder — patch inline below
+
+  function patchModalCRUD() {
+    // Patch renderModalEdit save
+    const origRenderModalEdit = renderModalEdit;
+    window.renderModalEdit = function(entry) {
+      origRenderModalEdit(entry);
+      const saveBtn = document.getElementById('modalSaveBtn');
+      if (!saveBtn) return;
+      saveBtn.replaceWith(saveBtn.cloneNode(true)); // remove old listeners
+      document.getElementById('modalSaveBtn').addEventListener('click', async () => {
+        const updates = {};
+        document.querySelectorAll('#modalBody input[data-idx]').forEach(input => {
+          const header = (svcHeaders[entry.svc] || [])[parseInt(input.dataset.idx)];
+          if (header) updates[header.toLowerCase().replace(/ \//g,'_').replace(/\s+/g,'_')] = input.value;
+        });
+        const rawRows = serviceData[entry.svc]?._raw?.[entry.key] || [];
+        const raw = rawRows[serviceData[entry.svc][entry.key].indexOf(entry.data)];
+        if (raw?.id) await apiWrite('PUT', entry.svc, updates, raw.id);
+        closeModal();
+        await fetchSvcRows(entry.svc, ['yesterday',-1,'today',0,'tomorrow',1].indexOf(entry.key) < 0
+          ? (['yesterday','today','tomorrow'].indexOf(entry.key) - 1)
+          : (['yesterday','today','tomorrow'].indexOf(entry.key) - 1));
+        if ($('#viewService').classList.contains('active')) {
+          renderServiceView($('.service-tab.active')?.dataset.svc || entry.svc);
+        } else {
+          renderDayBriefLive(currentDateOffset);
+        }
+      });
+    };
+
+    // Patch renderModalDelete confirm
+    const origRenderModalDelete = renderModalDelete;
+    window.renderModalDelete = function(entry) {
+      origRenderModalDelete(entry);
+      const delBtn = document.getElementById('modalConfirmDeleteBtn');
+      if (!delBtn) return;
+      delBtn.replaceWith(delBtn.cloneNode(true));
+      document.getElementById('modalConfirmDeleteBtn').addEventListener('click', async () => {
+        const rawRows = serviceData[entry.svc]?._raw?.[entry.key] || [];
+        const raw = rawRows[serviceData[entry.svc][entry.key].indexOf(entry.data)];
+        if (raw?.id) await apiWrite('DELETE', entry.svc, null, raw.id);
+        const arr = serviceData[entry.svc][entry.key];
+        const idx = arr.indexOf(entry.data);
+        if (idx > -1) arr.splice(idx, 1);
+        closeModal();
+        await fetchSvcRows(entry.svc, currentDateOffset);
+        if ($('#viewService').classList.contains('active')) {
+          renderServiceView($('.service-tab.active')?.dataset.svc || entry.svc);
+        } else {
+          renderDayBriefLive(currentDateOffset);
+        }
+      });
+    };
+
+    // Patch renderModalNew create
+    const origRenderModalNew = renderModalNew;
+    window.renderModalNew = function(svc) {
+      origRenderModalNew(svc);
+      const createBtn = document.getElementById('modalCreateBtn');
+      if (!createBtn) return;
+      createBtn.replaceWith(createBtn.cloneNode(true));
+      document.getElementById('modalCreateBtn').addEventListener('click', async () => {
+        const body = {};
+        document.querySelectorAll('#modalBody input[data-idx]').forEach(input => {
+          const header = (svcHeaders[svc] || [])[parseInt(input.dataset.idx)];
+          if (header) body[header.toLowerCase().replace(/ \//g,'_').replace(/\s+/g,'_')] = input.value || '—';
+        });
+        await apiWrite('POST', svc, body);
+        closeModal();
+        await fetchSvcRows(svc, currentDateOffset);
+        if ($('#viewService').classList.contains('active')) {
+          renderServiceViewLive(svc);
+        } else {
+          renderDayBriefLive(currentDateOffset);
+        }
+      });
+    };
+  }
+  patchModalCRUD();
+
+  // ── SPIN ANIMATION (loading spinner) ──
+  const spinStyle = document.createElement('style');
+  spinStyle.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+  document.head.appendChild(spinStyle);
+
+  // ── AUTH INIT — load current user ──
+  let currentUser = null;
+  let siteLocale = 'en';
+
+  function getGreeting(name) {
+    const h = new Date().getHours();
+    const base = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+    return name ? `${base}, ${name}` : base;
+  }
+
+  async function initAuth() {
+    try {
+      const data = await apiFetch('/api/auth/me');
+      if (!data) return; // apiFetch handles 401 redirect
+      currentUser = data.user;
+      if (!currentUser) return;
+
+      // Detect locale from URL or default
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      if (pathParts[0] === 'en' || pathParts[0] === 'es') siteLocale = pathParts[0];
+
+      // Update greeting
+      const firstName = currentUser.firstName || currentUser.first_name || (currentUser.email || '').split('@')[0];
+      $('#headerGreeting').textContent = getGreeting(firstName);
+
+      // Update avatar
+      const fullName = currentUser.fullName || `${currentUser.firstName||''} ${currentUser.lastName||''}`.trim() || currentUser.email || '';
+      const initials = fullName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
+      $('#userInitials').textContent = initials;
+
+      // Update user menu
+      $('#userFullName').textContent = fullName;
+      const roleLabel = (currentUser.role || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      $('#userRoleBadge').textContent = roleLabel;
+
+      // Update nav links with correct locale
+      $('#userProfileLink').href = `/${siteLocale}/staff/profiles/me`;
+      $('#userSettingsLink').href = `/${siteLocale}/staff/settings`;
+
+      // Sidebar nav: group icons open/close panel, sub-items navigate
+      const panelGroups = {
+        concierge: { label: 'Concierge', items: [
+          { name: 'Reservations', path: 'reservations' },
+          { name: 'Guests', path: 'guests' },
+          { name: 'Arrivals', path: 'arrivals' },
+          { name: 'Departures', path: 'departures' },
+          { name: 'Transfers', path: 'transfers' },
+          { name: 'Hotel Bookings', path: 'hotel-bookings' },
+        ]},
+        fnb: { label: 'Food & Beverage', items: [
+          { name: 'Orders', path: 'orders' },
+          { name: 'Menus', path: 'menus' },
+          { name: 'Tours & Activities', path: 'tours' },
+        ]},
+        comms: { label: 'Communications', items: [
+          { name: 'Messages', path: 'messages' },
+          { name: 'Requests', path: 'requests' },
+        ]},
+        admin: { label: 'Admin', items: [
+          { name: 'Billing', path: 'billing' },
+          { name: 'Vendors', path: 'vendors' },
+          { name: 'Staff', path: 'staff-members' },
+          { name: 'Settings', path: 'settings' },
+        ]},
+      };
+
+      function openSidebarPanel(group) {
+        const def = panelGroups[group];
+        if (!def) return;
+        $('#panelTitle').textContent = def.label;
+        $('#panelItems').innerHTML = def.items.map(item =>
+          `<a class="panel-item" href="/${siteLocale}/staff/${item.path}">${item.name}</a>`
+        ).join('');
+        $('#sidebarPanel').classList.add('open');
+        document.querySelector('.main-wrap').style.marginLeft = '210px';
+        $$('.nav-item[data-group]').forEach(n => n.classList.remove('active'));
+        const activeNav = document.querySelector(`.nav-item[data-group="${group}"]`);
+        if (activeNav) activeNav.classList.add('active');
+      }
+
+      function closeSidebarPanel() {
+        $('#sidebarPanel').classList.remove('open');
+        document.querySelector('.main-wrap').style.marginLeft = '0';
+        $$('.nav-item[data-group]').forEach(n => n.classList.remove('active'));
+      }
+
+      $$('.nav-item[data-group]').forEach(item => {
+        const group = item.dataset.group;
+        item.style.cursor = 'pointer';
+        item.onclick = (e) => {
+          e.preventDefault();
+          if (item.dataset.nav === 'dashboard') {
+            closeSidebarPanel();
+            return;
+          }
+          if ($('#sidebarPanel').classList.contains('open') &&
+              document.querySelector(`.nav-item[data-group="${group}"]`)?.classList.contains('active')) {
+            closeSidebarPanel();
+          } else {
+            openSidebarPanel(group);
+          }
+        };
+      });
+
+      document.getElementById('panelClose')?.addEventListener('click', closeSidebarPanel);
+
+      // Click outside panel to close
+      document.querySelector('.main-wrap')?.addEventListener('click', () => {
+        if ($('#sidebarPanel').classList.contains('open')) closeSidebarPanel();
+      });
+
+    } catch(e) {
+      console.warn('initAuth failed:', e);
+    }
+  }
+
+  // ── USER MENU TOGGLE ──
+  function toggleUserMenu(e) {
+    e.stopPropagation();
+    const menu = $('#userMenuDropdown');
+    menu.classList.toggle('open');
+  }
+
+  document.addEventListener('click', () => {
+    $('#userMenuDropdown')?.classList.remove('open');
+  });
+
+  // ── LOGOUT ──
+  async function doLogout() {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    window.location.href = `/${siteLocale}/staff/login`;
+  }
+
+  // ── LAST UPDATED INDICATOR ──
+  function updateLastUpdatedLabel() {
+    const el = $('#lastUpdated');
+    if (!el) return;
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    el.textContent = `Updated ${hh}:${mm}`;
+    el.style.display = 'inline';
+  }
+
+  // ── AUTO-REFRESH (60s) ──
+  let autoRefreshTimer = null;
+  function startAutoRefresh() {
+    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    autoRefreshTimer = setInterval(async () => {
+      if ($('#viewService').classList.contains('active')) {
+        const activeSvc = $('.service-tab.active')?.dataset.svc || 'transfers';
+        await renderServiceViewLive(activeSvc);
+      } else {
+        await renderDayBriefLive(currentDateOffset);
+      }
+      updateLastUpdatedLabel();
+    }, 60000);
+  }
+
+  // ── INITIAL RENDER (live) ──
+  initAuth();
+  renderDayBriefLive(0).then(() => { updateLastUpdatedLabel(); startAutoRefresh(); });
+</script>
+</body>
+</html>

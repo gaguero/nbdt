@@ -158,20 +158,13 @@ function MetricCard({
   tone?: 'slate' | 'emerald' | 'sky' | 'amber' | 'rose';
   icon?: ReactNode;
 }) {
-  const tones: Record<string, string> = {
-    slate: 'bg-slate-50 border-slate-200 text-slate-700',
-    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-    sky: 'bg-sky-50 border-sky-200 text-sky-700',
-    amber: 'bg-amber-50 border-amber-200 text-amber-700',
-    rose: 'bg-rose-50 border-rose-200 text-rose-700',
-  };
   return (
-    <div className={cx('rounded-xl border px-3 py-2', tones[tone])}>
+    <div className="nayara-card px-3 py-2">
       <div className="flex items-center gap-2">
         {icon}
-        <p className="text-[10px] uppercase tracking-[0.16em] font-semibold">{label}</p>
+        <p className="nayara-label">{label}</p>
       </div>
-      <p className="mt-1 text-xl font-bold leading-none">{value}</p>
+      <p className="mt-1 text-xl font-bold leading-none" style={{ color: 'var(--charcoal)' }}>{value}</p>
     </div>
   );
 }
@@ -188,18 +181,16 @@ function ToggleRow({
   hint?: string;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white px-3 py-3">
+    <div className="flex items-start justify-between gap-4 rounded-xl px-3 py-3" style={{ border: '1px solid var(--separator)', background: 'var(--surface)' }}>
       <div>
-        <p className="text-sm font-medium text-slate-800">{label}</p>
-        {hint ? <p className="text-xs text-slate-500 mt-0.5">{hint}</p> : null}
+        <p className="text-sm font-medium" style={{ color: 'var(--charcoal)' }}>{label}</p>
+        {hint ? <p className="text-xs mt-0.5" style={{ color: 'var(--muted-dim)' }}>{hint}</p> : null}
       </div>
       <button
         type="button"
         onClick={() => onChange(!value)}
-        className={cx(
-          'h-7 w-12 rounded-full relative transition-colors',
-          value ? 'bg-emerald-500' : 'bg-slate-300'
-        )}
+        className="h-7 w-12 rounded-full relative transition-colors shrink-0"
+        style={{ background: value ? 'var(--sage)' : 'var(--elevated)' }}
       >
         <span
           className={cx(
@@ -216,8 +207,8 @@ function SectionTitle({ title, subtitle, children }: { title: string; subtitle?:
   return (
     <div className="flex items-start justify-between gap-4 flex-wrap">
       <div>
-        <h2 className="font-heading text-2xl text-slate-900">{title}</h2>
-        {subtitle ? <p className="text-sm text-slate-500 mt-1">{subtitle}</p> : null}
+        <h2 className="text-xl font-bold italic" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>{title}</h2>
+        {subtitle ? <p className="text-sm mt-1" style={{ color: 'var(--muted-dim)' }}>{subtitle}</p> : null}
       </div>
       {children}
     </div>
@@ -2072,27 +2063,25 @@ export default function SettingsPage() {
   return (
     <div className="p-6">
       <div className="max-w-[1400px] mx-auto">
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-6 mb-5">
-          <div className="absolute -top-10 -right-10 h-44 w-44 rounded-full bg-emerald-200/35 blur-2xl" />
-          <div className="absolute -bottom-12 -left-10 h-44 w-44 rounded-full bg-amber-200/40 blur-2xl" />
-          <div className="relative flex items-start justify-between gap-4 flex-wrap">
+        <div className="nayara-card p-6 mb-5">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500 font-semibold">Operations Console</p>
-              <h1 className="font-heading text-4xl text-slate-900 mt-1">Data Curation Center</h1>
-              <p className="text-sm text-slate-600 mt-2 max-w-3xl">Single-page command center for imports, sync, normalization, and safety tools.</p>
+              <p className="nayara-label">Operations Console</p>
+              <h1 className="text-3xl font-bold italic mt-1" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>Data Curation Center</h1>
+              <p className="text-sm mt-2 max-w-3xl" style={{ color: 'var(--muted-dim)' }}>Single-page command center for imports, sync, normalization, and safety tools.</p>
             </div>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => { setActiveModule('configuration'); setSettingsMessage(null); }} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+              <button type="button" onClick={() => { setActiveModule('configuration'); setSettingsMessage(null); }} className="nayara-btn nayara-btn-secondary flex items-center gap-2">
                 <Cog6ToothIcon className="h-4 w-4" />
                 Settings
               </button>
-              <button type="button" onClick={() => void refreshCountsAndLogs()} className="rounded-lg bg-slate-900 text-white px-3 py-2 text-sm font-semibold hover:bg-slate-800 flex items-center gap-2">
+              <button type="button" onClick={() => void refreshCountsAndLogs()} className="nayara-btn nayara-btn-primary flex items-center gap-2">
                 <ArrowPathIcon className="h-4 w-4" />
                 Refresh
               </button>
             </div>
           </div>
-          <div className="relative mt-5 grid grid-cols-2 md:grid-cols-5 gap-2">
+          <div className="mt-5 grid grid-cols-2 md:grid-cols-5 gap-2">
             <MetricCard label="Guests" value={getCount('guests')} tone="emerald" />
             <MetricCard label="Reservations" value={getCount('reservations')} tone="sky" />
             <MetricCard label="Vendors" value={getCount('vendors')} tone="amber" />
@@ -2106,24 +2095,36 @@ export default function SettingsPage() {
               const Icon = module.icon;
               const active = activeModule === module.key;
               return (
-                <button key={module.key} type="button" onClick={() => setActiveModule(module.key)} className={cx('w-full text-left rounded-2xl border px-3 py-3 transition-colors', active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white hover:bg-slate-50')}>
+                <button
+                  key={module.key}
+                  type="button"
+                  onClick={() => setActiveModule(module.key)}
+                  className="w-full text-left rounded-xl px-3 py-3 transition-colors"
+                  style={active
+                    ? { background: 'var(--sidebar-bg)', color: '#fff', border: '1px solid var(--sidebar-bg)' }
+                    : { background: 'var(--surface)', color: 'var(--charcoal)', border: '1px solid var(--separator)' }
+                  }
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2">
-                      <div className={cx('rounded-lg p-1.5', active ? 'bg-white/15' : 'bg-slate-100')}>
-                        <Icon className={cx('h-4 w-4', active ? 'text-white' : 'text-slate-600')} />
+                      <div
+                        className="rounded-lg p-1.5"
+                        style={{ background: active ? 'rgba(255,255,255,0.15)' : 'var(--elevated)' }}
+                      >
+                        <Icon className="h-4 w-4" style={{ color: active ? '#fff' : 'var(--muted-dim)' }} />
                       </div>
                       <div>
-                        <p className={cx('text-sm font-semibold', active ? 'text-white' : 'text-slate-800')}>{module.label}</p>
-                        <p className={cx('text-[11px] mt-0.5', active ? 'text-white/75' : 'text-slate-500')}>{module.note}</p>
+                        <p className="text-sm font-semibold">{module.label}</p>
+                        <p className="text-[11px] mt-0.5" style={{ opacity: 0.7 }}>{module.note}</p>
                       </div>
                     </div>
-                    {module.locked ? <LockClosedIcon className={cx('h-4 w-4', active ? 'text-white/80' : 'text-rose-500')} /> : null}
+                    {module.locked ? <LockClosedIcon className="h-4 w-4" style={{ color: active ? 'rgba(255,255,255,0.8)' : 'var(--terra)' }} /> : null}
                   </div>
                 </button>
               );
             })}
           </aside>
-          <section className="rounded-3xl border border-slate-200 bg-white/90 backdrop-blur p-5">{renderActiveModule()}</section>
+          <section className="nayara-card p-5">{renderActiveModule()}</section>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
+import { statusColor } from '@/lib/statusColors';
 
 interface Guest {
   id: string;
@@ -126,20 +127,25 @@ export default function GuestsPage() {
     }
   };
 
-  const STATUS_COLORS: Record<string, string> = {
-    'CHECKED IN': 'bg-green-100 text-green-700',
-    'RESERVED': 'bg-blue-100 text-blue-700',
-    'CHECKED OUT': 'bg-gray-100 text-gray-600',
-    'CANCELLED': 'bg-red-100 text-red-700',
+  const localStatusColor = (status: string) => {
+    const map: Record<string, string> = {
+      'CHECKED IN': 'nayara-badge nayara-badge-confirmed',
+      'RESERVED': 'nayara-badge nayara-badge-pending',
+      'CHECKED OUT': 'nayara-badge nayara-badge-completed',
+      'CANCELLED': 'nayara-badge nayara-badge-cancelled',
+    };
+    return map[status] ?? 'nayara-badge nayara-badge-cancelled';
   };
 
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">{ls('Guests', 'Huéspedes')}</h1>
+        <h1 className="text-2xl font-bold italic" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>
+          {ls('Guests', 'Huéspedes')}
+        </h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          className="nayara-btn nayara-btn-primary"
         >
           + {ls('New Guest', 'Nuevo Huésped')}
         </button>
@@ -147,39 +153,39 @@ export default function GuestsPage() {
 
       {/* Create Modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <h2 className="font-semibold text-gray-800 text-lg">{ls('New Guest', 'Nuevo Huésped')}</h2>
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(14,26,9,0.52)', backdropFilter: 'blur(4px)' }}>
+          <div className="nayara-card w-full max-w-md p-6 space-y-4" style={{ borderRadius: '18px' }}>
+            <h2 className="font-bold italic text-lg" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--sage)' }}>{ls('New Guest', 'Nuevo Huésped')}</h2>
             <form onSubmit={handleCreate} className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('First Name', 'Nombre')} *</label>
-                <input required type="text" value={createForm.first_name} onChange={e => setCreateForm({ ...createForm, first_name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <label className="nayara-label">{ls('First Name', 'Nombre')} *</label>
+                <input required type="text" value={createForm.first_name} onChange={e => setCreateForm({ ...createForm, first_name: e.target.value })} className="nayara-input" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Last Name', 'Apellido')}</label>
-                <input type="text" value={createForm.last_name} onChange={e => setCreateForm({ ...createForm, last_name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <label className="nayara-label">{ls('Last Name', 'Apellido')}</label>
+                <input type="text" value={createForm.last_name} onChange={e => setCreateForm({ ...createForm, last_name: e.target.value })} className="nayara-input" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Email', 'Correo')}</label>
-                <input type="email" value={createForm.email} onChange={e => setCreateForm({ ...createForm, email: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <label className="nayara-label">{ls('Email', 'Correo')}</label>
+                <input type="email" value={createForm.email} onChange={e => setCreateForm({ ...createForm, email: e.target.value })} className="nayara-input" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Phone', 'Teléfono')}</label>
-                <input type="text" value={createForm.phone} onChange={e => setCreateForm({ ...createForm, phone: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <label className="nayara-label">{ls('Phone', 'Teléfono')}</label>
+                <input type="text" value={createForm.phone} onChange={e => setCreateForm({ ...createForm, phone: e.target.value })} className="nayara-input" />
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Nationality', 'Nacionalidad')}</label>
-                <input type="text" value={createForm.nationality} onChange={e => setCreateForm({ ...createForm, nationality: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <label className="nayara-label">{ls('Nationality', 'Nacionalidad')}</label>
+                <input type="text" value={createForm.nationality} onChange={e => setCreateForm({ ...createForm, nationality: e.target.value })} className="nayara-input" />
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Notes', 'Notas')}</label>
-                <textarea rows={2} value={createForm.notes} onChange={e => setCreateForm({ ...createForm, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
+                <label className="nayara-label">{ls('Notes', 'Notas')}</label>
+                <textarea rows={2} value={createForm.notes} onChange={e => setCreateForm({ ...createForm, notes: e.target.value })} className="nayara-input" />
               </div>
               <div className="col-span-2 flex gap-3">
-                <button type="submit" disabled={createSaving} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">
+                <button type="submit" disabled={createSaving} className="nayara-btn nayara-btn-primary disabled:opacity-50">
                   {createSaving ? ls('Saving...', 'Guardando...') : ls('Create', 'Crear')}
                 </button>
-                <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+                <button type="button" onClick={() => setShowCreate(false)} className="nayara-btn nayara-btn-ghost">
                   {ls('Cancel', 'Cancelar')}
                 </button>
               </div>
@@ -194,13 +200,13 @@ export default function GuestsPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={ls('Search by name...', 'Buscar por nombre...')}
-          className="border rounded-lg px-3 py-2 text-sm flex-1 max-w-sm"
+          className="nayara-input flex-1 max-w-sm"
         />
-        <button type="submit" className="px-4 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">
+        <button type="submit" className="nayara-btn nayara-btn-secondary">
           {ls('Search', 'Buscar')}
         </button>
         {search && (
-          <button type="button" onClick={() => { setSearch(''); fetchGuests(); }} className="px-3 py-2 text-gray-500 hover:text-gray-700 text-sm">
+          <button type="button" onClick={() => { setSearch(''); fetchGuests(); }} className="nayara-btn nayara-btn-ghost">
             {ls('Clear', 'Limpiar')}
           </button>
         )}
@@ -208,28 +214,34 @@ export default function GuestsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Guest list */}
-        <div className="lg:col-span-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 bg-gray-50 border-b">
-            <h2 className="text-sm font-semibold text-gray-700">{guests.length} {ls('guests', 'huéspedes')}</h2>
+        <div className="lg:col-span-1 nayara-card overflow-hidden">
+          <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--separator)', background: 'var(--elevated)' }}>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--muted)' }}>{guests.length} {ls('guests', 'huéspedes')}</h2>
           </div>
-          <div className="divide-y max-h-[600px] overflow-y-auto">
+          <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
             {loading ? (
-              <div className="py-8 text-center text-gray-400 text-sm">{ls('Loading...', 'Cargando...')}</div>
+              <div className="py-8 text-center text-sm" style={{ color: 'var(--muted-dim)' }}>{ls('Loading...', 'Cargando...')}</div>
             ) : guests.length === 0 ? (
-              <div className="py-8 text-center text-gray-400 text-sm">{ls('No guests found', 'Sin huéspedes')}</div>
+              <div className="py-8 text-center text-sm" style={{ color: 'var(--muted-dim)' }}>{ls('No guests found', 'Sin huéspedes')}</div>
             ) : guests.map(g => (
               <button
                 key={g.id}
                 onClick={() => fetchDetail(g.id)}
-                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${selected?.guest?.id === g.id ? 'bg-blue-50 border-l-2 border-l-blue-500' : ''}`}
+                className="w-full text-left px-4 py-3 transition-colors"
+                style={selected?.guest?.id === g.id
+                  ? { background: 'rgba(170,142,103,0.10)', borderLeft: '3px solid var(--gold)' }
+                  : { borderLeft: '3px solid transparent' }
+                }
+                onMouseEnter={e => { if (selected?.guest?.id !== g.id) e.currentTarget.style.background = 'var(--elevated)'; }}
+                onMouseLeave={e => { if (selected?.guest?.id !== g.id) e.currentTarget.style.background = 'transparent'; }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="font-medium text-sm text-gray-900">{g.full_name}</div>
-                    {g.email && <div className="text-xs text-gray-500 mt-0.5">{g.email}</div>}
+                    <div className="font-medium text-sm" style={{ color: 'var(--charcoal)' }}>{g.full_name}</div>
+                    {g.email && <div className="text-xs mt-0.5" style={{ color: 'var(--muted-dim)' }}>{g.email}</div>}
                   </div>
                   {g.profile_type && g.profile_type !== 'guest' && (
-                    <span className="text-[9px] px-2 py-1 rounded font-bold ml-2 bg-purple-100 text-purple-700">
+                    <span className="text-[9px] px-2 py-1 rounded font-bold ml-2" style={{ background: 'rgba(78,94,62,0.12)', color: 'var(--sage)' }}>
                       {g.profile_type}
                     </span>
                   )}
@@ -242,46 +254,28 @@ export default function GuestsPage() {
         {/* Guest detail */}
         <div className="lg:col-span-2">
           {loadingDetail ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-400 text-sm">
+            <div className="nayara-card p-8 text-center text-sm" style={{ color: 'var(--muted-dim)' }}>
               {ls('Loading...', 'Cargando...')}
             </div>
           ) : selected ? (
             <div className="space-y-4">
               {/* Profile header */}
-              <div className="bg-white rounded-lg border border-gray-200 p-5">
+              <div className="nayara-card p-5">
                 {editing ? (
                   <form onSubmit={handleEditSave} className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('First Name', 'Nombre')}</label>
-                        <input type="text" value={editForm.first_name} onChange={e => setEditForm({ ...editForm, first_name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Last Name', 'Apellido')}</label>
-                        <input type="text" value={editForm.last_name} onChange={e => setEditForm({ ...editForm, last_name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Email', 'Correo')}</label>
-                        <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Phone', 'Teléfono')}</label>
-                        <input type="text" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Nationality', 'Nacionalidad')}</label>
-                        <input type="text" value={editForm.nationality} onChange={e => setEditForm({ ...editForm, nationality: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{ls('Notes', 'Notas')}</label>
-                        <textarea rows={2} value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
-                      </div>
+                      <div><label className="nayara-label">{ls('First Name', 'Nombre')}</label><input type="text" value={editForm.first_name} onChange={e => setEditForm({ ...editForm, first_name: e.target.value })} className="nayara-input" /></div>
+                      <div><label className="nayara-label">{ls('Last Name', 'Apellido')}</label><input type="text" value={editForm.last_name} onChange={e => setEditForm({ ...editForm, last_name: e.target.value })} className="nayara-input" /></div>
+                      <div><label className="nayara-label">{ls('Email', 'Correo')}</label><input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} className="nayara-input" /></div>
+                      <div><label className="nayara-label">{ls('Phone', 'Teléfono')}</label><input type="text" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} className="nayara-input" /></div>
+                      <div className="col-span-2"><label className="nayara-label">{ls('Nationality', 'Nacionalidad')}</label><input type="text" value={editForm.nationality} onChange={e => setEditForm({ ...editForm, nationality: e.target.value })} className="nayara-input" /></div>
+                      <div className="col-span-2"><label className="nayara-label">{ls('Notes', 'Notas')}</label><textarea rows={2} value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} className="nayara-input" /></div>
                     </div>
                     <div className="flex gap-2">
-                      <button type="submit" disabled={editSaving} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 disabled:opacity-50">
+                      <button type="submit" disabled={editSaving} className="nayara-btn nayara-btn-primary disabled:opacity-50">
                         {editSaving ? ls('Saving...', 'Guardando...') : ls('Save', 'Guardar')}
                       </button>
-                      <button type="button" onClick={() => setEditing(false)} className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs hover:bg-gray-200">
+                      <button type="button" onClick={() => setEditing(false)} className="nayara-btn nayara-btn-ghost">
                         {ls('Cancel', 'Cancelar')}
                       </button>
                     </div>
@@ -289,38 +283,29 @@ export default function GuestsPage() {
                 ) : (
                   <>
                     <div className="flex items-start justify-between">
-                      <h2 className="text-xl font-bold text-gray-900">{selected.guest.full_name}</h2>
-                      <button onClick={handleStartEdit} className="text-xs text-blue-600 hover:underline px-2 py-1">
+                      <h2 className="text-xl font-bold italic" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--charcoal)' }}>{selected.guest.full_name}</h2>
+                      <button onClick={handleStartEdit} className="nayara-btn nayara-btn-ghost text-xs">
                         {ls('Edit', 'Editar')}
                       </button>
                     </div>
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-600">
-                      {selected.guest.email && <div><span className="text-gray-400">{ls('Email', 'Correo')}: </span>{selected.guest.email}</div>}
-                      {selected.guest.phone && <div><span className="text-gray-400">{ls('Phone', 'Tel')}: </span>{selected.guest.phone}</div>}
-                      {selected.guest.nationality && <div><span className="text-gray-400">{ls('Nationality', 'Nac.')}: </span>{selected.guest.nationality}</div>}
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm" style={{ color: 'var(--muted)' }}>
+                      {selected.guest.email && <div><span style={{ color: 'var(--muted-dim)' }}>{ls('Email', 'Correo')}: </span>{selected.guest.email}</div>}
+                      {selected.guest.phone && <div><span style={{ color: 'var(--muted-dim)' }}>{ls('Phone', 'Tel')}: </span>{selected.guest.phone}</div>}
+                      {selected.guest.nationality && <div><span style={{ color: 'var(--muted-dim)' }}>{ls('Nationality', 'Nac.')}: </span>{selected.guest.nationality}</div>}
                     </div>
                     {selected.guest.notes && (
-                      <div className="mt-2 text-sm text-gray-600 bg-yellow-50 rounded-lg px-3 py-2">{selected.guest.notes}</div>
+                      <div className="mt-2 text-sm rounded-lg px-3 py-2" style={{ background: 'rgba(170,142,103,0.10)', color: 'var(--muted)' }}>{selected.guest.notes}</div>
                     )}
 
                     {/* Quick-create buttons */}
-                    <div className="mt-3 pt-3 border-t flex flex-wrap gap-2">
-                      <a
-                        href={`/${locale}/staff/transfers?guest_id=${selected.guest.id}`}
-                        className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs hover:bg-purple-100 font-medium"
-                      >
+                    <div className="mt-3 pt-3 flex flex-wrap gap-2" style={{ borderTop: '1px solid var(--separator)' }}>
+                      <a href={`/${locale}/staff/transfers?guest_id=${selected.guest.id}`} className="nayara-btn nayara-btn-secondary text-xs">
                         + {ls('Add Transfer', 'Agregar Traslado')}
                       </a>
-                      <a
-                        href={`/${locale}/staff/tour-bookings?guest_id=${selected.guest.id}`}
-                        className="px-3 py-1.5 bg-teal-50 text-teal-700 rounded-lg text-xs hover:bg-teal-100 font-medium"
-                      >
+                      <a href={`/${locale}/staff/tour-bookings?guest_id=${selected.guest.id}`} className="nayara-btn nayara-btn-secondary text-xs">
                         + {ls('Add Tour', 'Agregar Tour')}
                       </a>
-                      <a
-                        href={`/${locale}/staff/special-requests?guest_id=${selected.guest.id}`}
-                        className="px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg text-xs hover:bg-orange-100 font-medium"
-                      >
+                      <a href={`/${locale}/staff/special-requests?guest_id=${selected.guest.id}`} className="nayara-btn nayara-btn-secondary text-xs">
                         + {ls('Add Special Request', 'Agregar Solicitud')}
                       </a>
                     </div>
@@ -342,7 +327,7 @@ export default function GuestsPage() {
                             <div className="text-xs text-gray-400 mt-1">Opera: {r.opera_guest_name}</div>
                           )}
                         </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[r.status] ?? 'bg-gray-100 text-gray-600'}`}>{r.status}</span>
+                        <span className={localStatusColor(r.status)}>{r.status}</span>
                       </div>
                     ))}
                   </div>
@@ -409,7 +394,7 @@ export default function GuestsPage() {
               </Section>
             </div>
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-400 text-sm">
+            <div className="nayara-card p-8 text-center text-sm" style={{ color: 'var(--muted-dim)' }}>
               {ls('Select a guest to view their profile', 'Selecciona un huésped para ver su perfil')}
             </div>
           )}
@@ -421,9 +406,9 @@ export default function GuestsPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div className="px-4 py-2.5 bg-gray-50 border-b">
-        <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+    <div className="nayara-card overflow-hidden">
+      <div className="px-4 py-2.5" style={{ background: 'var(--elevated)', borderBottom: '1px solid var(--separator)' }}>
+        <h3 className="text-sm font-semibold" style={{ color: 'var(--muted)' }}>{title}</h3>
       </div>
       {children}
     </div>
