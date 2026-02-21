@@ -8,6 +8,7 @@ import {
   CheckCircleIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  CloudArrowUpIcon,
   Cog6ToothIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
