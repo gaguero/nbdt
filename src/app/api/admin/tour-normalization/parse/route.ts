@@ -192,34 +192,68 @@ export async function POST(request: NextRequest) {
         ).join('\n')
       : '(no existing tour products yet — all will be created as new)';
 
-    const prompt = `You are a tour data normalization expert for a luxury hotel concierge platform.
-Below are tour activity names extracted from a historical CSV import, with their booking counts.
-Your job is to group name variants that refer to the same real tour, then map each group to an
-existing product or propose a new one.
+    const prompt = `Role
+You clean and standardize messy activity names from legacy exports for a high-end hospitality concierge system.
 
-IMPORTANT:
-- Treat each KEY as unique by tour name + vendor legacy ID.
-- The same tour name may appear for different vendors; those should usually remain separate groups.
-- Preserve vendor context when deciding map/create.
+Goal
+Given a list of activity rows (each with a KEY, raw name, vendorLegacyId, vendorName, and booking count), cluster rows that refer to the same real-world activity within the same vendorLegacyId. Then decide whether each cluster should be matched to an existing catalog item, created as a new catalog item, or ignored.
+
+Core constraints
+- Treat each KEY as unique. Do not drop or merge keys.
+- Do not merge across different vendorLegacyId values unless explicitly told to do so.
+- If the same activity exists for two vendors, it usually becomes two separate clusters.
+- Every KEY must appear in exactly one cluster.
+- If the existing catalog is empty, do not use "map". Use only "create" or "skip".
+- Output must be a valid JSON array only, with no extra text.
+
+How to cluster (normalization rules)
+Use these signals to decide if two rows are the same activity:
+- Match case-insensitively and accent-insensitively (Bio, BIO, Bioluminiscencia).
+- Ignore extra whitespace, punctuation differences, and minor typos.
+- Treat language variants as the same activity (English and Spanish).
+- Treat these as equivalent duration phrases when they clearly refer to the same duration:
+  "1/2", "half day", "medio día"
+  "full day", "día completo"
+- Keep half-day and full-day as different activities unless the raw text is clearly just a generic label for the same product.
+- Preserve key product attributes: "private" vs "group/shared" should be separate activities unless your business rules say otherwise.
+- If a row bundles multiple stops (for example "Bird Island + Starfish + Snorkel"), do not automatically merge it into a single-stop tour unless it's clearly the same standard itinerary for that vendor.
+
+Noise handling
+- If the raw name contains status markers like "CANCELADO", "cancelled", "duplicado", remove those words and normalize the underlying activity when the underlying activity is still clear.
+- Only use "skip" when the row is not a real activity after cleaning, for example:
+  pure status only (for example "Cancelado" with no activity)
+  internal operations notes (for example staff errands, accounting notes)
+  placeholders with no meaningful activity name
+
+Naming rules for "create"
+For each created cluster, produce:
+- name_en: concise, customer-facing, Title Case
+- name_es: concise, customer-facing, Spanish Title Case
+Also:
+- Do not include guest names, times, payment notes, complimentary tags, or internal comments.
+- Keep the name specific enough to distinguish variants (Half-Day vs Full-Day, Private vs Shared, Spa 60 min vs 90 min, Couples vs Individual).
+
+Decision per cluster
+For each cluster choose exactly one:
+- "map": matches an existing catalog item (include productId)
+- "create": new catalog item (include name_en and name_es)
+- "skip": not a real activity or unrecoverable noise
 
 EXISTING TOUR PRODUCTS (already in the system):
 ${productsList}
 
-CSV TOUR NAMES TO NORMALIZE (with booking counts):
+CSV ACTIVITY ROWS TO NORMALIZE (KEY | raw name | vendor info | booking count):
 ${namesList}
 
-INSTRUCTIONS:
-1. Group CSV names that clearly refer to the same real-world tour or activity
-   (typos, abbreviations, Spanish/English variants, partial names, etc.).
-2. For each group decide:
-   - "map"    → it matches an existing product above (provide its productId)
-   - "create" → it is a new tour not yet in the system (provide name_en and name_es)
-   - "skip"   → the entry is invalid / test data (e.g. "cancelado", "n/a", blank)
-3. Suggest clear, professional names for new tours (English and Spanish).
-4. Every CSV KEY must appear in exactly one group.
-5. Return ONLY a valid JSON array — no markdown, no explanation outside the JSON.
+Required output shape
+Return a JSON array of objects like:
+- groupId: integer starting at 1
+- csvKeys: array of KEY strings exactly as given in the input
+- action: "map" | "create" | "skip"
+- If action is "map": include productId
+- If action is "create": include name_en and name_es
 
-OUTPUT FORMAT (return exactly this structure):
+Return ONLY the JSON array — no markdown, no explanation, no extra text:
 [
   {
     "groupId": 1,
