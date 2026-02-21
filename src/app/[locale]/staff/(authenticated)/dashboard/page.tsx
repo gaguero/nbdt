@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import {
@@ -13,61 +13,6 @@ import {
   Cog6ToothIcon,
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
-
-interface PulseData {
-  occupancy: {
-    total: number;
-    occupied: number;
-    percentage: number;
-    arriving: number;
-    departing: number;
-    byCategory: { label: string; occupied: number; total: number }[];
-  };
-  arrivals: { count: number; nextGuest: string | null; nextTime: string | null };
-  departures: { count: number; billed: number; pending: number };
-  openRequests: { count: number; highPriority: number };
-  unreadMessages: { total: number; assigned: number; open: number };
-  modules: {
-    arrivals: number; transfers: number; tours: number;
-    orders: number; dinners: number; unread: number;
-    requests: number; pendingBills: number;
-  };
-  recentActivity: { type: string; title: string; description: string; meta: string; time: string }[];
-  comingUpToday: { type: string; title: string; description: string; meta: string; time: string }[];
-}
-
-const POLL_INTERVAL = 30_000;
-
-const dotColors: Record<string, string> = {
-  message: '#4A90D9',
-  order: 'var(--sage)',
-  transfer: 'var(--gold)',
-  request: 'var(--terra)',
-  checkin: 'var(--gold)',
-  checkout: 'var(--sage)',
-  tour: 'var(--sage)',
-  dinner: 'var(--gold)',
-  departure: '#4A90D9',
-};
-
-const feedTitle: Record<string, string> = {
-  message: 'New message',
-  order: 'Order placed',
-  transfer: 'Transfer update',
-  request: 'Special request',
-  checkin: 'Check-in completed',
-  checkout: 'Check-out',
-  tour: 'Tour',
-  dinner: 'Romantic dinner',
-  departure: 'Departure',
-};
-
-function occupancyBadge(pct: number): { label: string; bg: string; border: string; color: string } {
-  if (pct >= 95) return { label: 'Full', bg: 'rgba(236,108,75,0.14)', border: 'rgba(236,108,75,0.25)', color: 'var(--terra)' };
-  if (pct >= 80) return { label: 'Near Full', bg: 'rgba(78,94,62,0.14)', border: 'rgba(78,94,62,0.2)', color: 'var(--sage)' };
-  if (pct >= 50) return { label: 'Moderate', bg: 'rgba(170,142,103,0.14)', border: 'rgba(170,142,103,0.2)', color: 'var(--gold)' };
-  return { label: 'Low', bg: 'rgba(124,142,103,0.12)', border: 'rgba(124,142,103,0.2)', color: 'var(--muted-dim)' };
-}
 
 function OccBar({ label, fill, count }: { label: string; fill: string; count: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -180,56 +125,68 @@ function FeedItem({ dot, text, meta, time }: { dot: string; text: React.ReactNod
   );
 }
 
-function EmptyFeed({ message }: { message: string }) {
-  return (
-    <div style={{ padding: '20px 16px', textAlign: 'center', fontSize: 11, color: 'var(--muted-dim)', fontStyle: 'italic' }}>
-      {message}
-    </div>
-  );
+function toISO(d: Date) {
+  return d.toISOString().slice(0, 10);
 }
+
+interface DashData {
+  arrivals:   any[];
+  departures: any[];
+  inhouse:    any[];
+  requests:   any[];
+  conversations: any[];
+  transfers:  any[];
+  tours:      any[];
+  orders:     number;
+}
+
+const EMPTY_DATA: DashData = { arrivals:[], departures:[], inhouse:[], requests:[], conversations:[], transfers:[], tours:[], orders: 0 };
 
 export default function DashboardPage() {
   const locale = useLocale();
-  const [data, setData] = useState<PulseData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const isFirstLoad = useRef(true);
-
-  const todayDate = new Date().toISOString().split('T')[0];
+  const [data, setData] = useState<DashData>(EMPTY_DATA);
 
   const today = new Date().toLocaleDateString(locale === 'es' ? 'es-CR' : 'en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 
-  const fetchPulse = useCallback(() => {
-    fetch(`/api/admin/dashboard-pulse?date=${todayDate}`)
-      .then(r => r.ok ? r.json() : Promise.reject(r))
-      .then(d => {
-        setData(d);
-        if (isFirstLoad.current) {
-          setLoading(false);
-          isFirstLoad.current = false;
-        }
-      })
-      .catch(() => {
-        if (isFirstLoad.current) {
-          setLoading(false);
-          isFirstLoad.current = false;
-        }
-      });
-  }, [todayDate]);
-
   useEffect(() => {
-    fetchPulse();
-    const interval = setInterval(fetchPulse, POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [fetchPulse]);
+    const date = toISO(new Date());
+    Promise.all([
+      fetch(`/api/reservations?filter=arrivals&date=${date}`).then(r => r.json()),
+      fetch(`/api/reservations?filter=departures&date=${date}`).then(r => r.json()),
+      fetch(`/api/reservations?filter=checked_in&date=${date}`).then(r => r.json()),
+      fetch(`/api/special-requests?filter=today`).then(r => r.json()),
+      fetch(`/api/conversations`).then(r => r.json()),
+      fetch(`/api/transfers?date_from=${date}&date_to=${date}`).then(r => r.json()),
+      fetch(`/api/tour-bookings?date_from=${date}&date_to=${date}`).then(r => r.json()),
+    ]).then(([arr, dep, inh, req, convs, trans, tours]) => {
+      setData({
+        arrivals:      arr.reservations   ?? [],
+        departures:    dep.reservations   ?? [],
+        inhouse:       inh.reservations   ?? [],
+        requests:      req.special_requests ?? [],
+        conversations: convs.conversations ?? [],
+        transfers:     trans.transfers    ?? [],
+        tours:         tours.tour_bookings ?? [],
+        orders:        0,
+      });
+    }).catch(() => {});
+  }, []);
 
-  const d = data;
-  const occ = d?.occupancy;
-  const badge = occupancyBadge(occ?.percentage ?? 0);
+  const unreadMsgs   = data.conversations.reduce((s: number, c: any) => s + parseInt(c.unread_count || '0'), 0);
+  const openRequests = data.requests.filter((r: any) => r.status !== 'resolved' && r.status !== 'cancelled').length;
+  const inhouseCount = data.inhouse.length;
+  const totalVillas  = 37;
+  const occPct       = totalVillas > 0 ? Math.round((inhouseCount / totalVillas) * 100) : 0;
+  const occLabel     = occPct >= 90 ? 'Near Full' : occPct >= 70 ? 'High' : occPct >= 40 ? 'Moderate' : 'Low';
+
+  const nextArrival  = data.arrivals[0];
+  const highPriReqs  = data.requests.filter((r: any) => r.priority === 'high').length;
+  const assignedConvs = data.conversations.filter((c: any) => c.assigned_staff_id).length;
 
   return (
-    <div style={{ padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14, opacity: loading ? 0.5 : 1, transition: 'opacity 0.3s ease' }}>
+    <div style={{ padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
       {/* PROPERTY PULSE */}
       <div>
@@ -244,79 +201,42 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontSize: 42, fontWeight: 700, color: 'var(--gold)', lineHeight: 1 }}>
-                  {occ?.percentage ?? 0}<span style={{ fontSize: 18, color: 'var(--muted-dim)' }}>%</span>
+                  {occPct}<span style={{ fontSize: 18, color: 'var(--muted-dim)' }}>%</span>
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--muted-dim)', marginTop: -4 }}>
-                  {occ?.occupied ?? 0} of {occ?.total ?? 0} villas · +{occ?.arriving ?? 0} arriving · &minus;{occ?.departing ?? 0} departing
+                  {inhouseCount} of {totalVillas} villas · +{data.arrivals.length} arriving · −{data.departures.length} departing
                 </div>
               </div>
-              <span style={{ background: badge.bg, border: `1px solid ${badge.border}`, color: badge.color, fontSize: 9, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20 }}>
-                {badge.label}
-              </span>
+              <span style={{ background: 'rgba(78,94,62,0.14)', border: '1px solid rgba(78,94,62,0.2)', color: 'var(--sage)', fontSize: 9, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20 }}>{occLabel}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {(occ?.byCategory ?? []).map(cat => {
-                const pct = cat.total > 0 ? Math.round((cat.occupied / cat.total) * 100) : 0;
-                return (
-                  <OccBar
-                    key={cat.label}
-                    label={cat.label}
-                    fill={`${pct}%`}
-                    count={`${cat.occupied}/${cat.total}`}
-                  />
-                );
-              })}
-              {(!occ || occ.byCategory.length === 0) && !loading && (
-                <div style={{ fontSize: 10, color: 'var(--muted-dim)', fontStyle: 'italic' }}>No occupancy data</div>
-              )}
+              <OccBar label="Occupied" fill={`${occPct}%`} count={`${inhouseCount}/${totalVillas}`} />
+              <OccBar label="Arrivals" fill={`${Math.round((data.arrivals.length / totalVillas) * 100)}%`} count={`${data.arrivals.length}`} />
+              <OccBar label="Departures" fill={`${Math.round((data.departures.length / totalVillas) * 100)}%`} count={`${data.departures.length}`} />
             </div>
           </div>
 
           {/* 2x2 stats */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 10 }}>
             <StatCard
-              icon={ArrowUpTrayIcon}
-              iconColor="var(--gold)"
-              iconBg="rgba(170,142,103,0.15)"
-              num={d?.arrivals.count ?? 0}
-              numColor="var(--gold)"
-              label="Arrivals Today"
-              hint={d?.arrivals.nextGuest
-                ? <>Next: <strong style={{ color: 'var(--gold)' }}>{d.arrivals.nextGuest}</strong>{d.arrivals.nextTime ? ` · ${d.arrivals.nextTime}` : ''}</>
-                : <span>&mdash;</span>}
+              icon={ArrowUpTrayIcon} iconColor="var(--gold)" iconBg="rgba(170,142,103,0.15)"
+              num={data.arrivals.length} numColor="var(--gold)" label="Arrivals Today"
+              hint={nextArrival ? <>Next: <strong style={{ color: 'var(--gold)' }}>{nextArrival.guest_name || nextArrival.opera_guest_name}</strong> · {nextArrival.arrival}</> : <>No arrivals today</>}
             />
             <StatCard
-              icon={NewspaperIcon}
-              iconColor="var(--sage)"
-              iconBg="rgba(78,94,62,0.14)"
-              num={d?.departures.count ?? 0}
-              numColor="var(--sage)"
-              label="Departures"
-              hint={d
-                ? <><span style={{ color: 'var(--sage)', fontWeight: 600 }}>{d.departures.billed} billed</span> · {d.departures.pending} pending</>
-                : <span>&mdash;</span>}
+              icon={NewspaperIcon} iconColor="var(--sage)" iconBg="rgba(78,94,62,0.14)"
+              num={data.departures.length} numColor="var(--sage)" label="Departures"
+              hint={<>{data.departures.length} checking out today</>}
             />
             <StatCard
-              icon={ExclamationTriangleIcon}
-              iconColor="var(--terra)"
-              iconBg="rgba(236,108,75,0.12)"
-              num={d?.openRequests.count ?? 0}
-              numColor="var(--terra)"
-              label="Open Requests"
-              hint={d?.openRequests.highPriority
-                ? <strong style={{ color: 'var(--terra)' }}>{d.openRequests.highPriority} high priority</strong>
-                : <span>&mdash;</span>}
+              icon={ExclamationTriangleIcon} iconColor="var(--terra)" iconBg="rgba(236,108,75,0.12)"
+              num={openRequests} numColor="var(--terra)" label="Open Requests"
+              hint={highPriReqs > 0 ? <strong style={{ color: 'var(--terra)' }}>{highPriReqs} high priority</strong> : <>No high priority</>}
             />
             <StatCard
-              icon={ChatBubbleLeftRightIcon}
-              iconColor="#4A90D9"
-              iconBg="rgba(74,144,217,0.10)"
-              num={d?.unreadMessages.total ?? 0}
-              numColor="#4A90D9"
-              label="Unread Messages"
-              hint={d
-                ? <><span style={{ color: 'var(--sage)', fontWeight: 600 }}>{d.unreadMessages.assigned} assigned</span> · {d.unreadMessages.open} open</>
-                : <span>&mdash;</span>}
+              icon={ChatBubbleLeftRightIcon} iconColor="#4A90D9" iconBg="rgba(74,144,217,0.10)"
+              num={unreadMsgs} numColor="#4A90D9" label="Unread Messages"
+              hint={<><span style={{ color: 'var(--sage)', fontWeight: 600 }}>{assignedConvs} assigned</span> · {data.conversations.length - assignedConvs} open</>}
             />
           </div>
 
@@ -340,49 +260,84 @@ export default function DashboardPage() {
       <div>
         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-dim)', marginBottom: 8 }}>Modules</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-          <ModuleTile href={`/${locale}/staff/reservations`} icon={CalendarDaysIcon} name="Concierge" desc="Arrivals, departures, transfers, tours & guest requests." accent="var(--gold)" accentFaint="rgba(170,142,103,0.15)" stats={[{ num: d?.modules.arrivals ?? 0, lbl: 'Arrivals' }, { num: d?.modules.transfers ?? 0, lbl: 'Transfers' }, { num: d?.modules.tours ?? 0, lbl: 'Tours' }]} />
-          <ModuleTile href={`/${locale}/staff/orders`} icon={ShoppingCartIcon} name="Food & Beverage" desc="Orders, menus, romantic dinners & restaurant covers." accent="var(--sage)" accentFaint="rgba(78,94,62,0.14)" stats={[{ num: d?.modules.orders ?? 0, lbl: 'Orders' }, { num: d?.modules.dinners ?? 0, lbl: 'Dinners' }]} />
-          <ModuleTile href={`/${locale}/staff/messages`} icon={ChatBubbleLeftRightIcon} name="Communications" desc="WhatsApp, SMS, email threads & guest inbox." accent="#4A90D9" accentFaint="rgba(74,144,217,0.10)" stats={[{ num: d?.modules.unread ?? 0, lbl: 'Unread' }, { num: d?.modules.requests ?? 0, lbl: 'Requests' }]} />
-          <ModuleTile href={`/${locale}/staff/users`} icon={Cog6ToothIcon} name="Admin" desc="Billing, vendors, staff & system settings." accent="var(--terra)" accentFaint="rgba(236,108,75,0.10)" stats={[{ num: d?.modules.pendingBills ?? 0, lbl: 'Pending Bills' }]} />
+          <ModuleTile
+            href={`/${locale}/staff/concierge`} icon={CalendarDaysIcon} name="Concierge"
+            desc="Arrivals, departures, transfers, tours & guest requests."
+            accent="var(--gold)" accentFaint="rgba(170,142,103,0.15)"
+            stats={[{ num: data.arrivals.length, lbl: 'Arrivals' }, { num: data.transfers.length, lbl: 'Transfers' }, { num: data.tours.length, lbl: 'Tours' }]}
+          />
+          <ModuleTile
+            href={`/${locale}/staff/orders`} icon={ShoppingCartIcon} name="Food & Beverage"
+            desc="Orders, menus, romantic dinners & restaurant covers."
+            accent="var(--sage)" accentFaint="rgba(78,94,62,0.14)"
+            stats={[{ num: data.orders, lbl: 'Orders' }]}
+          />
+          <ModuleTile
+            href={`/${locale}/staff/messages`} icon={ChatBubbleLeftRightIcon} name="Communications"
+            desc="WhatsApp, SMS, email threads & guest inbox."
+            accent="#4A90D9" accentFaint="rgba(74,144,217,0.10)"
+            stats={[{ num: unreadMsgs, lbl: 'Unread' }, { num: openRequests, lbl: 'Requests' }]}
+          />
+          <ModuleTile
+            href={`/${locale}/staff/users`} icon={Cog6ToothIcon} name="Admin"
+            desc="Billing, vendors, staff & system settings."
+            accent="var(--terra)" accentFaint="rgba(236,108,75,0.10)"
+            stats={[{ num: 0, lbl: 'Pending Bills' }]}
+          />
         </div>
       </div>
 
       {/* BOTTOM FEEDS */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+
+        {/* Upcoming arrivals */}
         <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--separator)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Recent Activity</span>
-            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)' }}>See all</span>
+            <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Arrivals Today</span>
+            <Link href={`/${locale}/staff/reservations`} style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}>See all</Link>
           </div>
-          {d?.recentActivity && d.recentActivity.length > 0
-            ? d.recentActivity.map((item, i) => (
-                <FeedItem
-                  key={i}
-                  dot={dotColors[item.type] || 'var(--muted-dim)'}
-                  text={<><strong>{feedTitle[item.type] || item.type}</strong> — {item.title}{item.description ? ` · ${item.description}` : ''}</>}
-                  meta={item.meta}
-                  time={item.time}
-                />
-              ))
-            : !loading && <EmptyFeed message="No recent activity" />}
+          {data.arrivals.length === 0 ? (
+            <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>No arrivals today</div>
+          ) : (
+            data.arrivals.slice(0, 6).map((r: any) => (
+              <FeedItem
+                key={r.id}
+                dot="var(--gold)"
+                text={<><strong>{r.guest_name || r.opera_guest_name || '—'}</strong> arrival — {r.room || 'Room TBD'}</>}
+                meta={`Concierge · ${r.transfer_booked ? 'Transfer confirmed' : 'No transfer'}`}
+                time={r.arrival || '—'}
+              />
+            ))
+          )}
         </div>
 
+        {/* Coming up: transfers + tours */}
         <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--separator)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Coming Up Today</span>
-            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)' }}>Full calendar</span>
+            <Link href={`/${locale}/staff/concierge`} style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}>Full view</Link>
           </div>
-          {d?.comingUpToday && d.comingUpToday.length > 0
-            ? d.comingUpToday.map((item, i) => (
-                <FeedItem
-                  key={i}
-                  dot={dotColors[item.type] || 'var(--muted-dim)'}
-                  text={<><strong>{item.title}</strong>{item.description ? ` — ${item.description}` : ''}</>}
-                  meta={item.meta}
-                  time={item.time}
-                />
-              ))
-            : !loading && <EmptyFeed message="Nothing scheduled for today" />}
+          {data.transfers.slice(0, 3).map((t: any) => (
+            <FeedItem
+              key={`t-${t.id}`}
+              dot="var(--gold)"
+              text={<><strong>{t.guest_name || '—'}</strong> transfer — {t.origin} → {t.destination}</>}
+              meta={`Concierge · Transfers · ${t.vendor_name || '—'}`}
+              time={t.time?.slice(0, 5) || '—'}
+            />
+          ))}
+          {data.tours.slice(0, 3).map((t: any) => (
+            <FeedItem
+              key={`tour-${t.id}`}
+              dot="var(--sage)"
+              text={<><strong>{t.name_en || '—'}</strong> — {t.guest_name || '—'}</>}
+              meta={`Concierge · Tours · ${t.vendor_name || t.legacy_vendor_name || '—'}`}
+              time={t.start_time?.slice(0, 5) || '—'}
+            />
+          ))}
+          {data.transfers.length === 0 && data.tours.length === 0 && (
+            <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Nothing scheduled today</div>
+          )}
         </div>
       </div>
 

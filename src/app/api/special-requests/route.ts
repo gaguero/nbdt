@@ -12,12 +12,16 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const department = searchParams.get('department');
     const countOnly = searchParams.get('count') === 'true';
+    const date_from = searchParams.get('date_from');
+    const date_to = searchParams.get('date_to');
 
     let whereClause = 'WHERE 1=1';
     const params: any[] = [];
     let idx = 1;
 
     if (filter === 'today') whereClause += ` AND sr.date = CURRENT_DATE`;
+    if (date_from) { whereClause += ` AND sr.date >= $${idx++}`; params.push(date_from); }
+    if (date_to) { whereClause += ` AND sr.date <= $${idx++}`; params.push(date_to); }
     if (status) { whereClause += ` AND sr.status = ${idx++}`; params.push(status); }
     if (department && department !== 'all') { whereClause += ` AND sr.department = ${idx++}`; params.push(department); }
 
