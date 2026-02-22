@@ -153,7 +153,7 @@ export default function DashboardPage() {
   const [transferModalOpen, setTransferModalOpen] = useState(false);
 
   const today = new Date().toLocaleDateString(locale === 'es' ? 'es-CR' : 'en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    weekday: 'short', month: 'short', day: 'numeric',
   });
 
   const fetchDashboardData = useCallback(() => {
@@ -231,7 +231,7 @@ export default function DashboardPage() {
             <StatCard
               icon={ArrowUpTrayIcon} iconColor="var(--gold)" iconBg="rgba(170,142,103,0.15)"
               num={data.arrivals.length} numColor="var(--gold)" label="Arrivals Today"
-              hint={nextArrival ? <>Next: <strong style={{ color: 'var(--gold)' }}>{nextArrival.guest_name || nextArrival.opera_guest_name}</strong> · {nextArrival.arrival}</> : <>No arrivals today</>}
+              hint={nextArrival ? <>Next: <strong style={{ color: 'var(--gold)' }}>{nextArrival.guest_name || nextArrival.opera_guest_name}</strong></> : <>No arrivals today</>}
             />
             <StatCard
               icon={NewspaperIcon} iconColor="var(--sage)" iconBg="rgba(78,94,62,0.14)"
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                       </>
                     }
                     meta={`Concierge · ${r.transfer_booked ? 'Transfer confirmed' : 'No transfer'}`}
-                    time={r.arrival || '—'}
+                    time={r.room || '—'}
                   />
                 </div>
               ))
