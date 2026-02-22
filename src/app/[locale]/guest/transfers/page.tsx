@@ -116,7 +116,10 @@ export default function GuestTransfersPage() {
 
   const formatDate = (d: string) => {
     if (!d) return '';
-    return new Date(d + 'T12:00:00').toLocaleDateString(isEs ? 'es-CR' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const dateStr = d.includes('T') ? d.split('T')[0] : d;
+    const date = new Date(dateStr + 'T12:00:00');
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(isEs ? 'es-CR' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
   return (

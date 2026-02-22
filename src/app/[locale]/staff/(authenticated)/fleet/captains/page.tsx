@@ -37,7 +37,8 @@ export default function CaptainsPage() {
       .then(d => {
         setCaptains(d.captains || []);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { fetchCaptains(); }, []);

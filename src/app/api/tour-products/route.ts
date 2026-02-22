@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
         duration_minutes, price_private, price_shared, price_per_person,
         requires_minimum_guests, max_guests_per_booking, location,
         meeting_point_en, meeting_point_es, cancellation_policy_hours,
-        is_active, images, tags, custom_fields, scheduling_mode
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+        is_active, images, tags, custom_fields, scheduling_mode, guest_visible
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
       RETURNING *`,
       [
         body.name_en, body.name_es, body.description_en, body.description_es, body.vendor_id,
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
         body.meeting_point_en, body.meeting_point_es, body.cancellation_policy_hours || 24,
         body.is_active !== false, JSON.stringify(body.images || []), body.tags || [],
         JSON.stringify(body.custom_fields || {}), body.scheduling_mode || 'fixed_slots',
+        body.guest_visible !== false,
       ]
     );
 
@@ -86,6 +87,7 @@ export async function PUT(request: NextRequest) {
       'requires_minimum_guests', 'max_guests_per_booking', 'location',
       'meeting_point_en', 'meeting_point_es', 'cancellation_policy_hours',
       'is_active', 'images', 'tags', 'custom_fields', 'scheduling_mode',
+      'guest_visible',
     ];
 
     for (const field of allowedFields) {

@@ -8,6 +8,7 @@ interface TourProduct {
   name_en: string;
   name_es: string;
   description_en: string;
+  description_es: string;
   type: string;
   booking_mode: string;
   max_capacity_shared: number;
@@ -24,6 +25,8 @@ interface TourProduct {
   cancellation_policy_hours: number;
   scheduling_mode: string;
   is_active: boolean;
+  guest_visible: boolean;
+  images: string[];
   vendor_id: string;
   vendor_name: string;
 }
@@ -56,7 +59,8 @@ const emptyForm = {
   price_private: 0, price_shared: 0, price_per_person: 0,
   requires_minimum_guests: 1, max_guests_per_booking: 10,
   location: '', meeting_point_en: '', meeting_point_es: '',
-  cancellation_policy_hours: 24, is_active: true,
+  cancellation_policy_hours: 24, is_active: true, guest_visible: true,
+  images: [] as string[],
 };
 
 const emptyScheduleForm = {
@@ -101,8 +105,9 @@ export default function TourProductsPage() {
   function openNew() { setEditing(null); setForm({ ...emptyForm }); setShowForm(true); }
   function openEdit(p: TourProduct) {
     setEditing(p);
+    const imgs = Array.isArray(p.images) ? p.images : [];
     setForm({
-      name_en: p.name_en, name_es: p.name_es, description_en: p.description_en || '', description_es: '',
+      name_en: p.name_en, name_es: p.name_es, description_en: p.description_en || '', description_es: p.description_es || '',
       type: p.type, booking_mode: p.booking_mode, scheduling_mode: p.scheduling_mode, vendor_id: p.vendor_id || '',
       max_capacity_shared: p.max_capacity_shared, max_capacity_private: p.max_capacity_private,
       duration_minutes: p.duration_minutes, price_private: p.price_private,
@@ -110,6 +115,8 @@ export default function TourProductsPage() {
       requires_minimum_guests: p.requires_minimum_guests, max_guests_per_booking: p.max_guests_per_booking,
       location: p.location || '', meeting_point_en: p.meeting_point_en || '', meeting_point_es: p.meeting_point_es || '',
       cancellation_policy_hours: p.cancellation_policy_hours, is_active: p.is_active,
+      guest_visible: p.guest_visible !== false,
+      images: imgs,
     });
     setShowForm(true);
   }
@@ -118,7 +125,11 @@ export default function TourProductsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...form, vendor_id: form.vendor_id || null };
+      const payload = {
+        ...form,
+        vendor_id: form.vendor_id || null,
+        images: form.images || [],
+      };
       const method = editing ? 'PUT' : 'POST';
       const body = editing ? { id: editing.id, ...payload } : payload;
       await fetch('/api/tour-products', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -269,6 +280,14 @@ export default function TourProductsPage() {
               {p.price_private > 0 && <div>Private: ${p.price_private}</div>}
               {p.price_shared > 0 && <div>Shared: ${p.price_shared}</div>}
               {p.location && <div>{p.location}</div>}
+              <div className="flex items-center gap-2 pt-0.5">
+                {p.guest_visible !== false && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: 'rgba(78,150,200,0.1)', color: '#4E96C8' }}>Guest Portal</span>
+                )}
+                {Array.isArray(p.images) && p.images.length > 0 && (
+                  <span className="text-[10px]">{p.images.length} image{p.images.length > 1 ? 's' : ''}</span>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-2 mt-auto">
@@ -311,14 +330,70 @@ export default function TourProductsPage() {
                   {field('name_es', 'Name (ES)')}
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="nayara-label">Description (EN)</label>
+                    <textarea
+                      value={form.description_en}
+                      onChange={(e) => setForm({ ...form, description_en: e.target.value })}
+                      rows={2}
+                      className="nayara-input w-full mt-1 resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="nayara-label">Description (ES)</label>
+                    <textarea
+                      value={form.description_es}
+                      onChange={(e) => setForm({ ...form, description_es: e.target.value })}
+                      rows={2}
+                      className="nayara-input w-full mt-1 resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Images */}
                 <div>
-                  <label className="nayara-label">Description (EN)</label>
-                  <textarea
-                    value={form.description_en}
-                    onChange={(e) => setForm({ ...form, description_en: e.target.value })}
-                    rows={2}
-                    className="nayara-input w-full mt-1 resize-none"
-                  />
+                  <label className="nayara-label">Images (URLs for Guest Portal)</label>
+                  <div className="space-y-2 mt-1">
+                    {(form.images || []).map((url: string, idx: number) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input
+                          type="url"
+                          value={url}
+                          onChange={(e) => {
+                            const imgs = [...(form.images || [])];
+                            imgs[idx] = e.target.value;
+                            setForm({ ...form, images: imgs });
+                          }}
+                          placeholder="https://..."
+                          className="nayara-input flex-1"
+                        />
+                        {url && (
+                          <img src={url} alt="" className="w-10 h-10 rounded object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const imgs = [...(form.images || [])];
+                            imgs.splice(idx, 1);
+                            setForm({ ...form, images: imgs });
+                          }}
+                          className="text-xs px-2 py-1 rounded"
+                          style={{ color: 'var(--terra)' }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, images: [...(form.images || []), ''] })}
+                      className="text-xs font-medium"
+                      style={{ color: 'var(--gold)' }}
+                    >
+                      + Add Image URL
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
@@ -375,9 +450,15 @@ export default function TourProductsPage() {
                 {field('meeting_point_en', 'Meeting Point (EN)')}
                 {field('meeting_point_es', 'Meeting Point (ES)')}
 
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="is_active" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded" />
-                  <label htmlFor="is_active" className="text-sm" style={{ color: 'var(--muted)' }}>Active (visible for booking)</label>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="is_active" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded" />
+                    <label htmlFor="is_active" className="text-sm" style={{ color: 'var(--muted)' }}>Active (visible for staff booking)</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="guest_visible" checked={form.guest_visible} onChange={(e) => setForm({ ...form, guest_visible: e.target.checked })} className="rounded" />
+                    <label htmlFor="guest_visible" className="text-sm" style={{ color: 'var(--muted)' }}>Show on Guest Portal</label>
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-2" style={{ borderTop: '1px solid var(--separator)' }}>

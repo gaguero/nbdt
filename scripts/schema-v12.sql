@@ -127,12 +127,13 @@ CREATE INDEX IF NOT EXISTS idx_boat_maintenance_boat ON boat_maintenance_log(boa
 -- ALTER EXISTING TABLES — Add fleet-related columns
 -- ============================================================================
 
--- Tour products: fleet integration
+-- Tour products: fleet integration + guest portal
 ALTER TABLE tour_products
     ADD COLUMN IF NOT EXISTS requires_boat BOOLEAN DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS default_boat_id UUID REFERENCES boats(id) ON DELETE SET NULL,
     ADD COLUMN IF NOT EXISTS required_skills TEXT[] DEFAULT '{}',
-    ADD COLUMN IF NOT EXISTS is_internal_operation BOOLEAN DEFAULT FALSE;
+    ADD COLUMN IF NOT EXISTS is_internal_operation BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS guest_visible BOOLEAN DEFAULT TRUE;
 
 -- Tour schedules: boat/captain assignment
 ALTER TABLE tour_schedules

@@ -85,13 +85,24 @@ export default function GuestHomePage() {
 
   if (!guest) return null;
 
-  const stayDays = guest.arrival && guest.departure
-    ? Math.ceil((new Date(guest.departure).getTime() - new Date(guest.arrival).getTime()) / (1000 * 60 * 60 * 24))
+  const parseDate = (d: string) => {
+    if (!d) return null;
+    // Handle both date-only (2024-03-15) and full ISO (2024-03-15T00:00:00.000Z) formats
+    const dateStr = d.includes('T') ? d.split('T')[0] : d;
+    const date = new Date(dateStr + 'T12:00:00');
+    return isNaN(date.getTime()) ? null : date;
+  };
+
+  const arrivalDate = guest.arrival ? parseDate(guest.arrival) : null;
+  const departureDate = guest.departure ? parseDate(guest.departure) : null;
+  const stayDays = arrivalDate && departureDate
+    ? Math.ceil((departureDate.getTime() - arrivalDate.getTime()) / (1000 * 60 * 60 * 24))
     : 0;
 
   const formatDate = (d: string) => {
-    if (!d) return '';
-    return new Date(d + 'T12:00:00').toLocaleDateString(isEs ? 'es-CR' : 'en-US', { month: 'short', day: 'numeric' });
+    const date = parseDate(d);
+    if (!date) return '';
+    return date.toLocaleDateString(isEs ? 'es-CR' : 'en-US', { month: 'short', day: 'numeric' });
   };
 
   const STATUS_STYLES: Record<string, { bg: string; text: string }> = {

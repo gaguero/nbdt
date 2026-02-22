@@ -19,15 +19,24 @@ export async function GET(request: NextRequest) {
       params.push(status);
     }
 
-    const boats = await queryMany(
-      `SELECT b.*,
-              (SELECT COUNT(*) FROM fleet_assignments fa
-               WHERE fa.boat_id = b.id AND fa.date = CURRENT_DATE AND fa.status != 'cancelled') as today_assignments
-       FROM boats b
-       ${whereClause}
-       ORDER BY b.name`,
-      params
-    );
+    let boats;
+    try {
+      boats = await queryMany(
+        `SELECT b.*,
+                COALESCE((SELECT COUNT(*) FROM fleet_assignments fa
+                 WHERE fa.boat_id = b.id AND fa.date = CURRENT_DATE AND fa.status != 'cancelled'), 0) as today_assignments
+         FROM boats b
+         ${whereClause}
+         ORDER BY b.name`,
+        params
+      );
+    } catch {
+      // Fallback if fleet_assignments table doesn't exist yet
+      boats = await queryMany(
+        `SELECT b.*, 0 as today_assignments FROM boats b ${whereClause} ORDER BY b.name`,
+        params
+      );
+    }
 
     return NextResponse.json({ boats });
   } catch (error: any) {

@@ -40,7 +40,8 @@ export default function BoatsPage() {
     setLoading(true);
     fetch('/api/fleet/boats')
       .then(r => r.json())
-      .then(d => { setBoats(d.boats || []); setLoading(false); });
+      .then(d => { setBoats(d.boats || []); setLoading(false); })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { fetchBoats(); }, []);
