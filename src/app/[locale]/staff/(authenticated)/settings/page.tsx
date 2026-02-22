@@ -2209,7 +2209,7 @@ export default function SettingsPage() {
         <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">
-              Room Categories <span className="text-xs font-normal text-slate-500 ml-2">Total: {rooms.reduce((a: number, r: any) => a + (r.total || 0), 0)} units</span>
+              Room Categories <span className="text-xs font-normal text-slate-500 ml-2">Total: {rooms.reduce((a: number, r: any) => a + (r.total || 0), 0)} units (totalUnits: {s?.rooms?.totalUnits ?? '—'})</span>
             </p>
             <button
               type="button"
@@ -2232,6 +2232,17 @@ export default function SettingsPage() {
               ))}
             </tbody>
           </table>
+          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-200">
+            <label className="text-sm font-medium text-slate-700">Total Units (villas)</label>
+            <input
+              type="number"
+              min={0}
+              value={s?.rooms?.totalUnits ?? 0}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => updateSettings({ rooms: { ...s.rooms, totalUnits: parseInt(e.target.value) || 0 } })}
+              className="w-24 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+            />
+            <span className="text-xs text-slate-400">Used for occupancy calculations on the dashboard</span>
+          </div>
         </div>
 
         {/* Dining Locations */}
@@ -2266,19 +2277,105 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Brand Colors */}
+        {/* Brand — Color Palette */}
         <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-          <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">Brand Colors</p>
-          <div className="grid grid-cols-3 gap-3">
-            {Object.entries(s?.brand?.colors ?? {}).map(([key, val]: [string, any]) => (
-              <div key={key} className="flex items-center gap-2">
-                <input type="color" value={val.startsWith('#') ? val : '#cccccc'} onChange={(e: ChangeEvent<HTMLInputElement>) => updateSettings({ brand: { ...s.brand, colors: { ...s.brand.colors, [key]: e.target.value } } })} className="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0.5" />
-                <div>
-                  <p className="text-xs font-semibold text-slate-700">{key}</p>
-                  <p className="text-xs text-slate-400">{val}</p>
-                </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">Color Palette</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted-dim)' }}>Changes apply instantly across the entire staff portal</p>
+            </div>
+            {paletteSaving && (
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--muted-dim)' }}>Saving…</span>
               </div>
-            ))}
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+            {PALETTES.map(p => {
+              const isActive = activePalette === p.key;
+              const isDark = ['#2a2a2a','#1e2d3d','#2a2535','#2e2420'].includes(p.bg);
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => handlePaletteSave(p.key)}
+                  style={{
+                    border: isActive ? '2px solid var(--gold)' : '2px solid transparent',
+                    borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
+                    background: 'transparent', padding: 0, position: 'relative',
+                    boxShadow: isActive ? 'var(--card-shadow-hover)' : 'var(--card-shadow)',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease',
+                    transform: isActive ? 'translateY(-2px)' : 'none', textAlign: 'left' as const,
+                  }}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.transform = 'none'; }}
+                >
+                  <div style={{ background: p.bg, height: 48, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 14, background: p.sidebar, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 5, gap: 3 }}>
+                      <div style={{ width: 5, height: 2.5, borderRadius: 2, background: p.accent, opacity: 0.7 }} />
+                      <div style={{ width: 5, height: 2.5, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+                    </div>
+                    <div style={{ marginLeft: 16, padding: '6px 6px 0' }}>
+                      <div style={{ background: p.surface, borderRadius: 3, padding: '4px 5px' }}>
+                        <div style={{ width: '60%', height: 3, borderRadius: 2, background: p.accent, marginBottom: 2 }} />
+                        <div style={{ width: '80%', height: 2, borderRadius: 2, background: 'rgba(0,0,0,0.10)' }} />
+                      </div>
+                    </div>
+                    {isActive && (
+                      <div style={{ position: 'absolute', top: 3, right: 3, width: 16, height: 16, borderRadius: '50%', background: p.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#fff', fontWeight: 700 }}>✓</div>
+                    )}
+                  </div>
+                  <div style={{ background: p.surface, padding: '6px 8px 8px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: isDark ? '#f0ede8' : '#1a1a1a', marginBottom: 1 }}>{p.name}</div>
+                    <div style={{ fontSize: 9, color: isDark ? 'rgba(240,237,232,0.5)' : 'rgba(26,26,26,0.45)', lineHeight: 1.3 }}>{p.desc}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Brand — Font Set */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 uppercase tracking-[0.12em]">Font Set</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted-dim)' }}>Switch heading, body, and mono typefaces across the portal</p>
+            </div>
+            {fontSetSaving && (
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--muted-dim)' }}>Saving…</span>
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+            {FONT_SETS.map(f => {
+              const isActive = activeFontSet === f.key;
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => handleFontSetSave(f.key)}
+                  style={{
+                    border: isActive ? '2px solid var(--gold)' : '2px solid var(--separator)',
+                    borderRadius: 10,
+                    cursor: 'pointer',
+                    background: isActive ? 'var(--surface)' : 'transparent',
+                    padding: '12px 14px',
+                    textAlign: 'left' as const,
+                    boxShadow: isActive ? 'var(--card-shadow-hover)' : 'none',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease',
+                    transform: isActive ? 'translateY(-2px)' : 'none',
+                  }}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.transform = 'none'; }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 3 }}>{f.name}</div>
+                  <div style={{ fontSize: 10, color: 'var(--muted-dim)', lineHeight: 1.3 }}>{f.desc}</div>
+                  {isActive && (
+                    <div style={{ marginTop: 6, fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: 'var(--gold)' }}>Active</div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
