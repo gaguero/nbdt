@@ -11,17 +11,48 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({ palette: 'botanical' });
 
+// Maps property-config color keys → CSS variable names
+const COLOR_VAR_MAP: Record<string, string> = {
+  bg:         '--bg',
+  surface:    '--surface',
+  elevated:   '--elevated',
+  gold:       '--gold',
+  goldDark:   '--gold-dark',
+  sage:       '--sage',
+  forest:     '--forest',
+  terra:      '--terra',
+  charcoal:   '--charcoal',
+  sidebarBg:  '--sidebar-bg',
+  muted:      '--muted',
+  mutedDim:   '--muted-dim',
+  separator:  '--separator',
+};
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const { config } = usePropertyConfig();
-  const palette = (config?.settings?.brand?.colors?.palette as PaletteName) ?? 'botanical';
+  const colors = config?.settings?.brand?.colors as Record<string, string> | undefined;
+  const palette = (colors?.palette as PaletteName) ?? 'botanical';
 
   useEffect(() => {
+    const root = document.documentElement;
+
+    // Apply preset palette attribute
     if (palette === 'botanical') {
-      document.documentElement.removeAttribute('data-palette');
+      root.removeAttribute('data-palette');
     } else {
-      document.documentElement.setAttribute('data-palette', palette);
+      root.setAttribute('data-palette', palette);
     }
-  }, [palette]);
+
+    // Apply individual color overrides on top of the palette
+    if (colors) {
+      for (const [key, cssVar] of Object.entries(COLOR_VAR_MAP)) {
+        const value = colors[key];
+        if (value && typeof value === 'string') {
+          root.style.setProperty(cssVar, value);
+        }
+      }
+    }
+  }, [palette, colors]);
 
   return (
     <ThemeContext.Provider value={{ palette }}>
