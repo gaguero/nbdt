@@ -53,102 +53,237 @@ export default function StaffLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {t('title', { defaultValue: 'Staff Login' })}
-          </h1>
-          <p className="text-gray-600">
-            {t('subtitle', { defaultValue: 'Sign in to access the staff portal' })}
-          </p>
+    <div
+      className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
+      style={{ background: 'var(--bg)' }}
+    >
+      {/* Background watermark logos */}
+      <img
+        src="/brand_assets/nayara-logo-round.png"
+        alt=""
+        className="nayara-logo-spin"
+        style={{
+          position: 'absolute',
+          width: 480,
+          height: 480,
+          top: -120,
+          right: -120,
+          opacity: 0.04,
+          pointerEvents: 'none',
+        }}
+      />
+      <img
+        src="/brand_assets/nayara-logo-round.png"
+        alt=""
+        style={{
+          position: 'absolute',
+          width: 280,
+          height: 280,
+          bottom: -80,
+          left: -80,
+          opacity: 0.035,
+          pointerEvents: 'none',
+          transform: 'rotate(45deg)',
+        }}
+      />
+
+      <div className="w-full max-w-sm relative z-10">
+        {/* Floating logo above card */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="relative mb-4">
+            <span
+              style={{
+                position: 'absolute',
+                inset: -10,
+                borderRadius: '50%',
+                border: '1.5px solid rgba(170,142,103,0.3)',
+                animation: 'nayara-pulse-ring 2.8s ease-out infinite',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                inset: -10,
+                borderRadius: '50%',
+                border: '1.5px solid rgba(170,142,103,0.2)',
+                animation: 'nayara-pulse-ring 2.8s ease-out 0.9s infinite',
+              }}
+            />
+            <img
+              src="/brand_assets/nayara-logo-round.png"
+              alt="Nayara"
+              className="nayara-logo-float"
+              style={{
+                width: 72,
+                height: 72,
+                display: 'block',
+                position: 'relative',
+                filter: 'drop-shadow(0 8px 20px rgba(170,142,103,0.25))',
+              }}
+            />
+          </div>
+          <h2
+            style={{
+              fontFamily: "var(--font-gelasio), Georgia, serif",
+              fontStyle: 'italic',
+              fontSize: 14,
+              color: 'var(--muted-dim)',
+              letterSpacing: '0.08em',
+              textTransform: 'none',
+              fontWeight: 400,
+            }}
+          >
+            Nayara Bocas del Toro
+          </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {t('email', { defaultValue: 'Email' })}
-            </label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              placeholder={t('emailPlaceholder', { defaultValue: 'Enter your email' })}
-              className="w-full"
-            />
+        {/* Card */}
+        <div className="nayara-card" style={{ padding: '32px 28px' }}>
+          {/* Logo divider header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--separator)' }} />
+            <img src="/brand_assets/nayara-logo-round.png" alt="" style={{ width: 24, height: 24, opacity: 0.5 }} />
+            <div style={{ flex: 1, height: 1, background: 'var(--separator)' }} />
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {t('password', { defaultValue: 'Password' })}
-            </label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              placeholder={t('passwordPlaceholder', { defaultValue: 'Enter your password' })}
-              className="w-full"
-            />
-          </div>
+          <h1
+            className="text-center"
+            style={{
+              fontFamily: "var(--font-gotham), Montserrat, sans-serif",
+              fontSize: 18,
+              fontWeight: 900,
+              letterSpacing: '0.1em',
+              color: 'var(--charcoal)',
+              marginBottom: 4,
+              textTransform: 'uppercase',
+            }}
+          >
+            {t('title', { defaultValue: 'Staff Login' })}
+          </h1>
+          <p
+            className="text-center"
+            style={{ fontSize: 12, color: 'var(--muted-dim)', marginBottom: 28, letterSpacing: '0.04em' }}
+          >
+            {t('subtitle', { defaultValue: 'Sign in to access the staff portal' })}
+          </p>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-700"
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div
+                style={{
+                  background: 'rgba(236,108,75,0.08)',
+                  border: '1px solid rgba(236,108,75,0.25)',
+                  borderRadius: 8,
+                  padding: '10px 14px',
+                  fontSize: 13,
+                  color: 'var(--terra)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
               >
-                {t('rememberMe', { defaultValue: 'Remember me' })}
+                <img src="/brand_assets/nayara-logo-round.png" alt="" style={{ width: 16, height: 16, opacity: 0.5 }} />
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label className="nayara-label" htmlFor="email">
+                {t('email', { defaultValue: 'Email' })}
               </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                placeholder={t('emailPlaceholder', { defaultValue: 'Enter your email' })}
+                className="w-full"
+              />
             </div>
 
-            <div className="text-sm">
+            <div>
+              <label className="nayara-label" htmlFor="password">
+                {t('password', { defaultValue: 'Password' })}
+              </label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                placeholder={t('passwordPlaceholder', { defaultValue: 'Enter your password' })}
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex items-center justify-between" style={{ paddingTop: 4 }}>
+              <div className="flex items-center gap-2">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  style={{ accentColor: 'var(--gold)' }}
+                />
+                <label htmlFor="remember-me" style={{ fontSize: 12, color: 'var(--muted-dim)', cursor: 'pointer' }}>
+                  {t('rememberMe', { defaultValue: 'Remember me' })}
+                </label>
+              </div>
               <a
                 href="#"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold-dark)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--gold)')}
               >
                 {t('forgotPassword', { defaultValue: 'Forgot password?' })}
               </a>
             </div>
-          </div>
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="large"
-            disabled={loading}
-            className="w-full"
-          >
-            {loading
-              ? t('signingIn', { defaultValue: 'Signing in...' })
-              : t('signIn', { defaultValue: 'Sign in' })}
-          </Button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="nayara-btn nayara-btn-primary w-full"
+              style={{ marginTop: 8, height: 44, fontSize: 13 }}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2 justify-center">
+                  <img
+                    src="/brand_assets/nayara-logo-round.png"
+                    alt=""
+                    className="nayara-logo-spin"
+                    style={{ width: 18, height: 18, filter: 'brightness(3)', opacity: 0.8 }}
+                  />
+                  {t('signingIn', { defaultValue: 'Signing in...' })}
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 justify-center">
+                  <img
+                    src="/brand_assets/nayara-logo-round.png"
+                    alt=""
+                    style={{ width: 18, height: 18, filter: 'brightness(3)' }}
+                  />
+                  {t('signIn', { defaultValue: 'Sign in' })}
+                </span>
+              )}
+            </button>
+          </form>
+
+          {/* Footer logo divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 24 }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--separator)' }} />
+            <img
+              src="/brand_assets/nayara-logo-round.png"
+              alt=""
+              className="nayara-logo-breathe"
+              style={{ width: 16, height: 16, opacity: 0.25 }}
+            />
+            <div style={{ flex: 1, height: 1, background: 'var(--separator)' }} />
+          </div>
+        </div>
       </div>
     </div>
   );

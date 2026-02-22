@@ -38,10 +38,47 @@ export default function AuthenticatedLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--bg)' }}
+      >
+        <div className="flex flex-col items-center gap-5">
+          <div style={{ position: 'relative', width: 96, height: 96 }}>
+            <img
+              src="/brand_assets/nayara-logo-round.png"
+              alt=""
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: 96,
+                height: 96,
+                opacity: 0.18,
+                animation: 'nayara-spin-slow 20s linear infinite',
+              }}
+            />
+            <img
+              src="/brand_assets/nayara-logo-round.png"
+              alt="Loading"
+              style={{
+                position: 'absolute',
+                inset: 16,
+                width: 64,
+                height: 64,
+                animation: 'nayara-spin-ccw 12s linear infinite',
+              }}
+            />
+          </div>
+          <p
+            style={{
+              fontFamily: "var(--font-gelasio), Georgia, serif",
+              fontStyle: 'italic',
+              fontSize: 13,
+              color: 'var(--muted-dim)',
+              letterSpacing: '0.08em',
+            }}
+          >
+            Loading your workspace…
+          </p>
         </div>
       </div>
     );

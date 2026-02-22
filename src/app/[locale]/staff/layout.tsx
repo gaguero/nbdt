@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { GuestDrawerProvider } from '@/contexts/GuestDrawerContext';
 import { PropertyConfigProvider } from '@/contexts/PropertyConfigContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { GuestDrawer } from '@/components/GuestDrawer';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -218,22 +219,34 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
           >
             <Link
               href={dashboardHref}
-              className="flex items-center justify-center rounded-full transition-shadow"
-              style={{
-                width: 38,
-                height: 38,
-                background: 'linear-gradient(135deg, var(--gold) 0%, #8a7352 100%)',
-                fontFamily: "var(--font-gelasio), Georgia, serif",
-                fontStyle: 'italic',
-                fontWeight: 700,
-                fontSize: 14,
-                color: '#fff',
-                textDecoration: 'none',
+              className="relative flex items-center justify-center"
+              style={{ width: 44, height: 44, textDecoration: 'none' }}
+              onMouseEnter={e => {
+                const ring = e.currentTarget.querySelector('.logo-hover-ring') as HTMLElement | null;
+                if (ring) ring.style.opacity = '1';
               }}
-              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 16px rgba(170,142,103,0.35)')}
-              onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
+              onMouseLeave={e => {
+                const ring = e.currentTarget.querySelector('.logo-hover-ring') as HTMLElement | null;
+                if (ring) ring.style.opacity = '0';
+              }}
             >
-              N
+              <span
+                className="logo-hover-ring absolute inset-0 rounded-full"
+                style={{
+                  border: '1.5px solid rgba(170,142,103,0.5)',
+                  boxShadow: '0 0 14px rgba(170,142,103,0.25)',
+                  opacity: 0,
+                  transition: 'opacity 0.2s ease',
+                  pointerEvents: 'none',
+                }}
+              />
+              <img
+                src="/brand_assets/nayara-logo-round.png"
+                alt="Nayara"
+                width={38}
+                height={38}
+                style={{ display: 'block', filter: 'brightness(1.1)' }}
+              />
             </Link>
           </div>
 
@@ -271,11 +284,16 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          {/* Leaf decoration */}
-          <div className="flex justify-center py-3" style={{ opacity: 0.12 }}>
-            <svg viewBox="0 0 24 24" fill="#4E5E3E" style={{ width: 24, height: 24 }}>
-              <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z" />
-            </svg>
+          {/* Logo watermark decoration */}
+          <div className="flex justify-center py-3">
+            <img
+              src="/brand_assets/nayara-logo-round.png"
+              alt=""
+              width={28}
+              height={28}
+              className="nayara-logo-spin"
+              style={{ opacity: 0.1, display: 'block' }}
+            />
           </div>
 
           {/* Logout */}
@@ -316,17 +334,26 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
                   minWidth: PANEL_WIDTH,
                 }}
               >
-                <span
-                  className="font-bold italic"
-                  style={{
-                    fontFamily: "var(--font-gelasio), Georgia, serif",
-                    fontSize: 15,
-                    color: 'var(--gold)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {currentGroup.label}
-                </span>
+                <div className="flex items-center gap-2">
+                  <img
+                    src="/brand_assets/nayara-logo-round.png"
+                    alt=""
+                    width={20}
+                    height={20}
+                    style={{ opacity: 0.55, display: 'block', flexShrink: 0 }}
+                  />
+                  <span
+                    className="font-bold italic"
+                    style={{
+                      fontFamily: "var(--font-gelasio), Georgia, serif",
+                      fontSize: 15,
+                      color: 'var(--gold)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {currentGroup.label}
+                  </span>
+                </div>
                 <button
                   onClick={closePanel}
                   className="flex items-center justify-center rounded-lg transition-colors"
@@ -442,6 +469,19 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
                   }}
                 >
                   {ls('Good morning', 'Buenos días')}
+                </span>
+                <span
+                  className="hidden lg:flex items-center gap-1.5"
+                  style={{ opacity: 0.35, marginLeft: 8 }}
+                >
+                  <img
+                    src="/brand_assets/nayara-logo-round.png"
+                    alt=""
+                    width={16}
+                    height={16}
+                    className="nayara-logo-breathe"
+                    style={{ display: 'block' }}
+                  />
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -617,9 +657,11 @@ function RailIcon({
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   return (
     <PropertyConfigProvider>
-      <GuestDrawerProvider>
-        <StaffLayoutContent>{children}</StaffLayoutContent>
-      </GuestDrawerProvider>
+      <ThemeProvider>
+        <GuestDrawerProvider>
+          <StaffLayoutContent>{children}</StaffLayoutContent>
+        </GuestDrawerProvider>
+      </ThemeProvider>
     </PropertyConfigProvider>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePropertyConfig } from '@/contexts/PropertyConfigContext';
 import type { ChangeEvent, FormEvent, ReactNode } from 'react';
 import {
   ArrowPathIcon,
@@ -219,8 +220,58 @@ function SectionTitle({ title, subtitle, children }: { title: string; subtitle?:
   );
 }
 
+const PALETTES = [
+  { key: 'botanical', name: 'Botanical', desc: 'Warm tan, cream & sage — the original', bg: '#C8BDA8', surface: '#F2EBE0', accent: '#AA8E67', sidebar: '#0E1A09' },
+  { key: 'ocean',     name: 'Ocean',     desc: 'Steel blue & navy — logo inspired',    bg: '#c2d2dc', surface: '#dde8ef', accent: '#8fa8b8', sidebar: '#0d1e2b' },
+  { key: 'midnight',  name: 'Midnight',  desc: 'Deep charcoal & champagne gold',       bg: '#2a2a2a', surface: '#333333', accent: '#c9a96e', sidebar: '#1a1a1a' },
+  { key: 'desert',    name: 'Desert',    desc: 'Warm sand & terracotta',               bg: '#d4c4a8', surface: '#ede0c8', accent: '#c47c3a', sidebar: '#1a0e04' },
+  { key: 'slate',     name: 'Slate',     desc: 'Cool gray & silver',                   bg: '#bec8cc', surface: '#d8e0e4', accent: '#7a9aaa', sidebar: '#0e1820' },
+] as const;
+
+type PaletteKey = typeof PALETTES[number]['key'];
+
 export default function SettingsPage() {
   const [activeModule, setActiveModule] = useState<ModuleKey>('hub');
+  const [activePalette, setActivePalette] = useState<PaletteKey>('botanical');
+  const [paletteSaving, setPaletteSaving] = useState(false);
+  const { config: propertyConfig, refresh: refreshPropertyConfig } = usePropertyConfig();
+
+  useEffect(() => {
+    const saved = propertyConfig?.settings?.brand?.colors?.palette as PaletteKey | undefined;
+    if (saved) setActivePalette(saved);
+  }, [propertyConfig]);
+
+  const handlePaletteSave = async (paletteKey: PaletteKey) => {
+    setActivePalette(paletteKey);
+    if (paletteKey === 'botanical') {
+      document.documentElement.removeAttribute('data-palette');
+    } else {
+      document.documentElement.setAttribute('data-palette', paletteKey);
+    }
+    setPaletteSaving(true);
+    try {
+      const current = (propertyConfig?.settings ?? {}) as Record<string, unknown>;
+      await fetch('/api/admin/property-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          settings: {
+            ...current,
+            brand: {
+              ...(current.brand ?? {}),
+              colors: {
+                ...((current.brand as Record<string, unknown>)?.colors ?? {}),
+                palette: paletteKey,
+              },
+            },
+          },
+        }),
+      });
+      await refreshPropertyConfig();
+    } finally {
+      setPaletteSaving(false);
+    }
+  };
 
   const [dbStats, setDbStats] = useState<DbStat[]>([]);
   const [loadingDb, setLoadingDb] = useState(true);
@@ -2193,6 +2244,68 @@ export default function SettingsPage() {
     }
     return (
       <div className="space-y-4">
+                {/* ── Color Palette ── */}
+                <div style={{ marginBottom: 32 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                    <img src="/brand_assets/nayara-logo-round.png" alt="" className="nayara-logo-breathe" style={{ width: 32, height: 32, flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'var(--font-gotham), Montserrat, sans-serif', letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: 'var(--charcoal)' }}>Color Palette</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted-dim)', marginTop: 2 }}>Changes apply instantly across the entire staff portal</div>
+                    </div>
+                    {paletteSaving && (
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <img src="/brand_assets/nayara-logo-round.png" alt="" className="nayara-logo-spin" style={{ width: 16, height: 16, opacity: 0.5 }} />
+                        <span style={{ fontSize: 11, color: 'var(--muted-dim)' }}>Saving…</span>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
+                    {PALETTES.map(p => {
+                      const isActive = activePalette === p.key;
+                      return (
+                        <button
+                          key={p.key}
+                          onClick={() => handlePaletteSave(p.key)}
+                          style={{
+                            border: isActive ? '2px solid var(--gold)' : '2px solid transparent',
+                            borderRadius: 12, overflow: 'hidden', cursor: 'pointer',
+                            background: 'transparent', padding: 0, position: 'relative',
+                            boxShadow: isActive ? 'var(--card-shadow-hover)' : 'var(--card-shadow)',
+                            transition: 'border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease',
+                            transform: isActive ? 'translateY(-2px)' : 'none', textAlign: 'left' as const,
+                          }}
+                          onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; }}
+                          onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.transform = 'none'; }}
+                        >
+                          <div style={{ background: p.bg, height: 72, position: 'relative', overflow: 'hidden' }}>
+                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 16, background: p.sidebar, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 6, gap: 4 }}>
+                              <img src="/brand_assets/nayara-logo-round.png" alt="" style={{ width: 10, height: 10, opacity: 0.7 }} />
+                              <div style={{ width: 6, height: 3, borderRadius: 2, background: p.accent, opacity: 0.7 }} />
+                              <div style={{ width: 6, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+                              <div style={{ width: 6, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+                            </div>
+                            <div style={{ marginLeft: 18, padding: '8px 8px 0' }}>
+                              <div style={{ background: p.surface, borderRadius: 4, padding: '5px 6px' }}>
+                                <div style={{ width: '60%', height: 4, borderRadius: 2, background: p.accent, marginBottom: 3 }} />
+                                <div style={{ width: '85%', height: 3, borderRadius: 2, background: 'rgba(0,0,0,0.12)', marginBottom: 2 }} />
+                                <div style={{ width: '70%', height: 3, borderRadius: 2, background: 'rgba(0,0,0,0.08)' }} />
+                              </div>
+                            </div>
+                            {isActive && (
+                              <div style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: p.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <img src="/brand_assets/nayara-logo-round.png" alt="" style={{ width: 14, height: 14, filter: 'brightness(3)' }} />
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ background: p.surface, padding: '8px 10px 10px' }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: p.bg === '#2a2a2a' ? '#f0ede8' : '#1a1a1a', letterSpacing: '0.04em', marginBottom: 2 }}>{p.name}</div>
+                            <div style={{ fontSize: 10, color: p.bg === '#2a2a2a' ? 'rgba(240,237,232,0.5)' : 'rgba(26,26,26,0.45)', lineHeight: 1.4 }}>{p.desc}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
         <SectionTitle title="Data Curation Configuration" subtitle="Control behavior for the entire center.">
           <button type="button" onClick={() => void saveSettings()} disabled={settingsSaving} className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">
             {settingsSaving ? 'Saving...' : 'Save Changes'}
