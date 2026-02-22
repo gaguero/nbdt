@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { queryOne } from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
-export const GUEST_COOKIE_NAME = 'nayara_guest_token';
+const GUEST_COOKIE_NAME = 'nayara_guest_token';
 
 export async function POST(request: NextRequest) {
   try {
