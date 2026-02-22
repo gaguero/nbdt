@@ -14,6 +14,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 import { useGuestDrawer } from '@/contexts/GuestDrawerContext';
+import { usePropertyConfig } from '@/contexts/PropertyConfigContext';
 import { localDateString } from '@/lib/dates';
 import { TransferModal } from '../transfers/TransferModal';
 
@@ -148,6 +149,7 @@ const EMPTY_DATA: DashData = { arrivals:[], departures:[], inhouse:[], requests:
 export default function DashboardPage() {
   const locale = useLocale();
   const { openGuest } = useGuestDrawer();
+  const { config } = usePropertyConfig();
   const [data, setData] = useState<DashData>(EMPTY_DATA);
   const [editingTransfer, setEditingTransfer] = useState<any | null>(null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -187,7 +189,7 @@ export default function DashboardPage() {
   const unreadMsgs   = data.conversations.reduce((s: number, c: any) => s + parseInt(c.unread_count || '0'), 0);
   const openRequests = data.requests.filter((r: any) => r.status !== 'resolved' && r.status !== 'cancelled').length;
   const inhouseCount = data.inhouse.length;
-  const totalVillas  = 37;
+  const totalVillas  = config?.settings?.rooms?.totalUnits ?? 37;
   const occPct       = totalVillas > 0 ? Math.round((inhouseCount / totalVillas) * 100) : 0;
   const occLabel     = occPct >= 90 ? 'Near Full' : occPct >= 70 ? 'High' : occPct >= 40 ? 'Moderate' : 'Low';
 

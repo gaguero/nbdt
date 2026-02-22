@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
       pendingBills,
       recentActivity,
       comingUpToday,
+      propertyTotalUnits,
     ] = await Promise.all([
       // Q1: Occupied rooms by category
       queryMany(
@@ -207,7 +208,7 @@ export async function GET(request: NextRequest) {
         [date]
       ),
 
-      // Q13: Coming up today
+      // Q13: Coming up today (results used below)
       queryMany(
         `(
            SELECT 'transfer' as type, COALESCE(g.full_name, 'Guest') as title,
@@ -247,6 +248,13 @@ export async function GET(request: NextRequest) {
          LIMIT 6`,
         [date]
       ),
+
+      // Q14: Total units from property config
+      queryOne(
+        `SELECT settings->'rooms'->>'totalUnits' AS total_units
+         FROM property_config
+         LIMIT 1`
+      ).catch(() => ({ total_units: null })),
     ]);
 
     // Build occupancy data
@@ -266,7 +274,9 @@ export async function GET(request: NextRequest) {
       total: totalMap.get(label) || 0,
     }));
 
-    const totalRooms = byCategory.reduce((sum, c) => sum + c.total, 0);
+    const configTotalUnits = parseInt(propertyTotalUnits?.total_units || '0') || 0;
+    const categoryTotal = byCategory.reduce((sum, c) => sum + c.total, 0);
+    const totalRooms = configTotalUnits > 0 ? configTotalUnits : (categoryTotal > 0 ? categoryTotal : 37);
     const occupiedRooms = byCategory.reduce((sum, c) => sum + c.occupied, 0);
     const percentage = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
 
