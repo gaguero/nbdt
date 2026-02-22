@@ -353,46 +353,69 @@ export default function TourProductsPage() {
 
                 {/* Images */}
                 <div>
-                  <label className="nayara-label">Images (URLs for Guest Portal)</label>
+                  <label className="nayara-label">Images (for Guest Portal)</label>
                   <div className="space-y-2 mt-1">
-                    {(form.images || []).map((url: string, idx: number) => (
-                      <div key={idx} className="flex gap-2 items-center">
-                        <input
-                          type="url"
-                          value={url}
-                          onChange={(e) => {
-                            const imgs = [...(form.images || [])];
-                            imgs[idx] = e.target.value;
-                            setForm({ ...form, images: imgs });
-                          }}
-                          placeholder="https://..."
-                          className="nayara-input flex-1"
-                        />
-                        {url && (
-                          <img src={url} alt="" className="w-10 h-10 rounded object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const imgs = [...(form.images || [])];
-                            imgs.splice(idx, 1);
-                            setForm({ ...form, images: imgs });
-                          }}
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ color: 'var(--terra)' }}
-                        >
-                          Remove
-                        </button>
+                    {/* Existing images */}
+                    {(form.images || []).length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {(form.images || []).map((url: string, idx: number) => (
+                          <div key={idx} className="relative group">
+                            <img
+                              src={url}
+                              alt=""
+                              className="w-20 h-20 rounded-lg object-cover"
+                              style={{ border: '1px solid var(--separator)' }}
+                              onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/80x80/1a2e12/FAFAF7?text=${idx + 1}`; }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const imgs = [...(form.images || [])];
+                                imgs.splice(idx, 1);
+                                setForm({ ...form, images: imgs });
+                              }}
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{ background: 'var(--terra)' }}
+                            >
+                              x
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, images: [...(form.images || []), ''] })}
-                      className="text-xs font-medium"
-                      style={{ color: 'var(--gold)' }}
-                    >
-                      + Add Image URL
-                    </button>
+                    )}
+                    {/* Upload button */}
+                    <div className="flex gap-2 items-center">
+                      <label
+                        className="nayara-btn nayara-btn-secondary text-xs cursor-pointer !py-1.5"
+                      >
+                        Upload Image
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const fd = new FormData();
+                            fd.append('file', file);
+                            try {
+                              const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                              if (res.ok) {
+                                const data = await res.json();
+                                setForm((prev: any) => ({ ...prev, images: [...(prev.images || []), data.url] }));
+                              } else {
+                                const data = await res.json();
+                                alert(data.error || 'Upload failed');
+                              }
+                            } catch {
+                              alert('Upload failed');
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <span className="text-xs" style={{ color: 'var(--muted-dim)' }}>JPEG, PNG, WebP, GIF — max 5MB</span>
+                    </div>
                   </div>
                 </div>
 

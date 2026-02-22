@@ -133,7 +133,10 @@ ALTER TABLE tour_products
     ADD COLUMN IF NOT EXISTS default_boat_id UUID REFERENCES boats(id) ON DELETE SET NULL,
     ADD COLUMN IF NOT EXISTS required_skills TEXT[] DEFAULT '{}',
     ADD COLUMN IF NOT EXISTS is_internal_operation BOOLEAN DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS guest_visible BOOLEAN DEFAULT TRUE;
+    ADD COLUMN IF NOT EXISTS guest_visible BOOLEAN DEFAULT FALSE;
+
+-- Default all existing tour products to not guest-visible (staff enables manually)
+UPDATE tour_products SET guest_visible = FALSE WHERE guest_visible IS NULL OR guest_visible = TRUE;
 
 -- Tour schedules: boat/captain assignment
 ALTER TABLE tour_schedules

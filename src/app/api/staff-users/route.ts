@@ -42,17 +42,25 @@ export async function POST(request: NextRequest) {
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, email, first_name, last_name, role, station`,
         [email.toLowerCase(), first_name, last_name, role, password_hash, station || null, property_id || (auth as any).propertyId]
       );
-      
+
       const user = userRes.rows[0];
 
       // 2. Ensure a staff profile exists in the guests table
-      await client.query(
-        `INSERT INTO guests (email, first_name, last_name, profile_type)
-         VALUES ($1, $2, $3, 'staff')
-         ON CONFLICT (email) DO UPDATE SET profile_type = 'staff'
-         WHERE guests.profile_type != 'staff'`,
-        [email.toLowerCase(), first_name, last_name]
+      const existingGuest = await client.query(
+        `SELECT id FROM guests WHERE email = $1 LIMIT 1`,
+        [email.toLowerCase()]
       );
+      if (existingGuest.rows.length > 0) {
+        await client.query(
+          `UPDATE guests SET profile_type = 'staff' WHERE id = $1 AND profile_type != 'staff'`,
+          [existingGuest.rows[0].id]
+        );
+      } else {
+        await client.query(
+          `INSERT INTO guests (email, first_name, last_name, profile_type) VALUES ($1, $2, $3, 'staff')`,
+          [email.toLowerCase(), first_name, last_name]
+        );
+      }
 
       return user;
     });
