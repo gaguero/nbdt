@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (filter === 'arriving_today' || filter === 'arrivals') {
+      whereClause += ` AND r.status != 'CANCELLED'`;
       if (date) {
         whereClause += ` AND r.arrival = $${paramIdx++}`;
         params.push(date);
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
         whereClause += ` AND r.arrival = CURRENT_DATE`;
       }
     } else if (filter === 'departing_today' || filter === 'departures') {
+      whereClause += ` AND r.status != 'CANCELLED'`;
       if (date) {
         whereClause += ` AND r.departure = $${paramIdx++}`;
         params.push(date);
@@ -43,6 +45,7 @@ export async function GET(request: NextRequest) {
         whereClause += ` AND r.departure = CURRENT_DATE`;
       }
     } else if (filter === 'checked_in') {
+      whereClause += ` AND r.status != 'CANCELLED'`;
       // If date provided, find who was in house on THAT date
       if (date) {
         whereClause += ` AND r.arrival <= $${paramIdx} AND r.departure > $${paramIdx}`;
