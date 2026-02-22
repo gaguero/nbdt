@@ -58,6 +58,12 @@
     --radius-input: 0.5rem;
     --shadow-card: var(--card-shadow);
     --shadow-button: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+    /* ── Font set tokens (default = "botanical") ──────────────── */
+    --fs-heading:    var(--font-gotham), Montserrat, Tahoma, sans-serif;
+    --fs-subheading: var(--font-gelasio), Georgia, serif;
+    --fs-body:       var(--font-proxima-nova), Figtree, Arial, sans-serif;
+    --fs-mono:       'DM Mono', var(--font-geist-mono), Menlo, monospace;
   }
 
   /* ── Palette: Ocean (Nayara steel-blue, logo-inspired) ────── */
@@ -240,6 +246,30 @@
     --modal-shadow: 0 28px 80px rgba(14,26,12,0.32), 0 4px 20px rgba(26,42,24,0.14);
   }
 
+  /* ── Font Set: Modern (Inter / system-ui) ───────────────────── */
+  [data-fontset="modern"] {
+    --fs-heading:    'Inter', system-ui, -apple-system, sans-serif;
+    --fs-subheading: 'Inter', system-ui, -apple-system, sans-serif;
+    --fs-body:       'Inter', system-ui, -apple-system, sans-serif;
+    --fs-mono:       'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  /* ── Font Set: Classic (Playfair Display + Lora) ────────────── */
+  [data-fontset="classic"] {
+    --fs-heading:    'Playfair Display', Georgia, serif;
+    --fs-subheading: 'Lora', Georgia, serif;
+    --fs-body:       'Lora', Georgia, serif;
+    --fs-mono:       'DM Mono', Menlo, monospace;
+  }
+
+  /* ── Font Set: Minimal (DM Sans monofamily) ─────────────────── */
+  [data-fontset="minimal"] {
+    --fs-heading:    'DM Sans', Helvetica, Arial, sans-serif;
+    --fs-subheading: 'DM Sans', Helvetica, Arial, sans-serif;
+    --fs-body:       'DM Sans', Helvetica, Arial, sans-serif;
+    --fs-mono:       'DM Mono', 'Courier New', monospace;
+  }
+
   /* ── Logo animations (shared across all palettes) ──────────── */
   @keyframes nayara-breathe {
     0%, 100% { transform: scale(1); opacity: 0.9; }
@@ -275,7 +305,7 @@
   body {
     background: var(--bg);
     color: var(--charcoal);
-    font-family: var(--font-proxima-nova), Figtree, Arial, sans-serif;
+    font-family: var(--fs-body);
     font-weight: 300;
     letter-spacing: 0.04em;
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -283,13 +313,13 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply uppercase;
-    font-family: var(--font-gotham), Montserrat, Tahoma, sans-serif;
+    font-family: var(--fs-heading);
     font-weight: 900;
     letter-spacing: 0.1em;
   }
 
   .font-subheading {
-    font-family: var(--font-gelasio), Georgia, serif;
+    font-family: var(--fs-subheading);
     font-style: italic;
     letter-spacing: 0.04em;
     text-transform: none;
