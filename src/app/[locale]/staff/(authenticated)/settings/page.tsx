@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePropertyConfig } from '@/contexts/PropertyConfigContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { ChangeEvent, FormEvent, ReactNode } from 'react';
 import {
   ArrowPathIcon,
@@ -254,6 +255,13 @@ export default function SettingsPage() {
   const [paletteSaving, setPaletteSaving] = useState(false);
   const [fontSetSaving, setFontSetSaving] = useState(false);
   const { config: propertyConfig, refresh: refreshPropertyConfig } = usePropertyConfig();
+  const { lockPreview, unlockPreview } = useTheme();
+
+  // Lock ThemeProvider when entering palette/font settings to prevent it from overwriting our preview
+  useEffect(() => {
+    lockPreview();
+    return () => { unlockPreview(); };
+  }, [lockPreview, unlockPreview]);
 
   // Sync saved values from DB config
   useEffect(() => {
@@ -263,12 +271,17 @@ export default function SettingsPage() {
     if (dbFont) { setSavedFontSet(dbFont); setPreviewFontSet(dbFont); }
   }, [propertyConfig]);
 
-  // Apply preview palette to DOM instantly
+  // Apply preview palette to DOM instantly — also clear inline overrides so CSS palette vars take effect
   useEffect(() => {
+    const root = document.documentElement;
+    // Clear any inline style overrides set by ThemeProvider
+    const cssVars = ['--bg','--surface','--elevated','--gold','--gold-dark','--sage','--forest','--terra','--charcoal','--sidebar-bg','--muted','--muted-dim','--separator'];
+    for (const v of cssVars) root.style.removeProperty(v);
+
     if (previewPalette === 'botanical') {
-      document.documentElement.removeAttribute('data-palette');
+      root.removeAttribute('data-palette');
     } else {
-      document.documentElement.setAttribute('data-palette', previewPalette);
+      root.setAttribute('data-palette', previewPalette);
     }
   }, [previewPalette]);
 
@@ -572,6 +585,7 @@ export default function SettingsPage() {
   const [propConfigLoading, setPropConfigLoading] = useState(false);
   const [propConfigSaving, setPropConfigSaving] = useState(false);
   const [propConfigMsg, setPropConfigMsg] = useState<Flash | null>(null);
+  const [expandedCategoryIdx, setExpandedCategoryIdx] = useState<number | null>(null);
 
   const fetchPropConfig = useCallback(async () => {
     setPropConfigLoading(true);
@@ -2263,25 +2277,84 @@ export default function SettingsPage() {
             </p>
             <button
               type="button"
-              onClick={() => updateSettings({ rooms: { ...s.rooms, categories: [...rooms, { name: '', code: '', total: 0 }] } })}
+              onClick={() => updateSettings({ rooms: { ...s.rooms, categories: [...rooms, { name: '', code: '', total: 0, units: [] }] } })}
               className="text-xs font-semibold text-slate-700 border border-slate-300 rounded-lg px-2 py-1 hover:bg-slate-50"
-            >+ Add</button>
+            >+ Add Category</button>
           </div>
-          <table className="w-full text-sm">
-            <thead><tr className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b">
-              <th className="text-left pb-2">Name</th><th className="text-left pb-2">Code</th><th className="text-left pb-2">Units</th><th className="pb-2"></th>
-            </tr></thead>
-            <tbody>
-              {rooms.map((cat: any, i: number) => (
-                <tr key={i} className="border-b last:border-0">
-                  <td className="py-1.5 pr-2"><input type="text" value={cat.name} onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], name: e.target.value }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }} className="w-full rounded border border-slate-200 px-2 py-1 text-sm" /></td>
-                  <td className="py-1.5 pr-2"><input type="text" value={cat.code} onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], code: e.target.value }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }} className="w-24 rounded border border-slate-200 px-2 py-1 text-sm" /></td>
-                  <td className="py-1.5 pr-2"><input type="number" min={0} value={cat.total} onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], total: parseInt(e.target.value) || 0 }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }} className="w-20 rounded border border-slate-200 px-2 py-1 text-sm" /></td>
-                  <td className="py-1.5"><button type="button" onClick={() => { const next = rooms.filter((_: any, j: number) => j !== i); updateSettings({ rooms: { ...s.rooms, categories: next } }); }} className="text-red-400 hover:text-red-600"><TrashIcon className="h-4 w-4" /></button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="space-y-3">
+            {rooms.map((cat: any, i: number) => {
+              const catUnits: { number: string; operaCode: string }[] = cat.units ?? [];
+              const isExpanded = expandedCategoryIdx === i;
+              return (
+                <div key={i} className="rounded-lg border border-slate-200 overflow-hidden">
+                  {/* Category header row */}
+                  <div className="flex items-center gap-2 bg-slate-50 px-3 py-2">
+                    <button type="button" onClick={() => setExpandedCategoryIdx(isExpanded ? null : i)}
+                      className="text-slate-400 hover:text-slate-600" style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                      <ChevronRightIcon className="h-4 w-4" />
+                    </button>
+                    <input type="text" placeholder="Category name" value={cat.name}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], name: e.target.value }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }}
+                      className="flex-1 rounded border border-slate-200 px-2 py-1 text-sm font-medium" />
+                    <input type="text" placeholder="Code" value={cat.code}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], code: e.target.value }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }}
+                      className="w-24 rounded border border-slate-200 px-2 py-1 text-sm" />
+                    <input type="number" min={0} placeholder="Units" value={cat.total}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => { const next = [...rooms]; next[i] = { ...next[i], total: parseInt(e.target.value) || 0 }; updateSettings({ rooms: { ...s.rooms, categories: next } }); }}
+                      className="w-16 rounded border border-slate-200 px-2 py-1 text-sm" />
+                    <span className="text-xs text-slate-400 whitespace-nowrap">{catUnits.length} rooms</span>
+                    <button type="button" onClick={() => { const next = rooms.filter((_: any, j: number) => j !== i); if (expandedCategoryIdx === i) setExpandedCategoryIdx(null); updateSettings({ rooms: { ...s.rooms, categories: next } }); }}
+                      className="text-red-400 hover:text-red-600 ml-1"><TrashIcon className="h-4 w-4" /></button>
+                  </div>
+                  {/* Expanded: individual room units */}
+                  {isExpanded && (
+                    <div className="px-3 py-2 bg-white border-t border-slate-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Individual Rooms / Units</p>
+                        <button type="button" onClick={() => {
+                          const next = [...rooms];
+                          const newUnits = [...catUnits, { number: '', operaCode: '' }];
+                          next[i] = { ...next[i], units: newUnits };
+                          updateSettings({ rooms: { ...s.rooms, categories: next } });
+                        }} className="text-xs font-semibold text-slate-600 border border-slate-300 rounded px-2 py-0.5 hover:bg-slate-50">+ Add Room</button>
+                      </div>
+                      {catUnits.length === 0 ? (
+                        <p className="text-xs text-slate-400 italic py-2">No individual rooms defined. Click &quot;+ Add Room&quot; to add room numbers/codes from Opera.</p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                          {catUnits.map((unit: any, j: number) => (
+                            <div key={j} className="flex items-center gap-1.5 bg-slate-50 rounded px-2 py-1">
+                              <input type="text" placeholder="Room #" value={unit.number}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                  const next = [...rooms]; const newUnits = [...catUnits];
+                                  newUnits[j] = { ...newUnits[j], number: e.target.value };
+                                  next[i] = { ...next[i], units: newUnits };
+                                  updateSettings({ rooms: { ...s.rooms, categories: next } });
+                                }}
+                                className="w-20 rounded border border-slate-200 px-1.5 py-0.5 text-xs" />
+                              <input type="text" placeholder="Opera code" value={unit.operaCode}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                  const next = [...rooms]; const newUnits = [...catUnits];
+                                  newUnits[j] = { ...newUnits[j], operaCode: e.target.value };
+                                  next[i] = { ...next[i], units: newUnits };
+                                  updateSettings({ rooms: { ...s.rooms, categories: next } });
+                                }}
+                                className="flex-1 rounded border border-slate-200 px-1.5 py-0.5 text-xs" />
+                              <button type="button" onClick={() => {
+                                const next = [...rooms]; const newUnits = catUnits.filter((_: any, k: number) => k !== j);
+                                next[i] = { ...next[i], units: newUnits };
+                                updateSettings({ rooms: { ...s.rooms, categories: next } });
+                              }} className="text-red-400 hover:text-red-600"><XMarkIcon className="h-3.5 w-3.5" /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
           <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-200">
             <label className="text-sm font-medium text-slate-700">Total Units (villas)</label>
             <input

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { usePropertyConfig } from '@/contexts/PropertyConfigContext';
 
 export type PaletteName =
@@ -12,9 +12,19 @@ export type FontSetName = 'botanical' | 'modern' | 'classic' | 'minimal';
 interface ThemeContextType {
   palette: PaletteName;
   fontSet: FontSetName;
+  /** Lock preview so the provider stops overwriting DOM attributes */
+  lockPreview: () => void;
+  unlockPreview: () => void;
+  isLocked: boolean;
 }
 
-const ThemeContext = createContext<ThemeContextType>({ palette: 'botanical', fontSet: 'botanical' });
+const ThemeContext = createContext<ThemeContextType>({
+  palette: 'botanical',
+  fontSet: 'botanical',
+  lockPreview: () => {},
+  unlockPreview: () => {},
+  isLocked: false,
+});
 
 // Maps property-config color keys → CSS variable names
 const COLOR_VAR_MAP: Record<string, string> = {
@@ -39,7 +49,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const palette = (colors?.palette as PaletteName) ?? 'botanical';
   const fontSet = ((config?.settings?.brand as Record<string, unknown>)?.fontSet as FontSetName) ?? 'botanical';
 
+  const [locked, setLocked] = useState(false);
+
+  const lockPreview = useCallback(() => setLocked(true), []);
+  const unlockPreview = useCallback(() => setLocked(false), []);
+
   useEffect(() => {
+    // Don't touch DOM when locked — settings page is managing previews
+    if (locked) return;
+
     const root = document.documentElement;
 
     // Apply preset palette attribute
@@ -65,10 +83,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-  }, [palette, fontSet, colors]);
+  }, [palette, fontSet, colors, locked]);
 
   return (
-    <ThemeContext.Provider value={{ palette, fontSet }}>
+    <ThemeContext.Provider value={{ palette, fontSet, lockPreview, unlockPreview, isLocked: locked }}>
       {children}
     </ThemeContext.Provider>
   );
