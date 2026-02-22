@@ -36,18 +36,16 @@ export async function GET(request: NextRequest) {
         [pattern]
       ),
 
-      // Search reservations by guest name, room, confirmation number
+      // Search reservations by guest name, room
       queryMany(
         `SELECT r.id, r.room, r.arrival, r.departure, r.status,
-                COALESCE(g.full_name, r.opera_guest_name) AS guest_name,
-                r.confirmation_number
+                COALESCE(g.full_name, r.opera_guest_name) AS guest_name
          FROM reservations r
          LEFT JOIN guests g ON r.guest_id = g.id
          WHERE r.status != 'CANCELLED'
            AND (g.full_name ILIKE $1
                 OR r.opera_guest_name ILIKE $1
-                OR r.room ILIKE $1
-                OR r.confirmation_number ILIKE $1)
+                OR r.room ILIKE $1)
          ORDER BY r.arrival DESC
          LIMIT 5`,
         [pattern]
@@ -57,12 +55,11 @@ export async function GET(request: NextRequest) {
       queryMany(
         `SELECT t.id, t.date, t.time, t.origin, t.destination,
                 t.transfer_type, t.guest_status,
-                COALESCE(g.full_name, t.guest_name) AS guest_name
+                g.full_name AS guest_name
          FROM transfers t
          LEFT JOIN guests g ON t.guest_id = g.id
          WHERE t.guest_status != 'cancelled'
            AND (g.full_name ILIKE $1
-                OR t.guest_name ILIKE $1
                 OR t.origin ILIKE $1
                 OR t.destination ILIKE $1)
          ORDER BY t.date DESC
@@ -82,13 +79,13 @@ export async function GET(request: NextRequest) {
         type: 'reservation' as const,
         id: r.id,
         title: r.guest_name || '—',
-        subtitle: [r.room, r.status, r.arrival].filter(Boolean).join(' · '),
+        subtitle: [r.room, r.status, r.arrival?.toString?.()?.split?.('T')?.[0]].filter(Boolean).join(' · '),
       })),
       ...transfers.map((t: any) => ({
         type: 'transfer' as const,
         id: t.id,
         title: t.guest_name || '—',
-        subtitle: [t.transfer_type, `${t.origin} → ${t.destination}`, t.date].filter(Boolean).join(' · '),
+        subtitle: [t.transfer_type, `${t.origin || ''} → ${t.destination || ''}`, t.date?.toString?.()?.split?.('T')?.[0]].filter(Boolean).join(' · '),
       })),
     ];
 
