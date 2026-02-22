@@ -316,7 +316,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
           onMouseLeave={handlePanelHoverLeave}
           style={{
             width: panelOpen && currentGroup ? PANEL_WIDTH : 0,
-            background: '#121f0d',
+            background: 'var(--sidebar-bg)',
             borderRight: '1px solid rgba(255,255,255,0.06)',
             transition: 'width 0.28s cubic-bezier(0.34,1.56,0.64,1)',
             zIndex: 1,
