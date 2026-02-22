@@ -60,6 +60,114 @@
     --shadow-button: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 
+  /* ── Palette: Ocean (Nayara steel-blue, logo-inspired) ────── */
+  [data-palette="ocean"] {
+    --bg:         #c2d2dc;
+    --surface:    #dde8ef;
+    --elevated:   #cfdde6;
+    --gold:       #8fa8b8;
+    --gold-dark:  #6a8fa3;
+    --sage:       #3a6070;
+    --forest:     #274a5a;
+    --terra:      #d4654a;
+    --charcoal:   #1a2b35;
+    --sidebar-bg: #0d1e2b;
+    --muted:      rgba(26,43,53,0.80);
+    --muted-dim:  rgba(26,43,53,0.55);
+    --separator:  rgba(58,96,112,0.18);
+    --card-shadow: 0 2px 12px rgba(58,96,112,0.10), 0 1px 3px rgba(26,43,53,0.06);
+    --card-shadow-hover: 0 8px 28px rgba(58,96,112,0.14), 0 2px 8px rgba(26,43,53,0.08);
+    --modal-shadow: 0 28px 80px rgba(13,30,43,0.32), 0 4px 20px rgba(26,43,53,0.14);
+  }
+
+  /* ── Palette: Midnight (charcoal + champagne) ──────────────── */
+  [data-palette="midnight"] {
+    --bg:         #2a2a2a;
+    --surface:    #333333;
+    --elevated:   #3d3d3d;
+    --gold:       #c9a96e;
+    --gold-dark:  #b8944f;
+    --sage:       #7a9e7e;
+    --forest:     #4a6e4e;
+    --terra:      #e07055;
+    --charcoal:   #f0ede8;
+    --sidebar-bg: #1a1a1a;
+    --muted:      rgba(240,237,232,0.85);
+    --muted-dim:  rgba(240,237,232,0.55);
+    --separator:  rgba(201,169,110,0.18);
+    --card-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.15);
+    --card-shadow-hover: 0 8px 28px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+    --modal-shadow: 0 28px 80px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  /* ── Palette: Desert (warm sand + rust) ────────────────────── */
+  [data-palette="desert"] {
+    --bg:         #d4c4a8;
+    --surface:    #ede0c8;
+    --elevated:   #e4d4b4;
+    --gold:       #c47c3a;
+    --gold-dark:  #aa6a28;
+    --sage:       #7a5e3a;
+    --forest:     #5a4020;
+    --terra:      #d4502a;
+    --charcoal:   #2a1a0a;
+    --sidebar-bg: #1a0e04;
+    --muted:      rgba(42,26,10,0.80);
+    --muted-dim:  rgba(42,26,10,0.55);
+    --separator:  rgba(122,94,58,0.18);
+    --card-shadow: 0 2px 12px rgba(122,94,58,0.12), 0 1px 3px rgba(42,26,10,0.07);
+    --card-shadow-hover: 0 8px 28px rgba(122,94,58,0.16), 0 2px 8px rgba(42,26,10,0.09);
+    --modal-shadow: 0 28px 80px rgba(26,14,4,0.35), 0 4px 20px rgba(42,26,10,0.15);
+  }
+
+  /* ── Palette: Slate (cool gray + silver) ───────────────────── */
+  [data-palette="slate"] {
+    --bg:         #bec8cc;
+    --surface:    #d8e0e4;
+    --elevated:   #ccd4d8;
+    --gold:       #7a9aaa;
+    --gold-dark:  #5a7a8a;
+    --sage:       #4a6070;
+    --forest:     #2a4050;
+    --terra:      #cc5c44;
+    --charcoal:   #1a2830;
+    --sidebar-bg: #0e1820;
+    --muted:      rgba(26,40,48,0.80);
+    --muted-dim:  rgba(26,40,48,0.55);
+    --separator:  rgba(74,96,112,0.18);
+    --card-shadow: 0 2px 12px rgba(74,96,112,0.10), 0 1px 3px rgba(26,40,48,0.06);
+    --card-shadow-hover: 0 8px 28px rgba(74,96,112,0.14), 0 2px 8px rgba(26,40,48,0.08);
+    --modal-shadow: 0 28px 80px rgba(14,24,32,0.32), 0 4px 20px rgba(26,40,48,0.14);
+  }
+
+  /* ── Logo animations (shared across all palettes) ──────────── */
+  @keyframes nayara-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+  @keyframes nayara-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes nayara-spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes nayara-spin-ccw {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+  }
+  @keyframes nayara-pulse-ring {
+    0% { transform: scale(0.92); opacity: 0.7; }
+    50% { transform: scale(1.2); opacity: 0; }
+    100% { transform: scale(0.92); opacity: 0; }
+  }
+
+  .nayara-logo-breathe { animation: nayara-breathe 4s ease-in-out infinite; }
+  .nayara-logo-float   { animation: nayara-float 5s ease-in-out infinite; }
+  .nayara-logo-spin    { animation: nayara-spin-slow 20s linear infinite; }
+  .nayara-logo-spin-ccw { animation: nayara-spin-ccw 15s linear infinite; }
+
   * {
     @apply border-border;
   }
