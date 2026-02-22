@@ -34,6 +34,8 @@ import {
   CircleStackIcon,
   EnvelopeIcon,
   IdentificationIcon,
+  WrenchScrewdriverIcon,
+  RocketLaunchIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -112,6 +114,17 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
       ],
     },
     {
+      key: 'fleet',
+      label: ls('Fleet', 'Flota'),
+      icon: RocketLaunchIcon,
+      items: [
+        { name: ls('Fleet Dashboard', 'Panel de Flota'), href: `/${locale}/staff/fleet`, icon: RocketLaunchIcon, permission: 'fleet:read' },
+        { name: ls('Boats', 'Botes'), href: `/${locale}/staff/fleet/boats`, icon: WrenchScrewdriverIcon, permission: 'boats:read' },
+        { name: ls('Captains', 'Capitanes'), href: `/${locale}/staff/fleet/captains`, icon: UsersIcon, permission: 'fleet:read' },
+        { name: ls('My Trips', 'Mis Viajes'), href: `/${locale}/staff/captain`, icon: MapIcon, permission: 'captain:view_own' },
+      ],
+    },
+    {
       key: 'admin',
       label: ls('Admin', 'Admin'),
       icon: Cog6ToothIcon,
@@ -154,6 +167,7 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
     concierge: `/${locale}/staff/concierge`,
     fnb:       `/${locale}/staff/orders`,
     comms:     `/${locale}/staff/messages`,
+    fleet:     `/${locale}/staff/fleet`,
     admin:     `/${locale}/staff/users`,
   };
 

@@ -47,6 +47,15 @@ export const PERMISSIONS = {
   'email:send': 'email:send',
   'email:manage': 'email:manage',
   'email:admin': 'email:admin',
+
+  // --- Fleet ---
+  'fleet:read': 'fleet:read',
+  'fleet:manage': 'fleet:manage',
+  'fleet:assign': 'fleet:assign',
+  'boats:read': 'boats:read',
+  'boats:manage': 'boats:manage',
+  'captain:view_own': 'captain:view_own',
+  'captain:update_status': 'captain:update_status',
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

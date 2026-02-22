@@ -65,13 +65,29 @@ export const ROLES_CONFIG: Record<string, { label: string, permissions: Permissi
     label: 'Logistics Manager',
     permissions: [
       P['transfers:read'], P['transfers:create'], P['transfers:update'], P['transfers:assign'],
-      P['tours:read']
+      P['tours:read'],
+      P['fleet:read'], P['fleet:manage'], P['fleet:assign'],
+      P['boats:read'], P['boats:manage']
+    ]
+  },
+  fleet_supervisor: {
+    label: 'Fleet Supervisor',
+    permissions: [
+      P['transfers:read'], P['transfers:create'], P['transfers:update'], P['transfers:assign'],
+      P['tours:read'],
+      P['fleet:read'], P['fleet:manage'], P['fleet:assign'],
+      P['boats:read'], P['boats:manage'],
+      P['staff:read'],
+      P['reports:view']
     ]
   },
   captain: {
     label: 'Boat Captain',
     permissions: [
-      P['transfers:read'] // Typically limited to assigned, handled by logic
+      P['transfers:read'],
+      P['fleet:read'],
+      P['boats:read'],
+      P['captain:view_own'], P['captain:update_status']
     ]
   },
   housekeeping: {

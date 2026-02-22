@@ -27,6 +27,7 @@ const PUBLIC_ROUTE_PATTERNS = [
   /^\/[^\/]+\/vendor\/login/,
   /^\/_next/,
   /^\/api\/auth\/login/,
+  /^\/api\/auth\/guest/,
   /^\/api\/guest\//,
   /^\/api\/menu/,
   /^\/api\/channels/,
