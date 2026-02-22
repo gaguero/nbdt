@@ -140,6 +140,106 @@
     --modal-shadow: 0 28px 80px rgba(14,24,32,0.32), 0 4px 20px rgba(26,40,48,0.14);
   }
 
+  /* ── Palette: Navy Reef (deep navy + coral accents) ──────────── */
+  [data-palette="navy-reef"] {
+    --bg:         #1e2d3d;
+    --surface:    #283a4e;
+    --elevated:   #324a5e;
+    --gold:       #e8926a;
+    --gold-dark:  #d47a52;
+    --sage:       #5b9ea6;
+    --forest:     #3a7a82;
+    --terra:      #e8695a;
+    --charcoal:   #eef2f5;
+    --sidebar-bg: #0f1a26;
+    --muted:      rgba(238,242,245,0.85);
+    --muted-dim:  rgba(238,242,245,0.55);
+    --separator:  rgba(91,158,166,0.22);
+    --card-shadow: 0 2px 12px rgba(15,26,38,0.30), 0 1px 3px rgba(15,26,38,0.18);
+    --card-shadow-hover: 0 8px 28px rgba(15,26,38,0.40), 0 2px 8px rgba(15,26,38,0.22);
+    --modal-shadow: 0 28px 80px rgba(15,26,38,0.55), 0 4px 20px rgba(15,26,38,0.30);
+  }
+
+  /* ── Palette: Arctic (frost-white + ice-blue) ──────────────── */
+  [data-palette="arctic"] {
+    --bg:         #e8eff4;
+    --surface:    #f4f8fb;
+    --elevated:   #eaf1f6;
+    --gold:       #5a9ab5;
+    --gold-dark:  #3d7a95;
+    --sage:       #6a8c9a;
+    --forest:     #3a6070;
+    --terra:      #d06050;
+    --charcoal:   #1a2a34;
+    --sidebar-bg: #0c1820;
+    --muted:      rgba(26,42,52,0.80);
+    --muted-dim:  rgba(26,42,52,0.50);
+    --separator:  rgba(90,154,181,0.16);
+    --card-shadow: 0 2px 12px rgba(90,154,181,0.10), 0 1px 3px rgba(26,42,52,0.05);
+    --card-shadow-hover: 0 8px 28px rgba(90,154,181,0.14), 0 2px 8px rgba(26,42,52,0.07);
+    --modal-shadow: 0 28px 80px rgba(12,24,32,0.28), 0 4px 20px rgba(26,42,52,0.12);
+  }
+
+  /* ── Palette: Dusk (violet twilight + warm amber) ──────────── */
+  [data-palette="dusk"] {
+    --bg:         #2a2535;
+    --surface:    #352f42;
+    --elevated:   #3f3850;
+    --gold:       #d4a65a;
+    --gold-dark:  #c0924a;
+    --sage:       #8a7aaa;
+    --forest:     #6a5a8a;
+    --terra:      #e07060;
+    --charcoal:   #f0edf5;
+    --sidebar-bg: #1a1524;
+    --muted:      rgba(240,237,245,0.85);
+    --muted-dim:  rgba(240,237,245,0.55);
+    --separator:  rgba(138,122,170,0.22);
+    --card-shadow: 0 2px 12px rgba(26,21,36,0.30), 0 1px 3px rgba(26,21,36,0.18);
+    --card-shadow-hover: 0 8px 28px rgba(26,21,36,0.40), 0 2px 8px rgba(26,21,36,0.22);
+    --modal-shadow: 0 28px 80px rgba(26,21,36,0.55), 0 4px 20px rgba(26,21,36,0.30);
+  }
+
+  /* ── Palette: Ember (warm charcoal + flame orange) ─────────── */
+  [data-palette="ember"] {
+    --bg:         #2e2420;
+    --surface:    #3a302a;
+    --elevated:   #483c34;
+    --gold:       #e8844a;
+    --gold-dark:  #d46e34;
+    --sage:       #a08060;
+    --forest:     #7a5e40;
+    --terra:      #e05a3a;
+    --charcoal:   #f5ede8;
+    --sidebar-bg: #1a120e;
+    --muted:      rgba(245,237,232,0.85);
+    --muted-dim:  rgba(245,237,232,0.55);
+    --separator:  rgba(160,128,96,0.22);
+    --card-shadow: 0 2px 12px rgba(26,18,14,0.30), 0 1px 3px rgba(26,18,14,0.18);
+    --card-shadow-hover: 0 8px 28px rgba(26,18,14,0.40), 0 2px 8px rgba(26,18,14,0.22);
+    --modal-shadow: 0 28px 80px rgba(26,18,14,0.55), 0 4px 20px rgba(26,18,14,0.30);
+  }
+
+  /* ── Palette: Sage Mist (soft green-gray + eucalyptus) ─────── */
+  [data-palette="sage-mist"] {
+    --bg:         #d4ddd0;
+    --surface:    #e8efe4;
+    --elevated:   #dce5d8;
+    --gold:       #8aaa78;
+    --gold-dark:  #6e9060;
+    --sage:       #5a7a50;
+    --forest:     #3a5a30;
+    --terra:      #cc6a4a;
+    --charcoal:   #1a2a18;
+    --sidebar-bg: #0e1a0c;
+    --muted:      rgba(26,42,24,0.80);
+    --muted-dim:  rgba(26,42,24,0.55);
+    --separator:  rgba(90,122,80,0.18);
+    --card-shadow: 0 2px 12px rgba(90,122,80,0.10), 0 1px 3px rgba(26,42,24,0.06);
+    --card-shadow-hover: 0 8px 28px rgba(90,122,80,0.14), 0 2px 8px rgba(26,42,24,0.08);
+    --modal-shadow: 0 28px 80px rgba(14,26,12,0.32), 0 4px 20px rgba(26,42,24,0.14);
+  }
+
   /* ── Logo animations (shared across all palettes) ──────────── */
   @keyframes nayara-breathe {
     0%, 100% { transform: scale(1); opacity: 0.9; }
