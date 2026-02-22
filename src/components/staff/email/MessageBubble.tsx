@@ -1,6 +1,6 @@
 'use client';
 
-import { PaperClipIcon } from '@heroicons/react/24/outline';
+import { PaperClipIcon, DocumentIcon, PhotoIcon, FilmIcon } from '@heroicons/react/24/outline';
 
 interface MessageProps {
   message: {
@@ -27,38 +27,68 @@ export default function MessageBubble({ message }: MessageProps) {
     month: 'short', day: 'numeric', year: 'numeric',
   }) + ' ' + date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
+  const senderName = message.from_name || message.from_address;
+  const initials = getInitials(senderName);
+  const avatarColor = getAvatarColor(message.from_address);
+
   return (
-    <div className={`rounded-xl border p-4 ${isSent ? 'border-sky-200 bg-sky-50/50' : 'border-slate-200 bg-white'}`}>
+    <div
+      className="rounded-xl p-4"
+      style={{
+        background: isSent ? 'rgba(170,142,103,0.06)' : 'var(--surface, #fff)',
+        border: `1px solid ${isSent ? 'rgba(170,142,103,0.15)' : 'var(--separator, #E5E2DC)'}`,
+      }}
+    >
       {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div>
+      <div className="flex items-start gap-3 mb-3">
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+          style={{
+            background: isSent ? 'var(--gold, #AA8E67)' : avatarColor,
+            color: '#fff',
+          }}
+        >
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-slate-800">
-              {message.from_name || message.from_address}
+            <p className="text-[13px] font-semibold truncate" style={{ color: 'var(--charcoal, #3D3D3D)' }}>
+              {senderName}
             </p>
             {isSent && (
-              <span className="text-[10px] bg-sky-200 text-sky-700 rounded px-1.5 py-0.5 font-medium">Sent</span>
+              <span
+                className="text-[8px] font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
+                style={{ background: 'rgba(170,142,103,0.12)', color: 'var(--gold, #AA8E67)' }}
+              >
+                Sent
+              </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted, #8C8C8C)' }}>
             To: {message.to_addresses.map(a => a.name || a.email).join(', ')}
           </p>
           {message.cc_addresses.length > 0 && (
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-[10px]" style={{ color: 'var(--muted-dim, #ACACAC)' }}>
               Cc: {message.cc_addresses.map(a => a.name || a.email).join(', ')}
             </p>
           )}
         </div>
-        <span className="text-xs text-slate-400 flex-shrink-0">{formattedDate}</span>
+        <span
+          className="text-[10px] flex-shrink-0 tabular-nums"
+          style={{ color: 'var(--muted-dim, #ACACAC)' }}
+        >
+          {formattedDate}
+        </span>
       </div>
 
       {/* Body */}
-      <div className="text-sm text-slate-700">
+      <div className="text-[13px] leading-relaxed" style={{ color: 'var(--charcoal, #3D3D3D)' }}>
         {message.body_html ? (
           <iframe
             sandbox="allow-same-origin"
             srcDoc={sanitizeHtml(message.body_html)}
-            className="w-full border-0 min-h-[100px]"
+            className="w-full border-0 min-h-[60px] rounded-lg"
+            style={{ background: 'transparent' }}
             onLoad={(e) => {
               const frame = e.currentTarget;
               if (frame.contentWindow?.document.body) {
@@ -67,41 +97,67 @@ export default function MessageBubble({ message }: MessageProps) {
             }}
           />
         ) : (
-          <pre className="whitespace-pre-wrap font-sans text-sm">{message.body_text || ''}</pre>
+          <pre
+            className="whitespace-pre-wrap text-[13px] leading-relaxed"
+            style={{ fontFamily: 'var(--font-proxima-nova), system-ui, sans-serif' }}
+          >
+            {message.body_text || ''}
+          </pre>
         )}
       </div>
 
       {/* Attachments */}
       {message.has_attachments && message.attachments && message.attachments.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-slate-200 space-y-1">
-          {message.attachments.map(att => (
-            <div key={att.id} className="flex items-center gap-2 text-sm">
-              <PaperClipIcon className="h-3.5 w-3.5 text-slate-400" />
+        <div
+          className="mt-3 pt-3 space-y-1.5"
+          style={{ borderTop: '1px solid var(--separator, #E5E2DC)' }}
+        >
+          <p
+            className="text-[9px] uppercase tracking-wider font-bold mb-1"
+            style={{ color: 'var(--muted, #8C8C8C)' }}
+          >
+            {message.attachments.length} Attachment{message.attachments.length !== 1 ? 's' : ''}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {message.attachments.map(att => (
               <a
+                key={att.id}
                 href={`/api/email/attachments/${att.id}/download`}
-                className="text-sky-600 hover:text-sky-800 underline"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors"
+                style={{
+                  background: 'var(--elevated, #F8F6F3)',
+                  border: '1px solid var(--separator, #E5E2DC)',
+                  textDecoration: 'none',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(170,142,103,0.08)'; e.currentTarget.style.borderColor = 'rgba(170,142,103,0.2)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--elevated, #F8F6F3)'; e.currentTarget.style.borderColor = 'var(--separator, #E5E2DC)'; }}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {att.filename}
+                <FileTypeIcon mimeType={att.mime_type} />
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium truncate max-w-[140px]" style={{ color: 'var(--charcoal, #3D3D3D)' }}>
+                    {att.filename}
+                  </p>
+                  <p className="text-[9px]" style={{ color: 'var(--muted-dim, #ACACAC)' }}>
+                    {formatSize(att.size_bytes)}
+                  </p>
+                </div>
               </a>
-              <span className="text-xs text-slate-400">({formatSize(att.size_bytes)})</span>
-              {att.mime_type.startsWith('image/') && (
-                <a
-                  href={`/api/email/attachments/${att.id}/preview`}
-                  className="text-xs text-slate-500 hover:text-slate-700"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Preview
-                </a>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
+}
+
+function FileTypeIcon({ mimeType }: { mimeType: string }) {
+  const style = { color: 'var(--muted, #8C8C8C)' };
+  if (mimeType.startsWith('image/')) return <PhotoIcon className="h-4 w-4 flex-shrink-0" style={{ color: '#059669' }} />;
+  if (mimeType.startsWith('video/')) return <FilmIcon className="h-4 w-4 flex-shrink-0" style={{ color: '#7C3AED' }} />;
+  if (mimeType === 'application/pdf') return <DocumentIcon className="h-4 w-4 flex-shrink-0" style={{ color: '#DC2626' }} />;
+  return <PaperClipIcon className="h-4 w-4 flex-shrink-0" style={style} />;
 }
 
 function formatSize(bytes: number): string {
@@ -111,10 +167,27 @@ function formatSize(bytes: number): string {
 }
 
 function sanitizeHtml(html: string): string {
-  // Basic sanitization — strip script tags and event handlers
   return html
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/on\w+="[^"]*"/gi, '')
     .replace(/on\w+='[^']*'/gi, '')
     .replace(/javascript:/gi, '');
+}
+
+function getInitials(name: string): string {
+  const parts = name.split(/[\s@.]+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return (parts[0]?.[0] || '?').toUpperCase();
+}
+
+function getAvatarColor(email: string): string {
+  const colors = [
+    '#4E5E3E', '#AA8E67', '#7C6B5A', '#5B8C6B', '#8B6E5B',
+    '#6B7C5E', '#9B7E5E', '#5E7E6B', '#7E5E6B', '#5E6B7E',
+  ];
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    hash = email.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
 }

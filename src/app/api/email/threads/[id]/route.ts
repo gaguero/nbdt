@@ -25,12 +25,12 @@ export async function GET(
   }
 }
 
-// PATCH /api/email/threads/[id] - Update thread (status, assign, tags, link guest)
+// PATCH /api/email/threads/[id] - Update thread (status, assign, tags, star, archive, link guest)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await protectRoute(request, 'email:manage');
+  const authResult = await protectRoute(request, 'email:read');
   if (authResult instanceof NextResponse) return authResult;
 
   const { id } = await params;
@@ -45,11 +45,25 @@ export async function PATCH(
     }
 
     // Handle other updates
-    const updates: { status?: string; assigned_to?: number | null; priority?: string; tags?: string[] } = {};
+    const updates: {
+      status?: string;
+      assigned_to?: number | null;
+      priority?: string;
+      tags?: string[];
+      is_starred?: boolean;
+      is_archived?: boolean;
+      snoozed_until?: string | null;
+      folder?: string;
+    } = {};
+
     if (body.status !== undefined) updates.status = body.status;
     if (body.assigned_to !== undefined) updates.assigned_to = body.assigned_to;
     if (body.priority !== undefined) updates.priority = body.priority;
     if (body.tags !== undefined) updates.tags = body.tags;
+    if (body.is_starred !== undefined) updates.is_starred = body.is_starred;
+    if (body.is_archived !== undefined) updates.is_archived = body.is_archived;
+    if (body.snoozed_until !== undefined) updates.snoozed_until = body.snoozed_until;
+    if (body.folder !== undefined) updates.folder = body.folder;
 
     if (Object.keys(updates).length > 0) {
       await updateThread(threadId, updates, parseInt(authResult.userId));

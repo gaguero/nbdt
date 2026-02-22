@@ -12,6 +12,10 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = Math.min(parseInt(searchParams.get('limit') || '25'), 100);
+  const folder = searchParams.get('folder');
+  const starred = searchParams.get('starred') === 'true';
+  const archived = searchParams.get('archived') === 'true';
+  const labelId = searchParams.get('labelId');
 
   // Non-admin users only see threads assigned to them unless they have read_all
   const assignedTo = authResult.permissions.includes('email:read_all')
@@ -26,6 +30,10 @@ export async function GET(request: NextRequest) {
       search: search || undefined,
       page,
       limit,
+      folder: folder || undefined,
+      starred: starred || undefined,
+      archived: archived || undefined,
+      labelId: labelId ? parseInt(labelId) : undefined,
     });
 
     return NextResponse.json(result);

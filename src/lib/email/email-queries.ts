@@ -7,6 +7,10 @@ interface ThreadFilters {
   search?: string;
   page?: number;
   limit?: number;
+  folder?: string;
+  starred?: boolean;
+  archived?: boolean;
+  labelId?: number;
 }
 
 export async function listThreads(filters: ThreadFilters) {
@@ -26,10 +30,26 @@ export async function listThreads(filters: ThreadFilters) {
     conditions.push(`et.status = $${paramIdx++}`);
     params.push(filters.status);
   }
+  if (filters.folder) {
+    conditions.push(`et.folder = $${paramIdx++}`);
+    params.push(filters.folder);
+  }
+  if (filters.starred) {
+    conditions.push('et.is_starred = true');
+  }
+  if (filters.archived) {
+    conditions.push('et.is_archived = true');
+  } else if (!filters.folder || filters.folder === 'inbox') {
+    conditions.push('(et.is_archived = false OR et.is_archived IS NULL)');
+  }
+  if (filters.labelId) {
+    conditions.push(`EXISTS (SELECT 1 FROM email_thread_labels etl WHERE etl.thread_id = et.id AND etl.label_id = $${paramIdx++})`);
+    params.push(filters.labelId);
+  }
   if (filters.search) {
     conditions.push(`(et.subject ILIKE $${paramIdx} OR EXISTS (
       SELECT 1 FROM email_messages em WHERE em.thread_id = et.id AND (
-        em.from_address ILIKE $${paramIdx} OR em.body_text ILIKE $${paramIdx}
+        em.from_address ILIKE $${paramIdx} OR em.body_text ILIKE $${paramIdx} OR em.from_name ILIKE $${paramIdx}
       )
     ))`);
     params.push(`%${filters.search}%`);
@@ -51,7 +71,21 @@ export async function listThreads(filters: ThreadFilters) {
             ea.display_name as account_display_name,
             su.first_name || ' ' || su.last_name as assigned_user_name,
             (SELECT em.snippet FROM email_messages em WHERE em.thread_id = et.id ORDER BY em.gmail_internal_date DESC LIMIT 1) as latest_snippet,
-            (SELECT em.from_address FROM email_messages em WHERE em.thread_id = et.id ORDER BY em.gmail_internal_date DESC LIMIT 1) as latest_from
+            (SELECT em.from_address FROM email_messages em WHERE em.thread_id = et.id ORDER BY em.gmail_internal_date DESC LIMIT 1) as latest_from,
+            (SELECT em.from_name FROM email_messages em WHERE em.thread_id = et.id ORDER BY em.gmail_internal_date DESC LIMIT 1) as latest_from_name,
+            EXISTS(SELECT 1 FROM email_messages em WHERE em.thread_id = et.id AND em.is_read = false AND em.direction = 'inbound') as has_unread,
+            COALESCE(
+              (SELECT array_agg(etl.label_id) FROM email_thread_labels etl WHERE etl.thread_id = et.id),
+              '{}'
+            ) as label_ids,
+            COALESCE(
+              (SELECT array_agg(el.name) FROM email_thread_labels etl JOIN email_labels el ON el.id = etl.label_id WHERE etl.thread_id = et.id),
+              '{}'
+            ) as label_names,
+            COALESCE(
+              (SELECT array_agg(el.color) FROM email_thread_labels etl JOIN email_labels el ON el.id = etl.label_id WHERE etl.thread_id = et.id),
+              '{}'
+            ) as label_colors
      FROM email_threads et
      JOIN email_accounts ea ON ea.id = et.account_id
      LEFT JOIN staff_users su ON su.id = et.assigned_to
@@ -77,7 +111,19 @@ export async function getThreadWithMessages(threadId: number) {
             ea.display_name as account_display_name,
             su.first_name || ' ' || su.last_name as assigned_user_name,
             g.first_name || ' ' || g.last_name as guest_name,
-            g.email as guest_email
+            g.email as guest_email,
+            COALESCE(
+              (SELECT array_agg(etl.label_id) FROM email_thread_labels etl WHERE etl.thread_id = et.id),
+              '{}'
+            ) as label_ids,
+            COALESCE(
+              (SELECT array_agg(el.name) FROM email_thread_labels etl JOIN email_labels el ON el.id = etl.label_id WHERE etl.thread_id = et.id),
+              '{}'
+            ) as label_names,
+            COALESCE(
+              (SELECT array_agg(el.color) FROM email_thread_labels etl JOIN email_labels el ON el.id = etl.label_id WHERE etl.thread_id = et.id),
+              '{}'
+            ) as label_colors
      FROM email_threads et
      JOIN email_accounts ea ON ea.id = et.account_id
      LEFT JOIN staff_users su ON su.id = et.assigned_to
@@ -121,7 +167,8 @@ export async function getUnreadCount(userId: number): Promise<number> {
     `SELECT COUNT(DISTINCT et.id) as count
      FROM email_threads et
      JOIN email_messages em ON em.thread_id = et.id
-     WHERE et.assigned_to = $1 AND em.is_read = false AND em.direction = 'inbound'`,
+     WHERE et.assigned_to = $1 AND em.is_read = false AND em.direction = 'inbound'
+       AND (et.is_archived = false OR et.is_archived IS NULL)`,
     [userId]
   );
   return parseInt(result.rows[0].count);
@@ -136,7 +183,16 @@ export async function markMessageRead(messageId: number, isRead: boolean): Promi
 
 export async function updateThread(
   threadId: number,
-  updates: { status?: string; assigned_to?: number | null; priority?: string; tags?: string[] },
+  updates: {
+    status?: string;
+    assigned_to?: number | null;
+    priority?: string;
+    tags?: string[];
+    is_starred?: boolean;
+    is_archived?: boolean;
+    snoozed_until?: string | null;
+    folder?: string;
+  },
   performedBy: number
 ): Promise<void> {
   const sets: string[] = [];
@@ -159,6 +215,22 @@ export async function updateThread(
     sets.push(`tags = $${idx++}`);
     params.push(updates.tags);
   }
+  if (updates.is_starred !== undefined) {
+    sets.push(`is_starred = $${idx++}`);
+    params.push(updates.is_starred);
+  }
+  if (updates.is_archived !== undefined) {
+    sets.push(`is_archived = $${idx++}`);
+    params.push(updates.is_archived);
+  }
+  if (updates.snoozed_until !== undefined) {
+    sets.push(`snoozed_until = $${idx++}`);
+    params.push(updates.snoozed_until);
+  }
+  if (updates.folder !== undefined) {
+    sets.push(`folder = $${idx++}`);
+    params.push(updates.folder);
+  }
 
   if (sets.length === 0) return;
 
@@ -171,7 +243,12 @@ export async function updateThread(
   );
 
   // Log activity
-  const action = updates.status ? 'status_changed' : updates.assigned_to !== undefined ? 'assigned' : 'updated';
+  const action = updates.status ? 'status_changed'
+    : updates.assigned_to !== undefined ? 'assigned'
+    : updates.is_starred !== undefined ? 'starred'
+    : updates.is_archived !== undefined ? 'archived'
+    : 'updated';
+
   await query(
     `INSERT INTO email_activity (thread_id, action, performed_by, details)
      VALUES ($1, $2, $3, $4)`,
@@ -212,4 +289,63 @@ export async function searchThreads(searchTerm: string, userId?: number) {
   );
 
   return result.rows;
+}
+
+// ── Labels ──
+
+export async function getLabels(propertyId?: number) {
+  const result = await query(
+    `SELECT * FROM email_labels
+     WHERE property_id IS NULL ${propertyId ? 'OR property_id = $1' : ''}
+     ORDER BY sort_order ASC, name ASC`,
+    propertyId ? [propertyId] : []
+  );
+  return result.rows;
+}
+
+export async function createLabel(name: string, color: string, propertyId: number | null, createdBy: number) {
+  const result = await query(
+    `INSERT INTO email_labels (name, color, property_id, created_by)
+     VALUES ($1, $2, $3, $4) RETURNING *`,
+    [name, color, propertyId, createdBy]
+  );
+  return result.rows[0];
+}
+
+export async function deleteLabel(labelId: number) {
+  await query('DELETE FROM email_labels WHERE id = $1 AND is_system = false', [labelId]);
+}
+
+export async function addThreadLabel(threadId: number, labelId: number, userId: number) {
+  await query(
+    `INSERT INTO email_thread_labels (thread_id, label_id, applied_by)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (thread_id, label_id) DO NOTHING`,
+    [threadId, labelId, userId]
+  );
+}
+
+export async function removeThreadLabel(threadId: number, labelId: number) {
+  await query(
+    'DELETE FROM email_thread_labels WHERE thread_id = $1 AND label_id = $2',
+    [threadId, labelId]
+  );
+}
+
+// ── Folder counts ──
+
+export async function getFolderCounts(userId: number): Promise<Record<string, number>> {
+  const result = await query(
+    `SELECT
+       COUNT(*) FILTER (WHERE (is_archived = false OR is_archived IS NULL) AND (folder = 'inbox' OR folder IS NULL)) as inbox,
+       COUNT(*) FILTER (WHERE is_starred = true AND (is_archived = false OR is_archived IS NULL)) as starred,
+       COUNT(*) FILTER (WHERE folder = 'sent') as sent,
+       COUNT(*) FILTER (WHERE folder = 'drafts') as drafts,
+       COUNT(*) FILTER (WHERE is_archived = true) as archive,
+       COUNT(*) FILTER (WHERE folder = 'trash') as trash
+     FROM email_threads
+     WHERE assigned_to = $1`,
+    [userId]
+  );
+  return result.rows[0] || { inbox: 0, starred: 0, sent: 0, drafts: 0, archive: 0, trash: 0 };
 }
