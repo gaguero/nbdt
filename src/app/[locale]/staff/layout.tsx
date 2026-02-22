@@ -34,6 +34,8 @@ import {
   CircleStackIcon,
   EnvelopeIcon,
   IdentificationIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -62,10 +64,53 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
   const [panelOpen, setPanelOpen] = useState(true);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { guestId, closeGuest } = useGuestDrawer();
   const { can } = usePermissions();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{ type: string; id: string; title: string; subtitle: string }>>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const ls = (en: string, es: string) => locale === 'es' ? es : en;
+
+  const handleSearch = useCallback((q: string) => {
+    setSearchQuery(q);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    if (q.trim().length < 2) {
+      setSearchResults([]);
+      setSearchOpen(false);
+      return;
+    }
+    setSearchLoading(true);
+    setSearchOpen(true);
+    searchTimerRef.current = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(q.trim())}`)
+        .then(r => r.json())
+        .then(data => {
+          setSearchResults(data.results ?? []);
+          setSearchLoading(false);
+        })
+        .catch(() => {
+          setSearchResults([]);
+          setSearchLoading(false);
+        });
+    }, 300);
+  }, []);
+
+  const handleSearchResultClick = (result: { type: string; id: string }) => {
+    setSearchOpen(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    if (result.type === 'guest') {
+      router.push(`/${locale}/staff/guests/${result.id}`);
+    } else if (result.type === 'reservation') {
+      router.push(`/${locale}/staff/reservations`);
+    } else if (result.type === 'transfer') {
+      router.push(`/${locale}/staff/transfers`);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -484,6 +529,108 @@ function StaffLayoutContent({ children }: { children: React.ReactNode }) {
                   />
                 </span>
               </div>
+
+              {/* Search bar */}
+              <div className="hidden md:block flex-1 max-w-sm mx-4 relative">
+                <div
+                  className="flex items-center gap-2 rounded-lg px-3"
+                  style={{
+                    height: 34,
+                    background: 'var(--elevated)',
+                    border: '1.5px solid var(--separator)',
+                    transition: 'border-color 0.15s ease',
+                  }}
+                >
+                  <MagnifyingGlassIcon className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--muted-dim)' }} />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder={ls('Search guests, rooms, transfers…', 'Buscar huéspedes, habitaciones…')}
+                    value={searchQuery}
+                    onChange={e => handleSearch(e.target.value)}
+                    onFocus={() => { if (searchQuery.trim().length >= 2) setSearchOpen(true); }}
+                    onBlur={() => { setTimeout(() => setSearchOpen(false), 200); }}
+                    className="flex-1 bg-transparent border-none outline-none"
+                    style={{
+                      fontSize: 13,
+                      color: 'var(--charcoal)',
+                      caretColor: 'var(--gold)',
+                    }}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => { setSearchQuery(''); setSearchResults([]); setSearchOpen(false); }}
+                      style={{ color: 'var(--muted-dim)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Search dropdown */}
+                {searchOpen && (
+                  <div
+                    className="absolute left-0 right-0 mt-1 rounded-lg overflow-hidden"
+                    style={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--separator)',
+                      boxShadow: 'var(--modal-shadow)',
+                      zIndex: 100,
+                      maxHeight: 320,
+                      overflowY: 'auto',
+                    }}
+                  >
+                    {searchLoading ? (
+                      <div style={{ padding: '12px 14px', fontSize: 12, color: 'var(--muted-dim)', textAlign: 'center' }}>
+                        Searching…
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div style={{ padding: '12px 14px', fontSize: 12, color: 'var(--muted-dim)', textAlign: 'center' }}>
+                        {searchQuery.trim().length >= 2 ? 'No results found' : 'Type at least 2 characters'}
+                      </div>
+                    ) : (
+                      searchResults.map((r, i) => (
+                        <button
+                          key={`${r.type}-${r.id}-${i}`}
+                          onMouseDown={() => handleSearchResultClick(r)}
+                          className="w-full text-left flex items-start gap-3 px-3 py-2"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            borderBottom: '1px solid var(--separator)',
+                            cursor: 'pointer',
+                            transition: 'background 0.1s ease',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--elevated)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.08em',
+                              color: r.type === 'guest' ? 'var(--sage)' : r.type === 'reservation' ? 'var(--gold)' : 'var(--terra)',
+                              background: r.type === 'guest' ? 'rgba(78,94,62,0.12)' : r.type === 'reservation' ? 'rgba(170,142,103,0.12)' : 'rgba(236,108,75,0.10)',
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              flexShrink: 0,
+                              marginTop: 2,
+                            }}
+                          >
+                            {r.type}
+                          </span>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--charcoal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                            <div style={{ fontSize: 11, color: 'var(--muted-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.subtitle}</div>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="flex items-center gap-3">
                 <span
                   className="hidden sm:block"
