@@ -39,6 +39,13 @@ function getDateForOffset(offset: number) {
 function fmtFull(d: Date) {
   return d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
+/** Format ISO date to compact display "Feb 22" */
+function fmtDate(raw: string | null | undefined): string {
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return String(raw);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 /* ─── Status badge ─── */
 const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string }> = {
@@ -253,7 +260,7 @@ function DetailContent({
                   >
                     <td style={tdStyle}><ClickableGuest name={r.guest_name || r.opera_guest_name || '—'} guestId={r.guest_id} openGuest={openGuest} /></td>
                     <td style={tdStyle}><span style={{ fontSize:11, color: T.mutedDim, fontStyle:'italic' }}>{r.room || '—'}</span></td>
-                    <td style={tdStyle}><span style={{ fontFamily:'DM Mono,monospace', fontSize:12, fontWeight:700, color: T.charcoal, background: T.elevated, padding:'2px 7px', borderRadius:6 }}>{r.arrival || '—'}</span></td>
+                    <td style={tdStyle}><span style={{ fontFamily:'DM Mono,monospace', fontSize:12, fontWeight:700, color: T.charcoal, background: T.elevated, padding:'2px 7px', borderRadius:6 }}>{fmtDate(r.arrival)}</span></td>
                     <td style={tdStyle}><span style={{ fontSize:11, color: T.muted }}>{r.nights ?? '—'}</span></td>
                     <td style={tdStyle}><StatusBadge status={r.transfer_booked ? 'confirmed' : 'pending'} /></td>
                     <td style={tdStyle}><span style={{ fontSize:11, color: T.muted }}>{r.notes || '—'}</span></td>
@@ -300,7 +307,7 @@ function DetailContent({
                   >
                     <td style={tdStyle}><ClickableGuest name={r.guest_name || r.opera_guest_name || '—'} guestId={r.guest_id} openGuest={openGuest} /></td>
                     <td style={tdStyle}><span style={{ fontSize:11, color: T.mutedDim, fontStyle:'italic' }}>{r.room || '—'}</span></td>
-                    <td style={tdStyle}><span style={{ fontFamily:'DM Mono,monospace', fontSize:12, fontWeight:700, color: T.charcoal, background: T.elevated, padding:'2px 7px', borderRadius:6 }}>{r.departure || '—'}</span></td>
+                    <td style={tdStyle}><span style={{ fontFamily:'DM Mono,monospace', fontSize:12, fontWeight:700, color: T.charcoal, background: T.elevated, padding:'2px 7px', borderRadius:6 }}>{fmtDate(r.departure)}</span></td>
                     <td style={tdStyle}><span style={{ fontSize:11, color: T.muted }}>{r.nights ?? '—'}</span></td>
                     <td style={tdStyle}><StatusBadge status={r.transfer_booked ? 'confirmed' : 'pending'} /></td>
                     <td style={tdStyle}><StatusBadge status={r.status?.toLowerCase() || 'pending'} /></td>
@@ -697,7 +704,7 @@ export default function ConciergePage() {
               <BriefCard title="Arrivals" badge={String(kpi.arrivals)} onClick={() => openPanel('arrivals')}>
                 {data.arrivals.map((r: any) => (
                   <div key={r.id} onClick={(e) => { e.stopPropagation(); if (r.guest_id) openGuest(r.guest_id); }} style={{ cursor: r.guest_id ? 'pointer' : 'default' }}>
-                    <BriefRow name={r.guest_name || r.opera_guest_name || '—'} sub={r.room} time={r.arrival} status={r.status?.toLowerCase()} />
+                    <BriefRow name={r.guest_name || r.opera_guest_name || '—'} sub={r.room} time={fmtDate(r.arrival)} status={r.status?.toLowerCase()} />
                   </div>
                 ))}
                 {!data.arrivals.length && <div style={{ fontSize:11, color: T.mutedDim, fontStyle:'italic', padding:'4px 0' }}>None today</div>}
@@ -719,7 +726,7 @@ export default function ConciergePage() {
               <BriefCard title="Departures" badge={String(kpi.departures)} onClick={() => openPanel('departures')}>
                 {data.departures.map((r: any) => (
                   <div key={r.id} onClick={(e) => { e.stopPropagation(); if (r.guest_id) openGuest(r.guest_id); }} style={{ cursor: r.guest_id ? 'pointer' : 'default' }}>
-                    <BriefRow name={r.guest_name || r.opera_guest_name || '—'} sub={r.room} time={r.departure} status={r.status?.toLowerCase()} />
+                    <BriefRow name={r.guest_name || r.opera_guest_name || '—'} sub={r.room} time={fmtDate(r.departure)} status={r.status?.toLowerCase()} />
                   </div>
                 ))}
                 {!data.departures.length && <div style={{ fontSize:11, color: T.mutedDim, fontStyle:'italic', padding:'4px 0' }}>None today</div>}

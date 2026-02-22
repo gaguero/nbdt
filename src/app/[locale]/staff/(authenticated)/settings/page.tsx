@@ -246,26 +246,69 @@ type FontSetKey = typeof FONT_SETS[number]['key'];
 
 export default function SettingsPage() {
   const [activeModule, setActiveModule] = useState<ModuleKey>('hub');
-  const [activePalette, setActivePalette] = useState<PaletteKey>('botanical');
-  const [activeFontSet, setActiveFontSet] = useState<FontSetKey>('botanical');
+  // Saved = persisted in DB; preview = what's currently shown (may differ while browsing)
+  const [savedPalette, setSavedPalette] = useState<PaletteKey>('botanical');
+  const [savedFontSet, setSavedFontSet] = useState<FontSetKey>('botanical');
+  const [previewPalette, setPreviewPalette] = useState<PaletteKey>('botanical');
+  const [previewFontSet, setPreviewFontSet] = useState<FontSetKey>('botanical');
   const [paletteSaving, setPaletteSaving] = useState(false);
   const [fontSetSaving, setFontSetSaving] = useState(false);
   const { config: propertyConfig, refresh: refreshPropertyConfig } = usePropertyConfig();
 
+  // Sync saved values from DB config
   useEffect(() => {
-    const saved = propertyConfig?.settings?.brand?.colors?.palette as PaletteKey | undefined;
-    if (saved) setActivePalette(saved);
-    const savedFont = (propertyConfig?.settings?.brand as Record<string, unknown>)?.fontSet as FontSetKey | undefined;
-    if (savedFont) setActiveFontSet(savedFont);
+    const dbPalette = propertyConfig?.settings?.brand?.colors?.palette as PaletteKey | undefined;
+    if (dbPalette) { setSavedPalette(dbPalette); setPreviewPalette(dbPalette); }
+    const dbFont = (propertyConfig?.settings?.brand as Record<string, unknown>)?.fontSet as FontSetKey | undefined;
+    if (dbFont) { setSavedFontSet(dbFont); setPreviewFontSet(dbFont); }
   }, [propertyConfig]);
 
-  const handlePaletteSave = async (paletteKey: PaletteKey) => {
-    setActivePalette(paletteKey);
-    if (paletteKey === 'botanical') {
+  // Apply preview palette to DOM instantly
+  useEffect(() => {
+    if (previewPalette === 'botanical') {
       document.documentElement.removeAttribute('data-palette');
     } else {
-      document.documentElement.setAttribute('data-palette', paletteKey);
+      document.documentElement.setAttribute('data-palette', previewPalette);
     }
+  }, [previewPalette]);
+
+  // Apply preview fontSet to DOM instantly
+  useEffect(() => {
+    if (previewFontSet === 'botanical') {
+      document.documentElement.removeAttribute('data-fontset');
+    } else {
+      document.documentElement.setAttribute('data-fontset', previewFontSet);
+    }
+  }, [previewFontSet]);
+
+  // Revert to saved when leaving the page
+  useEffect(() => {
+    return () => {
+      // On unmount, revert to saved values
+      if (savedPalette === 'botanical') {
+        document.documentElement.removeAttribute('data-palette');
+      } else {
+        document.documentElement.setAttribute('data-palette', savedPalette);
+      }
+      if (savedFontSet === 'botanical') {
+        document.documentElement.removeAttribute('data-fontset');
+      } else {
+        document.documentElement.setAttribute('data-fontset', savedFontSet);
+      }
+    };
+  }, [savedPalette, savedFontSet]);
+
+  // Preview on click (no DB save)
+  const handlePalettePreview = (paletteKey: PaletteKey) => {
+    setPreviewPalette(paletteKey);
+  };
+  const handleFontSetPreview = (fontSetKey: FontSetKey) => {
+    setPreviewFontSet(fontSetKey);
+  };
+
+  // Persist palette to DB
+  const handlePaletteSave = async () => {
+    const paletteKey = previewPalette;
     setPaletteSaving(true);
     try {
       const current = (propertyConfig?.settings ?? {}) as Record<string, unknown>;
@@ -286,18 +329,15 @@ export default function SettingsPage() {
         }),
       });
       await refreshPropertyConfig();
+      setSavedPalette(paletteKey);
     } finally {
       setPaletteSaving(false);
     }
   };
 
-  const handleFontSetSave = async (fontSetKey: FontSetKey) => {
-    setActiveFontSet(fontSetKey);
-    if (fontSetKey === 'botanical') {
-      document.documentElement.removeAttribute('data-fontset');
-    } else {
-      document.documentElement.setAttribute('data-fontset', fontSetKey);
-    }
+  // Persist fontSet to DB
+  const handleFontSetSave = async () => {
+    const fontSetKey = previewFontSet;
     setFontSetSaving(true);
     try {
       const current = (propertyConfig?.settings ?? {}) as Record<string, unknown>;
@@ -315,10 +355,20 @@ export default function SettingsPage() {
         }),
       });
       await refreshPropertyConfig();
+      setSavedFontSet(fontSetKey);
     } finally {
       setFontSetSaving(false);
     }
   };
+
+  // Revert palette preview back to saved
+  const handlePaletteRevert = () => { setPreviewPalette(savedPalette); };
+  const handleFontSetRevert = () => { setPreviewFontSet(savedFontSet); };
+
+  const activePalette = previewPalette;
+  const activeFontSet = previewFontSet;
+  const paletteChanged = previewPalette !== savedPalette;
+  const fontSetChanged = previewFontSet !== savedFontSet;
 
   const [dbStats, setDbStats] = useState<DbStat[]>([]);
   const [loadingDb, setLoadingDb] = useState(true);
@@ -2297,7 +2347,7 @@ export default function SettingsPage() {
               return (
                 <button
                   key={p.key}
-                  onClick={() => handlePaletteSave(p.key)}
+                  onClick={() => handlePalettePreview(p.key)}
                   style={{
                     border: isActive ? '2px solid var(--gold)' : '2px solid transparent',
                     borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
@@ -2332,6 +2382,24 @@ export default function SettingsPage() {
               );
             })}
           </div>
+          {paletteChanged && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+              <button
+                onClick={() => handlePaletteSave()}
+                disabled={paletteSaving}
+                style={{ fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--gold)', color: '#fff', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: paletteSaving ? 0.6 : 1 }}
+              >
+                {paletteSaving ? 'Saving…' : 'Save Palette'}
+              </button>
+              <button
+                onClick={handlePaletteRevert}
+                style={{ fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--separator)', cursor: 'pointer', background: 'transparent', color: 'var(--muted-dim)' }}
+              >
+                Revert
+              </button>
+              <span style={{ fontSize: 10, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Previewing — click Save to keep</span>
+            </div>
+          )}
         </div>
 
         {/* Brand — Font Set */}
@@ -2353,7 +2421,7 @@ export default function SettingsPage() {
               return (
                 <button
                   key={f.key}
-                  onClick={() => handleFontSetSave(f.key)}
+                  onClick={() => handleFontSetPreview(f.key)}
                   style={{
                     border: isActive ? '2px solid var(--gold)' : '2px solid var(--separator)',
                     borderRadius: 10,
@@ -2371,12 +2439,32 @@ export default function SettingsPage() {
                   <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 3 }}>{f.name}</div>
                   <div style={{ fontSize: 10, color: 'var(--muted-dim)', lineHeight: 1.3 }}>{f.desc}</div>
                   {isActive && (
-                    <div style={{ marginTop: 6, fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: 'var(--gold)' }}>Active</div>
+                    <div style={{ marginTop: 6, fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: 'var(--gold)' }}>
+                      {f.key === savedFontSet ? 'Active' : 'Previewing'}
+                    </div>
                   )}
                 </button>
               );
             })}
           </div>
+          {fontSetChanged && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+              <button
+                onClick={() => handleFontSetSave()}
+                disabled={fontSetSaving}
+                style={{ fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--gold)', color: '#fff', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: fontSetSaving ? 0.6 : 1 }}
+              >
+                {fontSetSaving ? 'Saving…' : 'Save Font Set'}
+              </button>
+              <button
+                onClick={handleFontSetRevert}
+                style={{ fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--separator)', cursor: 'pointer', background: 'transparent', color: 'var(--muted-dim)' }}
+              >
+                Revert
+              </button>
+              <span style={{ fontSize: 10, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Previewing — click Save to keep</span>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -2409,7 +2497,7 @@ export default function SettingsPage() {
                       return (
                         <button
                           key={p.key}
-                          onClick={() => handlePaletteSave(p.key)}
+                          onClick={() => handlePalettePreview(p.key)}
                           style={{
                             border: isActive ? '2px solid var(--gold)' : '2px solid transparent',
                             borderRadius: 12, overflow: 'hidden', cursor: 'pointer',
@@ -2449,6 +2537,19 @@ export default function SettingsPage() {
                       );
                     })}
                   </div>
+                  {paletteChanged && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                      <button onClick={() => handlePaletteSave()} disabled={paletteSaving}
+                        style={{ fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--gold)', color: '#fff', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: paletteSaving ? 0.6 : 1 }}>
+                        {paletteSaving ? 'Saving…' : 'Save Palette'}
+                      </button>
+                      <button onClick={handlePaletteRevert}
+                        style={{ fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--separator)', cursor: 'pointer', background: 'transparent', color: 'var(--muted-dim)' }}>
+                        Revert
+                      </button>
+                      <span style={{ fontSize: 10, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Previewing — click Save to keep</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* ── Font Set ── */}
@@ -2471,7 +2572,7 @@ export default function SettingsPage() {
                       return (
                         <button
                           key={f.key}
-                          onClick={() => handleFontSetSave(f.key)}
+                          onClick={() => handleFontSetPreview(f.key)}
                           style={{
                             border: isActive ? '2px solid var(--gold)' : '2px solid var(--separator)',
                             borderRadius: 12,
@@ -2489,12 +2590,27 @@ export default function SettingsPage() {
                           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 4 }}>{f.name}</div>
                           <div style={{ fontSize: 10, color: 'var(--muted-dim)', lineHeight: 1.4 }}>{f.desc}</div>
                           {isActive && (
-                            <div style={{ marginTop: 8, fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: 'var(--gold)' }}>Active</div>
+                            <div style={{ marginTop: 8, fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: 'var(--gold)' }}>
+                              {f.key === savedFontSet ? 'Active' : 'Previewing'}
+                            </div>
                           )}
                         </button>
                       );
                     })}
                   </div>
+                  {fontSetChanged && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                      <button onClick={() => handleFontSetSave()} disabled={fontSetSaving}
+                        style={{ fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--gold)', color: '#fff', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: fontSetSaving ? 0.6 : 1 }}>
+                        {fontSetSaving ? 'Saving…' : 'Save Font Set'}
+                      </button>
+                      <button onClick={handleFontSetRevert}
+                        style={{ fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--separator)', cursor: 'pointer', background: 'transparent', color: 'var(--muted-dim)' }}>
+                        Revert
+                      </button>
+                      <span style={{ fontSize: 10, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Previewing — click Save to keep</span>
+                    </div>
+                  )}
                 </div>
 
         <SectionTitle title="Data Curation Configuration" subtitle="Control behavior for the entire center.">
