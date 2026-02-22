@@ -221,24 +221,42 @@ function SectionTitle({ title, subtitle, children }: { title: string; subtitle?:
 }
 
 const PALETTES = [
-  { key: 'botanical', name: 'Botanical', desc: 'Warm tan, cream & sage — the original', bg: '#C8BDA8', surface: '#F2EBE0', accent: '#AA8E67', sidebar: '#0E1A09' },
-  { key: 'ocean',     name: 'Ocean',     desc: 'Steel blue & navy — logo inspired',    bg: '#c2d2dc', surface: '#dde8ef', accent: '#8fa8b8', sidebar: '#0d1e2b' },
-  { key: 'midnight',  name: 'Midnight',  desc: 'Deep charcoal & champagne gold',       bg: '#2a2a2a', surface: '#333333', accent: '#c9a96e', sidebar: '#1a1a1a' },
-  { key: 'desert',    name: 'Desert',    desc: 'Warm sand & terracotta',               bg: '#d4c4a8', surface: '#ede0c8', accent: '#c47c3a', sidebar: '#1a0e04' },
-  { key: 'slate',     name: 'Slate',     desc: 'Cool gray & silver',                   bg: '#bec8cc', surface: '#d8e0e4', accent: '#7a9aaa', sidebar: '#0e1820' },
+  { key: 'botanical',  name: 'Botanical',  desc: 'Warm tan, cream & sage — the original', bg: '#C8BDA8', surface: '#F2EBE0', accent: '#AA8E67', sidebar: '#0E1A09' },
+  { key: 'ocean',      name: 'Ocean',      desc: 'Steel blue & navy — logo inspired',     bg: '#c2d2dc', surface: '#dde8ef', accent: '#8fa8b8', sidebar: '#0d1e2b' },
+  { key: 'midnight',   name: 'Midnight',   desc: 'Deep charcoal & champagne gold',        bg: '#2a2a2a', surface: '#333333', accent: '#c9a96e', sidebar: '#1a1a1a' },
+  { key: 'desert',     name: 'Desert',     desc: 'Warm sand & terracotta',                bg: '#d4c4a8', surface: '#ede0c8', accent: '#c47c3a', sidebar: '#1a0e04' },
+  { key: 'slate',      name: 'Slate',      desc: 'Cool gray & silver',                    bg: '#bec8cc', surface: '#d8e0e4', accent: '#7a9aaa', sidebar: '#0e1820' },
+  { key: 'navy-reef',  name: 'Navy Reef',  desc: 'Deep navy + coral accents',             bg: '#1e2d3d', surface: '#283a4e', accent: '#e8926a', sidebar: '#0f1a26' },
+  { key: 'arctic',     name: 'Arctic',     desc: 'Frost-white + ice-blue',                bg: '#e8eff4', surface: '#f4f8fb', accent: '#5a9ab5', sidebar: '#0c1820' },
+  { key: 'dusk',       name: 'Dusk',       desc: 'Violet twilight + warm amber',          bg: '#2a2535', surface: '#352f42', accent: '#d4a65a', sidebar: '#1a1524' },
+  { key: 'ember',      name: 'Ember',      desc: 'Warm charcoal + flame orange',          bg: '#2e2420', surface: '#3a302a', accent: '#e8844a', sidebar: '#1a120e' },
+  { key: 'sage-mist',  name: 'Sage Mist',  desc: 'Soft green-gray + eucalyptus',          bg: '#d4ddd0', surface: '#e8efe4', accent: '#8aaa78', sidebar: '#0e1a0c' },
 ] as const;
 
 type PaletteKey = typeof PALETTES[number]['key'];
 
+const FONT_SETS = [
+  { key: 'botanical', name: 'Botanical',  desc: 'Montserrat + Gelasio + Figtree — the original' },
+  { key: 'modern',    name: 'Modern',     desc: 'Inter / system-ui across all elements' },
+  { key: 'classic',   name: 'Classic',    desc: 'Playfair Display + Lora — editorial feel' },
+  { key: 'minimal',   name: 'Minimal',    desc: 'DM Sans monofamily — clean & neutral' },
+] as const;
+
+type FontSetKey = typeof FONT_SETS[number]['key'];
+
 export default function SettingsPage() {
   const [activeModule, setActiveModule] = useState<ModuleKey>('hub');
   const [activePalette, setActivePalette] = useState<PaletteKey>('botanical');
+  const [activeFontSet, setActiveFontSet] = useState<FontSetKey>('botanical');
   const [paletteSaving, setPaletteSaving] = useState(false);
+  const [fontSetSaving, setFontSetSaving] = useState(false);
   const { config: propertyConfig, refresh: refreshPropertyConfig } = usePropertyConfig();
 
   useEffect(() => {
     const saved = propertyConfig?.settings?.brand?.colors?.palette as PaletteKey | undefined;
     if (saved) setActivePalette(saved);
+    const savedFont = (propertyConfig?.settings?.brand as Record<string, unknown>)?.fontSet as FontSetKey | undefined;
+    if (savedFont) setActiveFontSet(savedFont);
   }, [propertyConfig]);
 
   const handlePaletteSave = async (paletteKey: PaletteKey) => {
@@ -270,6 +288,35 @@ export default function SettingsPage() {
       await refreshPropertyConfig();
     } finally {
       setPaletteSaving(false);
+    }
+  };
+
+  const handleFontSetSave = async (fontSetKey: FontSetKey) => {
+    setActiveFontSet(fontSetKey);
+    if (fontSetKey === 'botanical') {
+      document.documentElement.removeAttribute('data-fontset');
+    } else {
+      document.documentElement.setAttribute('data-fontset', fontSetKey);
+    }
+    setFontSetSaving(true);
+    try {
+      const current = (propertyConfig?.settings ?? {}) as Record<string, unknown>;
+      await fetch('/api/admin/property-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          settings: {
+            ...current,
+            brand: {
+              ...(current.brand ?? {}),
+              fontSet: fontSetKey,
+            },
+          },
+        }),
+      });
+      await refreshPropertyConfig();
+    } finally {
+      setFontSetSaving(false);
     }
   };
 
@@ -2259,7 +2306,7 @@ export default function SettingsPage() {
                       </div>
                     )}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
                     {PALETTES.map(p => {
                       const isActive = activePalette === p.key;
                       return (
@@ -2298,14 +2345,61 @@ export default function SettingsPage() {
                             )}
                           </div>
                           <div style={{ background: p.surface, padding: '8px 10px 10px' }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: p.bg === '#2a2a2a' ? '#f0ede8' : '#1a1a1a', letterSpacing: '0.04em', marginBottom: 2 }}>{p.name}</div>
-                            <div style={{ fontSize: 10, color: p.bg === '#2a2a2a' ? 'rgba(240,237,232,0.5)' : 'rgba(26,26,26,0.45)', lineHeight: 1.4 }}>{p.desc}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: ['#2a2a2a','#1e2d3d','#2a2535','#2e2420'].includes(p.bg) ? '#f0ede8' : '#1a1a1a', letterSpacing: '0.04em', marginBottom: 2 }}>{p.name}</div>
+                            <div style={{ fontSize: 10, color: ['#2a2a2a','#1e2d3d','#2a2535','#2e2420'].includes(p.bg) ? 'rgba(240,237,232,0.5)' : 'rgba(26,26,26,0.45)', lineHeight: 1.4 }}>{p.desc}</div>
                           </div>
                         </button>
                       );
                     })}
                   </div>
                 </div>
+
+                {/* ── Font Set ── */}
+                <div style={{ marginBottom: 32 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'var(--fs-heading)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: 'var(--charcoal)' }}>Font Set</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted-dim)', marginTop: 2 }}>Switch the heading, body, and mono typefaces across the portal</div>
+                    </div>
+                    {fontSetSaving && (
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <img src="/brand_assets/nayara-logo-round.png" alt="" className="nayara-logo-spin" style={{ width: 16, height: 16, opacity: 0.5 }} />
+                        <span style={{ fontSize: 11, color: 'var(--muted-dim)' }}>Saving…</span>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                    {FONT_SETS.map(f => {
+                      const isActive = activeFontSet === f.key;
+                      return (
+                        <button
+                          key={f.key}
+                          onClick={() => handleFontSetSave(f.key)}
+                          style={{
+                            border: isActive ? '2px solid var(--gold)' : '2px solid var(--separator)',
+                            borderRadius: 12,
+                            cursor: 'pointer',
+                            background: isActive ? 'var(--surface)' : 'transparent',
+                            padding: '14px 16px',
+                            textAlign: 'left' as const,
+                            boxShadow: isActive ? 'var(--card-shadow-hover)' : 'none',
+                            transition: 'border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease',
+                            transform: isActive ? 'translateY(-2px)' : 'none',
+                          }}
+                          onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; }}
+                          onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.transform = 'none'; }}
+                        >
+                          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 4 }}>{f.name}</div>
+                          <div style={{ fontSize: 10, color: 'var(--muted-dim)', lineHeight: 1.4 }}>{f.desc}</div>
+                          {isActive && (
+                            <div style={{ marginTop: 8, fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: 'var(--gold)' }}>Active</div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
         <SectionTitle title="Data Curation Configuration" subtitle="Control behavior for the entire center.">
           <button type="button" onClick={() => void saveSettings()} disabled={settingsSaving} className="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 disabled:opacity-50">
             {settingsSaving ? 'Saving...' : 'Save Changes'}
