@@ -18,6 +18,33 @@ import { usePropertyConfig } from '@/contexts/PropertyConfigContext';
 import { localDateString } from '@/lib/dates';
 import { TransferModal } from '../transfers/TransferModal';
 
+/** Format an ISO date string or Date to a compact display string */
+function fmtDate(raw: string | Date | null | undefined): string {
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return String(raw);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+/** Format status into a clean label */
+function fmtStatus(s: string | null | undefined): string {
+  if (!s) return '—';
+  const lower = s.toLowerCase().trim();
+  if (lower === 'checked in') return 'Checked In';
+  if (lower === 'checked out') return 'Checked Out';
+  if (lower === 'reserved') return 'Reserved';
+  if (lower === 'cancelled') return 'Cancelled';
+  return s;
+}
+
+function statusColor(s: string | null | undefined): { bg: string; text: string } {
+  const lower = (s || '').toLowerCase().trim();
+  if (lower === 'checked in') return { bg: 'rgba(78,94,62,0.15)', text: 'var(--sage)' };
+  if (lower === 'reserved') return { bg: 'rgba(170,142,103,0.15)', text: 'var(--gold)' };
+  if (lower === 'confirmed') return { bg: 'rgba(78,94,62,0.15)', text: 'var(--sage)' };
+  return { bg: 'rgba(124,142,103,0.10)', text: 'var(--muted-dim)' };
+}
+
 function OccBar({ label, fill, count }: { label: string; fill: string; count: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -65,7 +92,7 @@ function StatCard({
           <Icon style={{ width: 14, height: 14, strokeWidth: 1.8 }} />
         </div>
       </div>
-      <div style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontSize: 30, fontWeight: 700, lineHeight: 1, color: numColor }}>{num}</div>
+      <div style={{ fontFamily: 'var(--fs-subheading)', fontSize: 30, fontWeight: 700, lineHeight: 1, color: numColor }}>{num}</div>
       <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.11em', textTransform: 'uppercase', color: 'var(--muted-dim)' }}>{label}</div>
       <div style={{ fontSize: 10, color: 'var(--muted-dim)', marginTop: 2 }}>{hint}</div>
     </div>
@@ -99,12 +126,12 @@ function ModuleTile({
       <div style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: accentFaint, color: accent }}>
         <Icon style={{ width: 18, height: 18, strokeWidth: 1.6 }} />
       </div>
-      <div style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 14, fontWeight: 700, color: 'var(--charcoal)' }}>{name}</div>
+      <div style={{ fontFamily: 'var(--fs-subheading)', fontStyle: 'italic', fontSize: 14, fontWeight: 700, color: 'var(--charcoal)' }}>{name}</div>
       <div style={{ fontSize: 10, color: 'var(--muted-dim)', lineHeight: 1.5 }}>{desc}</div>
       <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
         {stats.map(s => (
           <div key={s.lbl}>
-            <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 16, fontWeight: 700, color: accent, lineHeight: 1 }}>{s.num}</div>
+            <div style={{ fontFamily: 'var(--fs-mono)', fontSize: 16, fontWeight: 700, color: accent, lineHeight: 1 }}>{s.num}</div>
             <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted-dim)' }}>{s.lbl}</div>
           </div>
         ))}
@@ -116,15 +143,114 @@ function ModuleTile({
   );
 }
 
-function FeedItem({ dot, text, meta, time }: { dot: string; text: React.ReactNode; meta: string; time: string }) {
+/** Compact guest row for arrivals/departures feed */
+function GuestRow({
+  name,
+  room,
+  status,
+  hasTransfer,
+  onGuestClick,
+}: {
+  name: string;
+  room: string;
+  status: string;
+  hasTransfer?: boolean;
+  onGuestClick?: () => void;
+}) {
+  const sc = statusColor(status);
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, padding: '8px 16px', borderBottom: '1px solid rgba(124,142,103,0.06)' }}>
-      <div style={{ width: 6, height: 6, borderRadius: '50%', background: dot, marginTop: 5, flexShrink: 0 }} />
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '7px 14px',
+      borderBottom: '1px solid rgba(124,142,103,0.06)',
+    }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.45 }}>{text}</div>
-        <div style={{ fontSize: 9, color: 'var(--muted-dim)', marginTop: 1 }}>{meta}</div>
+        <span
+          onClick={onGuestClick}
+          style={{
+            fontSize: 12, fontWeight: 600, color: onGuestClick ? 'var(--sage)' : 'var(--charcoal)',
+            cursor: onGuestClick ? 'pointer' : 'default',
+            textDecoration: onGuestClick ? 'underline' : 'none',
+            textDecorationColor: 'rgba(78,94,62,0.3)',
+            textUnderlineOffset: '2px',
+          }}
+        >
+          {name}
+        </span>
       </div>
-      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--muted-dim)', flexShrink: 0, marginTop: 3 }}>{time}</span>
+      <span style={{
+        fontFamily: 'var(--fs-mono)', fontSize: 11, fontWeight: 600,
+        color: 'var(--gold)', flexShrink: 0, minWidth: 36, textAlign: 'center',
+      }}>
+        {room || '—'}
+      </span>
+      <span style={{
+        fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+        padding: '2px 7px', borderRadius: 10,
+        background: sc.bg, color: sc.text, flexShrink: 0,
+      }}>
+        {fmtStatus(status)}
+      </span>
+      {hasTransfer !== undefined && (
+        <span style={{
+          fontSize: 9, color: hasTransfer ? 'var(--sage)' : 'var(--muted-dim)',
+          flexShrink: 0,
+        }}>
+          {hasTransfer ? '✓ Transfer' : 'No transfer'}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** Transfer row for coming-up feed */
+function TransferRow({
+  guestName,
+  origin,
+  destination,
+  time,
+  status,
+  onClick,
+}: {
+  guestName: string;
+  origin: string;
+  destination: string;
+  time: string;
+  status: string;
+  onClick?: () => void;
+}) {
+  const sc = statusColor(status);
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '7px 14px',
+        borderBottom: '1px solid rgba(124,142,103,0.06)',
+        cursor: onClick ? 'pointer' : 'default',
+      }}
+    >
+      <span style={{
+        fontFamily: 'var(--fs-mono)', fontSize: 11, fontWeight: 600,
+        color: 'var(--gold)', flexShrink: 0, minWidth: 40,
+      }}>
+        {time}
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--charcoal)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {guestName}
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--muted-dim)' }}>
+          {origin} → {destination}
+        </div>
+      </div>
+      <span style={{
+        fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+        padding: '2px 7px', borderRadius: 10,
+        background: sc.bg, color: sc.text, flexShrink: 0,
+      }}>
+        {fmtStatus(status)}
+      </span>
     </div>
   );
 }
@@ -189,7 +315,12 @@ export default function DashboardPage() {
   const unreadMsgs   = data.conversations.reduce((s: number, c: any) => s + parseInt(c.unread_count || '0'), 0);
   const openRequests = data.requests.filter((r: any) => r.status !== 'resolved' && r.status !== 'cancelled').length;
   const inhouseCount = data.inhouse.length;
-  const totalVillas  = config?.settings?.rooms?.totalUnits ?? 37;
+
+  // Total villas: prefer propertyConfig totalUnits, then sum of room categories, then 37 fallback
+  const cfgTotalUnits = config?.settings?.rooms?.totalUnits;
+  const cfgCategorySum = (config?.settings?.rooms?.categories ?? []).reduce((sum: number, c: any) => sum + (c.total || 0), 0);
+  const totalVillas = (cfgTotalUnits && cfgTotalUnits > 0) ? cfgTotalUnits : (cfgCategorySum > 0 ? cfgCategorySum : 37);
+
   const occPct       = totalVillas > 0 ? Math.round((inhouseCount / totalVillas) * 100) : 0;
   const occLabel     = occPct >= 90 ? 'Near Full' : occPct >= 70 ? 'High' : occPct >= 40 ? 'Moderate' : 'Low';
 
@@ -209,10 +340,10 @@ export default function DashboardPage() {
 
           {/* Occupancy */}
           <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-dim)' }}>Tonight&apos;s Occupancy</div>
+            <div style={{ fontFamily: 'var(--fs-subheading)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-dim)' }}>Tonight&apos;s Occupancy</div>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontSize: 42, fontWeight: 700, color: 'var(--gold)', lineHeight: 1 }}>
+                <div style={{ fontFamily: 'var(--fs-subheading)', fontSize: 42, fontWeight: 700, color: 'var(--gold)', lineHeight: 1 }}>
                   {occPct}<span style={{ fontSize: 18, color: 'var(--muted-dim)' }}>%</span>
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--muted-dim)', marginTop: -4 }}>
@@ -255,7 +386,7 @@ export default function DashboardPage() {
           {/* Rain radar */}
           <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, boxShadow: 'var(--card-shadow)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '8px 12px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--separator)', flexShrink: 0 }}>
-              <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 12, color: 'var(--sage)' }}>Rain Radar</span>
+              <span style={{ fontFamily: 'var(--fs-subheading)', fontStyle: 'italic', fontSize: 12, color: 'var(--sage)' }}>Rain Radar</span>
               <span style={{ fontSize: 9, color: 'var(--muted-dim)', letterSpacing: '0.04em' }}>Bocas del Toro · Live</span>
             </div>
             <iframe
@@ -299,71 +430,102 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* BOTTOM FEEDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      {/* BOTTOM FEEDS — 3-column layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
 
-        {/* Upcoming arrivals */}
+        {/* Arrivals */}
         <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--separator)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Arrivals Today</span>
+          <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid var(--separator)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontFamily: 'var(--fs-subheading)', fontStyle: 'italic', fontSize: 13, color: 'var(--gold)' }}>Arrivals</span>
+              <span style={{ fontFamily: 'var(--fs-mono)', fontSize: 11, fontWeight: 700, color: 'var(--gold)' }}>{data.arrivals.length}</span>
+            </div>
             <Link href={`/${locale}/staff/reservations`} style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}>See all</Link>
           </div>
-          <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+          <div style={{ maxHeight: 340, overflowY: 'auto' }}>
             {data.arrivals.length === 0 ? (
-              <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>No arrivals today</div>
+              <div style={{ padding: '24px 14px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>No arrivals today</div>
             ) : (
-              data.arrivals.slice(0, 6).map((r: any) => (
-                <div key={r.id} style={{ cursor: r.guest_id ? 'pointer' : 'default' }}>
-                  <FeedItem
-                    dot="var(--gold)"
-                    text={
-                      <>
-                        <strong
-                          onClick={() => r.guest_id && openGuest(r.guest_id)}
-                          style={{ cursor: r.guest_id ? 'pointer' : 'default', color: r.guest_id ? 'var(--sage)' : 'inherit', textDecoration: r.guest_id ? 'underline' : 'none', textDecorationColor: 'rgba(78,94,62,0.3)' }}
-                        >
-                          {r.guest_name || r.opera_guest_name || '—'}
-                        </strong>
-                        {' '}arrival — {r.room || 'Room TBD'}
-                      </>
-                    }
-                    meta={`Concierge · ${r.transfer_booked ? 'Transfer confirmed' : 'No transfer'}`}
-                    time={r.room || '—'}
-                  />
-                </div>
+              data.arrivals.map((r: any) => (
+                <GuestRow
+                  key={r.id}
+                  name={r.guest_name || r.opera_guest_name || '—'}
+                  room={r.room || '—'}
+                  status={r.status}
+                  hasTransfer={!!r.transfer_booked}
+                  onGuestClick={r.guest_id ? () => openGuest(r.guest_id) : undefined}
+                />
               ))
             )}
           </div>
         </div>
 
-        {/* Coming up: transfers + tours */}
+        {/* Departures */}
         <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--separator)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-gelasio), Georgia, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Coming Up Today</span>
+          <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid var(--separator)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontFamily: 'var(--fs-subheading)', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Departures</span>
+              <span style={{ fontFamily: 'var(--fs-mono)', fontSize: 11, fontWeight: 700, color: 'var(--sage)' }}>{data.departures.length}</span>
+            </div>
+            <Link href={`/${locale}/staff/reservations`} style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}>See all</Link>
+          </div>
+          <div style={{ maxHeight: 340, overflowY: 'auto' }}>
+            {data.departures.length === 0 ? (
+              <div style={{ padding: '24px 14px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>No departures today</div>
+            ) : (
+              data.departures.map((r: any) => (
+                <GuestRow
+                  key={r.id}
+                  name={r.guest_name || r.opera_guest_name || '—'}
+                  room={r.room || '—'}
+                  status={r.status}
+                  onGuestClick={r.guest_id ? () => openGuest(r.guest_id) : undefined}
+                />
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Transfers & Tours */}
+        <div style={{ background: 'var(--surface)', border: '1px solid rgba(124,142,103,0.14)', borderRadius: 14, boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid var(--separator)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontFamily: 'var(--fs-subheading)', fontStyle: 'italic', fontSize: 13, color: 'var(--sage)' }}>Transfers</span>
+              <span style={{ fontFamily: 'var(--fs-mono)', fontSize: 11, fontWeight: 700, color: 'var(--sage)' }}>{data.transfers.length}</span>
+            </div>
             <Link href={`/${locale}/staff/concierge`} style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}>Full view</Link>
           </div>
-          <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-            {data.transfers.slice(0, 3).map((t: any) => (
-              <div key={`t-${t.id}`} onClick={() => { setEditingTransfer(t); setTransferModalOpen(true); }} style={{ cursor: 'pointer' }}>
-                <FeedItem
-                  dot="var(--gold)"
-                  text={<><strong>{t.guest_name || '—'}</strong> transfer — {t.origin} → {t.destination}</>}
-                  meta={`Concierge · Transfers · ${t.vendor_name || '—'}`}
-                  time={t.time?.slice(0, 5) || '—'}
-                />
-              </div>
-            ))}
-            {data.tours.slice(0, 3).map((t: any) => (
-              <FeedItem
-                key={`tour-${t.id}`}
-                dot="var(--sage)"
-                text={<><strong>{t.name_en || '—'}</strong> — {t.guest_name || '—'}</>}
-                meta={`Concierge · Tours · ${t.vendor_name || t.legacy_vendor_name || '—'}`}
-                time={t.start_time?.slice(0, 5) || '—'}
+          <div style={{ maxHeight: 340, overflowY: 'auto' }}>
+            {data.transfers.map((t: any) => (
+              <TransferRow
+                key={`t-${t.id}`}
+                guestName={t.guest_name || '—'}
+                origin={t.origin || '—'}
+                destination={t.destination || '—'}
+                time={t.time?.slice(0, 5) || '—'}
+                status={t.guest_status || '—'}
+                onClick={() => { setEditingTransfer(t); setTransferModalOpen(true); }}
               />
             ))}
+            {data.tours.length > 0 && (
+              <>
+                <div style={{ padding: '6px 14px 4px', fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-dim)', borderTop: '1px solid var(--separator)' }}>
+                  Tours · {data.tours.length}
+                </div>
+                {data.tours.slice(0, 3).map((t: any) => (
+                  <TransferRow
+                    key={`tour-${t.id}`}
+                    guestName={t.guest_name || '—'}
+                    origin={t.name_en || 'Tour'}
+                    destination={`${t.num_guests || '—'} guests`}
+                    time={t.start_time?.slice(0, 5) || '—'}
+                    status={t.guest_status || 'confirmed'}
+                  />
+                ))}
+              </>
+            )}
             {data.transfers.length === 0 && data.tours.length === 0 && (
-              <div style={{ padding: '24px 16px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Nothing scheduled today</div>
+              <div style={{ padding: '24px 14px', textAlign: 'center', fontSize: 12, color: 'var(--muted-dim)', fontStyle: 'italic' }}>Nothing scheduled today</div>
             )}
           </div>
         </div>
